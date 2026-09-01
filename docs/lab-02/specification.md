@@ -118,8 +118,8 @@ All requester-scoped endpoints enforce ownership: a requester may only reach (an
 - **AC-11** Given an unsupported file type or oversized file, when the requester uploads it, then a safe field-level error is shown and no Attachment is created.
 - **AC-12** Given a backend failure during submission, when the requester submits the form, then a safe error state is shown and the entered form values are preserved.
 - **AC-13** Given a requester navigates the app on desktop, tablet, and mobile viewports, then the layout is responsive with no clipping, overlap, hidden buttons, or horizontal page scrolling.
-
-(Additional criteria cover empty vs no-results list states, loading/failure states, and attachment present/uploading/invalid/removed states, mapped in `tests.md`.)
+- **AC-14** Given a requester opens My Tickets, when their Ticket list is empty, then an "empty" state is shown; and when search or filters are applied with no matches, then a distinct "no-results" state is shown.
+- **AC-15** Given a requester opens an owned Ticket's attachments, when an Attachment is uploading, invalid, active, soft-removed, or unavailable, then each state is presented distinctly and behaves correctly.
 
 ## 10. Definition of Done
 
