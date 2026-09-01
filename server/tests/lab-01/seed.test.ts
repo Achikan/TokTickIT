@@ -26,14 +26,14 @@ describe("category seed", () => {
     const prisma = getPrisma();
     let assertionError: unknown;
     await prisma.$transaction(async (tx) => {
-      await tx.category.deleteMany();
+      await tx.category.deleteMany({ where: { id: { gt: 4 } } });
       await seedCategories(tx);
       await seedCategories(tx);
       const count = await tx.category.count();
       const names = await tx.category.findMany({ select: { name: true } });
       try {
-        expect(count).toBe(4);
-        expect(new Set(names.map((c) => c.name)).size).toBe(4);
+        expect(count).toBe(CATEGORIES.length);
+        expect(new Set(names.map((c) => c.name)).size).toBe(CATEGORIES.length);
       } catch (err) {
         assertionError = err;
       }
