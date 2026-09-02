@@ -363,4 +363,72 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Issue 10 — Retrieve one owned Ticket (detail view).
+// GET /api/tickets/:id -> returns full Ticket data including attachments,
+// only for the owner identified by X-Requester-Id (BR-04, FR-13, FR-14).
+// A foreign or missing Ticket is rejected with 404 (non-disclosing, AC-03/AC-10).
+// ---------------------------------------------------------------------------
+app.get("/api/tickets/:id", async (req: Request, res: Response) => {
+  const headerRequesterId = req.header("X-Requester-Id") ?? "";
+  if (headerRequesterId === "") {
+    return res
+      .status(403)
+      .json({ error: { code: "FORBIDDEN", message: "Missing X-Requester-Id header" } });
+  }
+
+  const ticketId = Number(req.params.id);
+  if (!Number.isInteger(ticketId) || ticketId < 1) {
+    return res
+      .status(404)
+      .json({ error: { code: "NOT_FOUND", message: "Ticket not found." } });
+  }
+
+  try {
+    const prisma = getPrisma();
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: { category: true, relatedSystem: true, attachments: true },
+    });
+
+    if (!ticket || ticket.requesterId !== Number(headerRequesterId)) {
+      return res
+        .status(404)
+        .json({ error: { code: "NOT_FOUND", message: "Ticket not found." } });
+    }
+
+    res.status(200).json({
+      ticket: {
+        ticketNumber: ticket.ticketNumber,
+        id: ticket.id,
+        summary: ticket.summary,
+        description: ticket.description,
+        requesterId: ticket.requesterId,
+        category: { id: ticket.category.id, name: ticket.category.name },
+        relatedSystem: {
+          id: ticket.relatedSystem.id,
+          name: ticket.relatedSystem.name,
+          type: ticket.relatedSystem.type,
+        },
+        requestedPriority: ticket.requestedPriority,
+        itPriority: ticket.itPriority,
+        currentStatus: ticket.currentStatus,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+        attachments: ticket.attachments.map((a) => ({
+          id: a.id,
+          originalName: a.originalName,
+          mimeType: a.mimeType,
+          size: a.size,
+          uploadedAt: a.uploadedAt,
+          removedAt: a.removedAt,
+          removedReason: a.removedReason,
+        })),
+      },
+    });
+  } catch {
+    res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Unable to load ticket" } });
+  }
+});
+
 export default app;

@@ -138,6 +138,32 @@ export async function createTicket(
   return body.ticket as Ticket;
 }
 
+export interface AttachmentInfo {
+  id: number;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  removedAt: string | null;
+  removedReason: string | null;
+}
+
+export interface TicketDetail {
+  ticketNumber: string;
+  id: number;
+  summary: string;
+  description: string;
+  requesterId: number;
+  category: { id: number; name: string };
+  relatedSystem: { id: number; name: string; type: string };
+  requestedPriority: Priority;
+  itPriority: Priority;
+  currentStatus: Status;
+  createdAt: string;
+  updatedAt: string;
+  attachments: AttachmentInfo[];
+}
+
 // Issue 9 — list the selected requester's tickets (requester-scoped identity header).
 export async function fetchMyTickets(
   requesterId: number,
@@ -159,4 +185,17 @@ export async function fetchMyTickets(
   });
   if (!res.ok) throw new Error("Unable to load tickets");
   return (await res.json()) as MyTicketsResponse;
+}
+
+// Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §6).
+export async function fetchTicketDetail(
+  requesterId: number,
+  ticketId: number
+): Promise<TicketDetail> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+    headers: { "X-Requester-Id": String(requesterId) },
+  });
+  if (!res.ok) throw new Error("Unable to load ticket");
+  const body = await res.json();
+  return body.ticket as TicketDetail;
 }
