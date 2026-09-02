@@ -4,6 +4,7 @@ import {
   DevelopmentRequester,
 } from "./api.js";
 import CreateTicket from "./CreateTicket.js";
+import MyTickets from "./MyTickets.js";
 
 // Requester selection screen for Lab 2 testing (NOT a real login screen).
 // Authentication and role-based access arrive in Lab 3.
@@ -97,6 +98,7 @@ function RequesterSelection({ onSelect }: { onSelect: (r: DevelopmentRequester) 
 
 export default function App() {
   const [selected, setSelected] = useState<DevelopmentRequester | null>(null);
+  const [view, setView] = useState<"my-tickets" | "create-ticket">("my-tickets");
 
   if (selected === null) {
     return <RequesterSelection onSelect={setSelected} />;
@@ -118,17 +120,44 @@ export default function App() {
             <button
               type="button"
               className="btn btn-sm btn-success"
-              onClick={() => setSelected(null)}
+              onClick={() => {
+                setSelected(null);
+              }}
               style={{ background: "#0B7A46", borderColor: "#0B7A46" }}
             >
               Change Requester
             </button>
           </div>
+
+          <nav className="nav nav-pills mt-3" aria-label="Primary navigation">
+            <button
+              type="button"
+              className={`nav-link ${view === "my-tickets" ? "active" : ""}`}
+              style={view === "my-tickets" ? { background: "#0B7A46" } : { color: "#fff" }}
+              onClick={() => setView("my-tickets")}
+              aria-current={view === "my-tickets" ? "page" : undefined}
+            >
+              My Tickets
+            </button>
+            <button
+              type="button"
+              className={`nav-link ${view === "create-ticket" ? "active" : ""}`}
+              style={view === "create-ticket" ? { background: "#0B7A46" } : { color: "#fff" }}
+              onClick={() => setView("create-ticket")}
+              aria-current={view === "create-ticket" ? "page" : undefined}
+            >
+              Create Ticket
+            </button>
+          </nav>
         </div>
       </header>
 
       <div className="container" style={{ maxWidth: 720 }}>
-        <CreateTicket requester={selected} />
+        {view === "my-tickets" ? (
+          <MyTickets key={selected.id} requester={selected} onCreate={() => setView("create-ticket")} />
+        ) : (
+          <CreateTicket requester={selected} onViewTickets={() => setView("my-tickets")} />
+        )}
       </div>
     </div>
   );

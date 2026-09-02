@@ -188,4 +188,164 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Issue 9 — My Tickets (list, requester-scoped)
+// GET /api/tickets?search=&categoryId=&relatedSystemId=&status=&requestedPriority=&sort=&page=&pageSize=
+//   -> only Tickets owned by X-Requester-Id (BR-04); search/filter/sort/pagination per api-spec.md §5.
+//   Invalid page/size/sort/filter values are rejected with 400 (BR-10), never silently ignored.
+// ---------------------------------------------------------------------------
+const VALID_STATUSES = ["SUBMITTED", "IN_PROGRESS", "RESOLVED"] as const;
+const VALID_SORT_COLUMNS = [
+  "ticketNumber",
+  "summary",
+  "requestedPriority",
+  "itPriority",
+  "currentStatus",
+  "createdAt",
+  "updatedAt",
+] as const;
+
+app.get("/api/tickets", async (req: Request, res: Response) => {
+  const headerRequesterId = req.header("X-Requester-Id") ?? "";
+  if (headerRequesterId === "") {
+    return res
+      .status(403)
+      .json({ error: { code: "FORBIDDEN", message: "Missing X-Requester-Id header" } });
+  }
+
+  const fields: Record<string, string> = {};
+  const query = req.query;
+
+  const parseIntParam = (value: unknown, name: string, max?: number): number | null => {
+    if (value === undefined) return null;
+    const n = Number(value);
+    if (!Number.isInteger(n) || n < 1 || (max !== undefined && n > max)) {
+      fields[name] = `${name} must be an integer${max ? ` between 1 and ${max}` : " >= 1"}.`;
+      return null;
+    }
+    return n;
+  };
+
+  const page = parseIntParam(query.page, "page") ?? 1;
+  const pageSize = parseIntParam(query.pageSize, "pageSize", 50) ?? 10;
+
+  const valueOf = (value: unknown): string | null =>
+    typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+
+  const search = valueOf(query.search);
+  const categoryIdRaw = valueOf(query.categoryId);
+  const relatedSystemIdRaw = valueOf(query.relatedSystemId);
+  const statusRaw = valueOf(query.status);
+  const priorityRaw = valueOf(query.requestedPriority);
+  const sortRaw = valueOf(query.sort);
+
+  let categoryId: number | null = null;
+  let relatedSystemId: number | null = null;
+  let status: (typeof VALID_STATUSES)[number] | null = null;
+  let priority: (typeof VALID_PRIORITIES)[number] | null = null;
+
+  if (categoryIdRaw !== null) {
+    const n = Number(categoryIdRaw);
+    if (!Number.isInteger(n) || n < 1) {
+      fields.categoryId = "Category id must be a positive integer.";
+    } else {
+      categoryId = n;
+    }
+  }
+  if (relatedSystemIdRaw !== null) {
+    const n = Number(relatedSystemIdRaw);
+    if (!Number.isInteger(n) || n < 1) {
+      fields.relatedSystemId = "Related system id must be a positive integer.";
+    } else {
+      relatedSystemId = n;
+    }
+  }
+
+  if (statusRaw !== null) {
+    if (VALID_STATUSES.includes(statusRaw as (typeof VALID_STATUSES)[number])) {
+      status = statusRaw as (typeof VALID_STATUSES)[number];
+    } else {
+      fields.status = "Status is invalid.";
+    }
+  }
+  if (priorityRaw !== null) {
+    if (VALID_PRIORITIES.includes(priorityRaw as (typeof VALID_PRIORITIES)[number])) {
+      priority = priorityRaw as (typeof VALID_PRIORITIES)[number];
+    } else {
+      fields.requestedPriority = "Requested Priority is invalid.";
+    }
+  }
+
+  let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+  if (sortRaw !== null) {
+    const match = /^([+-]?)([A-Za-z]+)$/.exec(sortRaw);
+    const column = match?.[2] ?? "";
+    if (match && (VALID_SORT_COLUMNS as readonly string[]).includes(column)) {
+      orderBy = { [column]: match[1] === "-" ? "desc" : "asc" };
+    } else {
+      fields.sort = "Sort value is invalid.";
+    }
+  }
+
+  if (Object.keys(fields).length > 0) {
+    return res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "Invalid query parameters.", fields } });
+  }
+
+  try {
+    const prisma = getPrisma();
+    const requester = await prisma.developmentRequester.findUnique({
+      where: { id: Number(headerRequesterId) },
+    });
+    if (!requester || !requester.active) {
+      return res.status(404).json({ error: { code: "NOT_FOUND", message: "Requester not found." } });
+    }
+
+    const where: Record<string, unknown> = { requesterId: requester.id };
+    if (search) {
+      where.OR = [
+        { summary: { contains: search, mode: "insensitive" } },
+        { description: { contains: search, mode: "insensitive" } },
+      ];
+    }
+    if (categoryId !== null) where.categoryId = categoryId;
+    if (relatedSystemId !== null) where.relatedSystemId = relatedSystemId;
+    if (status !== null) where.currentStatus = status;
+    if (priority !== null) where.requestedPriority = priority;
+
+    const total = await prisma.ticket.count({ where });
+    const totalPages = total === 0 ? 1 : Math.ceil(total / pageSize);
+    const tickets = await prisma.ticket.findMany({
+      where,
+      orderBy,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { category: true },
+    });
+
+    const filtersApplied: Record<string, unknown> = {};
+    if (search) filtersApplied.search = search;
+    if (categoryIdRaw !== null) filtersApplied.categoryId = categoryIdRaw;
+    if (relatedSystemIdRaw !== null) filtersApplied.relatedSystemId = relatedSystemIdRaw;
+    if (statusRaw !== null) filtersApplied.status = statusRaw;
+    if (priorityRaw !== null) filtersApplied.requestedPriority = priorityRaw;
+
+    res.status(200).json({
+      items: tickets.map((t) => ({
+        ticketNumber: t.ticketNumber,
+        id: t.id,
+        summary: t.summary,
+        category: { id: t.category.id, name: t.category.name },
+        requestedPriority: t.requestedPriority,
+        itPriority: t.itPriority,
+        currentStatus: t.currentStatus,
+        updatedAt: t.updatedAt,
+      })),
+      pagination: { page, pageSize, total, totalPages },
+      filtersApplied,
+    });
+  } catch {
+    res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Unable to list tickets" } });
+  }
+});
+
 export default app;

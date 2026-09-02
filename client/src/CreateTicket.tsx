@@ -14,11 +14,12 @@ const PRIORITIES: Priority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 interface Props {
   requester: DevelopmentRequester;
+  onViewTickets?: () => void;
 }
 
 type FormState = "idle" | "loading" | "submitting" | "success" | "failure";
 
-export default function CreateTicket({ requester }: Props) {
+export default function CreateTicket({ requester, onViewTickets }: Props) {
   const [formState, setFormState] = useState<FormState>("idle");
   const [categories, setCategories] = useState<Category[]>([]);
   const [relatedSystems, setRelatedSystems] = useState<RelatedSystem[]>([]);
@@ -91,9 +92,16 @@ export default function CreateTicket({ requester }: Props) {
       )}
 
       {formState === "success" && created && (
-        <div className="alert alert-success">
-          <strong>Ticket created.</strong> Official Ticket Number:
-          <span className="fw-bold"> {created.ticketNumber}</span>
+        <div className="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <strong>Ticket created.</strong> Official Ticket Number:
+            <span className="fw-bold"> {created.ticketNumber}</span>
+          </div>
+          {onViewTickets && (
+            <button type="button" className="btn btn-success btn-sm" onClick={onViewTickets}>
+              View in My Tickets
+            </button>
+          )}
         </div>
       )}
 

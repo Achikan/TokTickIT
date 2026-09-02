@@ -1,10 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
 describe("App", () => {
+  beforeEach(() => {
+    vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
+      items: [],
+      pagination: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+      filtersApplied: {},
+    });
+    vi.spyOn(api, "fetchCategories").mockResolvedValue([]);
+  });
+
   it("renders the TokTickIT heading", () => {
     vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue([]);
     render(<App />);
