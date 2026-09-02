@@ -35,4 +35,23 @@ app.get("/api/categories", async (_req: Request, res: Response) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Issue 7 — Development Requester context (testing-only "login")
+// GET /api/development-requesters -> only ACTIVE requesters, in id order.
+// The inactive requester must never appear in the selection dropdown.
+// ---------------------------------------------------------------------------
+app.get("/api/development-requesters", async (_req: Request, res: Response) => {
+  try {
+    const requesters = await getPrisma().developmentRequester.findMany({
+      where: { active: true },
+      orderBy: { id: "asc" },
+    });
+    res.status(200).json({
+      items: requesters.map(({ id, name, email }) => ({ id, name, email })),
+    });
+  } catch {
+    res.status(500).json({ error: "Unable to load development requesters" });
+  }
+});
+
 export default app;
