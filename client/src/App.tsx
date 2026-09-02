@@ -3,6 +3,7 @@ import {
   fetchDevelopmentRequesters,
   DevelopmentRequester,
 } from "./api.js";
+import CreateTicket from "./CreateTicket.js";
 
 // Requester selection screen for Lab 2 testing (NOT a real login screen).
 // Authentication and role-based access arrive in Lab 3.
@@ -102,25 +103,33 @@ export default function App() {
   }
 
   return (
-    <div className="container py-5" style={{ maxWidth: 640 }}>
-      <h1 className="h3 mb-1">
-        TokTickIT <span className="text-success">IT Service Desk</span>
-      </h1>
-      <p className="mb-4">
-        Selected Requester:{" "}
-        <strong>{selected.name}</strong>{" "}
-        <button
-          type="button"
-          className="btn btn-outline-secondary btn-sm ms-2"
-          onClick={() => setSelected(null)}
-        >
-          Change Requester
-        </button>
-      </p>
-      <p className="text-secondary">
-        Ticket screens (Create Ticket, My Tickets, Ticket Detail) are implemented in the next
-        Lab 2 issues.
-      </p>
+    <div className="app-shell">
+      <header className="app-header py-3 mb-4" style={{ background: "#006B3C" }}>
+        <div className="container" style={{ maxWidth: 720 }}>
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h1 className="h4 mb-0 text-white">
+                TokTickIT <span className="opacity-75">IT Service Desk</span>
+              </h1>
+              <div className="text-white-50 small">
+                Selected Requester: <strong className="text-white">{selected.name}</strong>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="btn btn-sm btn-success"
+              onClick={() => setSelected(null)}
+              style={{ background: "#0B7A46", borderColor: "#0B7A46" }}
+            >
+              Change Requester
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="container" style={{ maxWidth: 720 }}>
+        <CreateTicket requester={selected} />
+      </div>
     </div>
   );
 }
