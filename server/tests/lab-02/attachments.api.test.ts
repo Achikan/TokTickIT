@@ -99,7 +99,7 @@ describe("Attachment lifecycle (API-11..14)", () => {
   });
 
   it("API-11: rejects an oversized file with 400 and no row created", async () => {
-    const bigBuffer = Buffer.alloc(11 * 1024 * 1024, 0x41);
+    const bigBuffer = Buffer.alloc(6 * 1024 * 1024, 0x41);
 
     const res = await request(app)
       .post(`/api/tickets/${ticketId}/attachments`)
@@ -222,5 +222,65 @@ describe("Attachment lifecycle (API-11..14)", () => {
       .set("X-Requester-Id", String(bobId));
 
     expect(res.status).toBe(404);
+  });
+
+  // --- Allowed types (§4.5: JPG/JPEG, PNG, WEBP, PDF) ---
+
+  it("accepts a PDF upload (allowed type)", async () => {
+    const pdfBuffer = Buffer.from("%PDF-1.4 fake pdf", "utf-8");
+
+    const res = await request(app)
+      .post(`/api/tickets/${ticketId}/attachments`)
+      .set("X-Requester-Id", String(aliceId))
+      .attach("file", pdfBuffer, { filename: "doc.pdf", contentType: "application/pdf" });
+
+    expect(res.status).toBe(201);
+    expect(res.body.attachment.mimeType).toBe("application/pdf");
+  });
+
+  it("accepts a WEBP upload (allowed type)", async () => {
+    const webpBuffer = Buffer.from("RIFF....WEBPVP8 ", "utf-8");
+
+    const res = await request(app)
+      .post(`/api/tickets/${ticketId}/attachments`)
+      .set("X-Requester-Id", String(aliceId))
+      .attach("file", webpBuffer, { filename: "pic.webp", contentType: "image/webp" });
+
+    expect(res.status).toBe(201);
+    expect(res.body.attachment.mimeType).toBe("image/webp");
+  });
+
+  // --- Max active attachments (§4.5: five per Ticket) ---
+
+  it("rejects an upload when the ticket already has five active attachments (BR-07)", async () => {
+    // This ticket already has: pixel.png (removed later), doc.pdf, pic.webp and
+    // one active temp.png from an earlier soft-remove test. Ensure we have 5 active.
+    const prisma = getPrisma();
+    const existing = await prisma.attachment.findMany({
+      where: { ticketId, removedAt: null },
+    });
+    // Add attachments until we reach the 5-active limit.
+    while (existing.length < 5) {
+      const upd = await request(app)
+        .post(`/api/tickets/${ticketId}/attachments`)
+        .set("X-Requester-Id", String(aliceId))
+        .attach("file", Buffer.from("x", "utf-8"), { filename: "fill.png", contentType: "image/png" });
+      expect(upd.status).toBe(201);
+      existing.push(upd.body.attachment);
+    }
+
+    // Now the 6th active upload should be rejected.
+    const res = await request(app)
+      .post(`/api/tickets/${ticketId}/attachments`)
+      .set("X-Requester-Id", String(aliceId))
+      .attach("file", Buffer.from("y", "utf-8"), { filename: "overflow.png", contentType: "image/png" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe("TOO_MANY_ATTACHMENTS");
+
+    const overflowCount = await prisma.attachment.count({
+      where: { ticketId, originalName: "overflow.png" },
+    });
+    expect(overflowCount).toBe(0);
   });
 });

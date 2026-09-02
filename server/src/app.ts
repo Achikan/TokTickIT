@@ -23,18 +23,14 @@ app.use(express.json());
 // Files are stored on the local filesystem under the configured upload
 // directory; the database stores metadata + a generated stored filename.
 // ---------------------------------------------------------------------------
-export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024; // 10 MB
+export const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5 MB per file (labsheet §4.5)
+export const MAX_ACTIVE_ATTACHMENTS = 5; // max active attachments per ticket (labsheet §4.5)
+// Allowed types per labsheet §4.5: JPG/JPEG, PNG, WEBP, and PDF.
 const ALLOWED_MIME_TYPES = new Set([
-  "image/png",
   "image/jpeg",
-  "image/gif",
+  "image/png",
+  "image/webp",
   "application/pdf",
-  "text/plain",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  "application/zip",
 ]);
 
 export function resolveUploadDir(): string {
@@ -525,6 +521,19 @@ app.post(
         });
       }
 
+      const activeCount = await getPrisma().attachment.count({
+        where: { ticketId: owned.id, removedAt: null },
+      });
+      if (activeCount >= MAX_ACTIVE_ATTACHMENTS) {
+        return res.status(400).json({
+          error: {
+            code: "TOO_MANY_ATTACHMENTS",
+            message: "Too many active attachments",
+            fields: { file: `A ticket can have at most ${MAX_ACTIVE_ATTACHMENTS} active attachments.` },
+          },
+        });
+      }
+
       const safeOriginal = path.basename(file.originalname);
       const storedName =
         crypto.randomUUID() + path.extname(safeOriginal);
@@ -709,7 +718,7 @@ app.use(
           error: {
             code: "INVALID_FILE",
             message: "File is too large",
-            fields: { file: "The file exceeds the maximum allowed size (10 MB)." },
+            fields: { file: "The file exceeds the maximum allowed size (5 MB)." },
           },
         });
       }
