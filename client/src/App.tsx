@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import {
   fetchDevelopmentRequesters,
   DevelopmentRequester,
+  MyTicket,
 } from "./api.js";
 import CreateTicket from "./CreateTicket.js";
+import MyTickets from "./MyTickets.js";
 
 // Requester selection screen for Lab 2 testing (NOT a real login screen).
 // Authentication and role-based access arrive in Lab 3.
@@ -82,13 +84,13 @@ function RequesterSelection({ onSelect }: { onSelect: (r: DevelopmentRequester) 
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            className="btn btn-success"
-            disabled={requesterId === ""}
-          >
-            Continue
-          </button>
+<button
+          type="submit"
+          className="btn btn-tok-primary"
+          disabled={requesterId === ""}
+        >
+          Continue
+        </button>
         </form>
       )}
     </div>
@@ -97,10 +99,16 @@ function RequesterSelection({ onSelect }: { onSelect: (r: DevelopmentRequester) 
 
 export default function App() {
   const [selected, setSelected] = useState<DevelopmentRequester | null>(null);
+  const [view, setView] = useState<"my-tickets" | "create-ticket" | "ticket-detail">(
+    "my-tickets"
+  );
+  const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
 
   if (selected === null) {
     return <RequesterSelection onSelect={setSelected} />;
   }
+
+  const myTicketsActive = view !== "create-ticket";
 
   return (
     <div className="app-shell">
@@ -117,19 +125,95 @@ export default function App() {
             </div>
             <button
               type="button"
-              className="btn btn-sm btn-success"
-              onClick={() => setSelected(null)}
-              style={{ background: "#0B7A46", borderColor: "#0B7A46" }}
+              className="btn btn-sm btn-tok-secondary"
+              onClick={() => {
+                setSelectedTicket(null);
+                setView("my-tickets");
+                setSelected(null);
+              }}
             >
               Change Requester
             </button>
           </div>
+
+          <nav className="nav nav-pills mt-3" aria-label="Primary navigation">
+            <button
+              type="button"
+              className={`nav-link ${myTicketsActive ? "active" : ""}`}
+              style={myTicketsActive ? { background: "#0B7A46" } : { color: "#fff" }}
+              onClick={() => setView("my-tickets")}
+              aria-current={myTicketsActive ? "page" : undefined}
+            >
+              My Tickets
+            </button>
+            <button
+              type="button"
+              className={`nav-link ${view === "create-ticket" ? "active" : ""}`}
+              style={view === "create-ticket" ? { background: "#0B7A46" } : { color: "#fff" }}
+              onClick={() => setView("create-ticket")}
+              aria-current={view === "create-ticket" ? "page" : undefined}
+            >
+              Create Ticket
+            </button>
+          </nav>
         </div>
       </header>
 
       <div className="container" style={{ maxWidth: 720 }}>
-        <CreateTicket requester={selected} />
+        {view === "create-ticket" ? (
+          <CreateTicket requester={selected} onViewTickets={() => setView("my-tickets")} />
+        ) : view === "ticket-detail" && selectedTicket ? (
+          <TicketDetailStub
+            ticket={selectedTicket}
+            onBack={() => setView("my-tickets")}
+          />
+        ) : (
+          <MyTickets
+            key={selected.id}
+            requester={selected}
+            onCreate={() => setView("create-ticket")}
+            onViewTicket={(t) => {
+              setSelectedTicket(t);
+              setView("ticket-detail");
+            }}
+          />
+        )}
       </div>
+    </div>
+  );
+}
+
+// Minimal read-only Ticket Detail (full detail arrives in Issue 10; this keeps
+// "find and open" working end-to-end now, per the My Tickets requirements).
+function TicketDetailStub({
+  ticket,
+  onBack,
+}: {
+  ticket: MyTicket;
+  onBack: () => void;
+}) {
+  return (
+    <div>
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <h2 className="h4 mb-0">Ticket {ticket.ticketNumber}</h2>
+        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onBack}>
+          Back to My Tickets
+        </button>
+      </div>
+      <dl className="row mb-0 gx-3 gy-2">
+        <dt className="col-sm-3">Summary</dt>
+        <dd className="col-sm-9">{ticket.summary}</dd>
+        <dt className="col-sm-3">Category</dt>
+        <dd className="col-sm-9">{ticket.category.name}</dd>
+        <dt className="col-sm-3">Requested Priority</dt>
+        <dd className="col-sm-9">{ticket.requestedPriority}</dd>
+        <dt className="col-sm-3">IT Priority</dt>
+        <dd className="col-sm-9">{ticket.itPriority}</dd>
+        <dt className="col-sm-3">Current Status</dt>
+        <dd className="col-sm-9">{ticket.currentStatus}</dd>
+        <dt className="col-sm-3">Last Updated</dt>
+        <dd className="col-sm-9">{new Date(ticket.updatedAt).toLocaleString()}</dd>
+      </dl>
     </div>
   );
 }

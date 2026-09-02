@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../src/App.js";
@@ -12,6 +12,15 @@ const ACTIVE_REQUESTERS = [
 ];
 
 describe("App shell - Development Requester Selection", () => {
+  beforeEach(() => {
+    vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
+      items: [],
+      pagination: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+      filtersApplied: {},
+    });
+    vi.spyOn(api, "fetchCategories").mockResolvedValue([]);
+  });
+
   it("shows the requester selection screen when no requester is selected", async () => {
     vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue(ACTIVE_REQUESTERS);
     render(<App />);

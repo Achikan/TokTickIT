@@ -24,6 +24,8 @@ export interface SystemStatus {
 
 export type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
+export type Status = "SUBMITTED" | "IN_PROGRESS" | "RESOLVED";
+
 export interface Ticket {
   ticketNumber: string;
   id: number;
@@ -46,6 +48,35 @@ export interface CreateTicketInput {
   categoryId: number;
   relatedSystemId: number;
   requestedPriority: Priority;
+}
+
+// Issue 9 — My Tickets list query and item shapes (api-spec.md §5).
+export interface TicketQuery {
+  search?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  status?: Status;
+  requestedPriority?: Priority;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface MyTicket {
+  ticketNumber: string;
+  id: number;
+  summary: string;
+  category: { id: number; name: string };
+  requestedPriority: Priority;
+  itPriority: Priority;
+  currentStatus: Status;
+  updatedAt: string;
+}
+
+export interface MyTicketsResponse {
+  items: MyTicket[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+  filtersApplied: Record<string, unknown>;
 }
 
 // Issue 2 + Issue 4 — call the backend.
@@ -105,4 +136,27 @@ export async function createTicket(
     throw err;
   }
   return body.ticket as Ticket;
+}
+
+// Issue 9 — list the selected requester's tickets (requester-scoped identity header).
+export async function fetchMyTickets(
+  requesterId: number,
+  query: TicketQuery = {}
+): Promise<MyTicketsResponse> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.categoryId) params.set("categoryId", String(query.categoryId));
+  if (query.relatedSystemId) params.set("relatedSystemId", String(query.relatedSystemId));
+  if (query.status) params.set("status", query.status);
+  if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page) params.set("page", String(query.page));
+  if (query.pageSize) params.set("pageSize", String(query.pageSize));
+  const qs = params.toString();
+
+  const res = await fetch(`${API_URL}/api/tickets${qs ? `?${qs}` : ""}`, {
+    headers: { "X-Requester-Id": String(requesterId) },
+  });
+  if (!res.ok) throw new Error("Unable to load tickets");
+  return (await res.json()) as MyTicketsResponse;
 }
