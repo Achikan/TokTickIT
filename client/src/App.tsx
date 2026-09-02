@@ -6,6 +6,7 @@ import {
 } from "./api.js";
 import CreateTicket from "./CreateTicket.js";
 import MyTickets from "./MyTickets.js";
+import TicketDetail from "./TicketDetail.js";
 
 // Requester selection screen for Lab 2 testing (NOT a real login screen).
 // Authentication and role-based access arrive in Lab 3.
@@ -163,7 +164,8 @@ export default function App() {
         {view === "create-ticket" ? (
           <CreateTicket requester={selected} onViewTickets={() => setView("my-tickets")} />
         ) : view === "ticket-detail" && selectedTicket ? (
-          <TicketDetailStub
+          <TicketDetail
+            requester={selected}
             ticket={selectedTicket}
             onBack={() => setView("my-tickets")}
           />
@@ -179,41 +181,6 @@ export default function App() {
           />
         )}
       </div>
-    </div>
-  );
-}
-
-// Minimal read-only Ticket Detail (full detail arrives in Issue 10; this keeps
-// "find and open" working end-to-end now, per the My Tickets requirements).
-function TicketDetailStub({
-  ticket,
-  onBack,
-}: {
-  ticket: MyTicket;
-  onBack: () => void;
-}) {
-  return (
-    <div>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="h4 mb-0">Ticket {ticket.ticketNumber}</h2>
-        <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onBack}>
-          Back to My Tickets
-        </button>
-      </div>
-      <dl className="row mb-0 gx-3 gy-2">
-        <dt className="col-sm-3">Summary</dt>
-        <dd className="col-sm-9">{ticket.summary}</dd>
-        <dt className="col-sm-3">Category</dt>
-        <dd className="col-sm-9">{ticket.category.name}</dd>
-        <dt className="col-sm-3">Requested Priority</dt>
-        <dd className="col-sm-9">{ticket.requestedPriority}</dd>
-        <dt className="col-sm-3">IT Priority</dt>
-        <dd className="col-sm-9">{ticket.itPriority}</dd>
-        <dt className="col-sm-3">Current Status</dt>
-        <dd className="col-sm-9">{ticket.currentStatus}</dd>
-        <dt className="col-sm-3">Last Updated</dt>
-        <dd className="col-sm-9">{new Date(ticket.updatedAt).toLocaleString()}</dd>
-      </dl>
     </div>
   );
 }

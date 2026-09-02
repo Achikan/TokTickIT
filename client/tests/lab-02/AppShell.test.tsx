@@ -6,18 +6,34 @@ import * as api from "../../src/api.js";
 
 const ALICE = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com" };
 
-const MY_TICKET = {
+const MY_TICKET: api.MyTicket = {
   ticketNumber: "TK-000007",
   id: 7,
   summary: "Laptop battery drains quickly",
   category: { id: 1, name: "Hardware" },
-  requestedPriority: "HIGH" as const,
-  itPriority: "HIGH" as const,
-  currentStatus: "IN_PROGRESS" as const,
+  requestedPriority: "HIGH",
+  itPriority: "HIGH",
+  currentStatus: "IN_PROGRESS",
   updatedAt: "2026-09-01T10:00:00.000Z",
 };
 
-const TICKET = {
+const FULL_DETAIL: api.TicketDetail = {
+  ticketNumber: "TK-000007",
+  id: 7,
+  summary: "Laptop battery drains quickly",
+  description: "Battery drains fast.",
+  requesterId: 1,
+  category: { id: 1, name: "Hardware" },
+  relatedSystem: { id: 1, name: "ERP System", type: "Application" },
+  requestedPriority: "HIGH",
+  itPriority: "MEDIUM",
+  currentStatus: "IN_PROGRESS",
+  createdAt: "2026-09-01T08:00:00.000Z",
+  updatedAt: "2026-09-01T10:00:00.000Z",
+  attachments: [],
+};
+
+const CREATED_TICKET = {
   ticketNumber: "TK-000009",
   id: 9,
   summary: "Laptop battery drains quickly",
@@ -40,6 +56,7 @@ describe("App shell navigation", () => {
       pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
       filtersApplied: {},
     });
+    vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
     vi.spyOn(api, "fetchCategories").mockResolvedValue([{ id: 1, name: "Hardware" }]);
     vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue([
       { id: 1, name: "ERP System", type: "Application" },
@@ -76,10 +93,11 @@ describe("App shell navigation", () => {
       name: /Open ticket TK-000007/i,
     });
     await user.click(openButtons[0]);
-    expect(
-      await screen.findByRole("heading", { name: /Ticket TK-000007/i })
-    ).toBeInTheDocument();
-    expect(screen.getByText("Laptop battery drains quickly")).toBeInTheDocument();
+
+    expect(await screen.findByText("Laptop battery drains quickly")).toBeInTheDocument();
+    expect(screen.getByText("Battery drains fast.")).toBeInTheDocument();
+    expect(screen.getByText("Hardware")).toBeInTheDocument();
+    expect(screen.getByText("ERP System")).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /Back to My Tickets/i }));
     expect(
@@ -88,7 +106,7 @@ describe("App shell navigation", () => {
   });
 
   it("switches from My Tickets to the Create Ticket form and back via View in My Tickets (AC-05)", async () => {
-    vi.spyOn(api, "createTicket").mockResolvedValue(TICKET);
+    vi.spyOn(api, "createTicket").mockResolvedValue(CREATED_TICKET);
     const user = userEvent.setup();
     render(<App />);
     await login(user);
