@@ -15,3 +15,6 @@ server/prisma/*.db
 
 # vite dev cache
 .vite/
+
+# attachment file storage (runtime only; DB stores metadata)
+server/uploads/
