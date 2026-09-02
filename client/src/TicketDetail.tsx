@@ -115,44 +115,44 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
           <h3 className="h5 mb-3">Ticket Information</h3>
           <dl className="row mb-0 gx-3 gy-2">
             {/* System-generated read-only */}
-            <dt className="col-sm-3">Ticket Number</dt>
-            <dd className="col-sm-9 readonly-field px-2 rounded">{detail.ticketNumber}</dd>
+            <dt className="col-md-3">Ticket Number</dt>
+            <dd className="col-md-9 readonly-field px-2 rounded">{detail.ticketNumber}</dd>
 
-            <dt className="col-sm-3">Current Status</dt>
-            <dd className="col-sm-9">
+            <dt className="col-md-3">Current Status</dt>
+            <dd className="col-md-9">
               <span className={`badge ${STATUS_BADGES[detail.currentStatus]}`}>
                 {detail.currentStatus}
               </span>
             </dd>
 
-            <dt className="col-sm-3">Created</dt>
-            <dd className="col-sm-9">{formatDateTime(detail.createdAt)}</dd>
+            <dt className="col-md-3">Created</dt>
+            <dd className="col-md-9">{formatDateTime(detail.createdAt)}</dd>
 
-            <dt className="col-sm-3">Last Updated</dt>
-            <dd className="col-sm-9">{formatDateTime(detail.updatedAt)}</dd>
+            <dt className="col-md-3">Last Updated</dt>
+            <dd className="col-md-9">{formatDateTime(detail.updatedAt)}</dd>
 
-            <dt className="col-sm-3">Development Requester</dt>
-            <dd className="col-sm-9 readonly-field px-2 rounded">{requester.name}</dd>
+            <dt className="col-md-3">Development Requester</dt>
+            <dd className="col-md-9 readonly-field px-2 rounded">{requester.name}</dd>
 
             {/* Classification fields */}
-            <dt className="col-sm-3">Category</dt>
-            <dd className="col-sm-9 readonly-field px-2 rounded">{detail.category.name}</dd>
+            <dt className="col-md-3">Category</dt>
+            <dd className="col-md-9 readonly-field px-2 rounded">{detail.category.name}</dd>
 
-            <dt className="col-sm-3">Related System</dt>
-            <dd className="col-sm-9 readonly-field px-2 rounded">
+            <dt className="col-md-3">Related System</dt>
+            <dd className="col-md-9 readonly-field px-2 rounded">
               {detail.relatedSystem.name}
               <span className="text-muted small ms-2">({detail.relatedSystem.type})</span>
             </dd>
 
-            <dt className="col-sm-3">Requested Priority</dt>
-            <dd className="col-sm-9">
+            <dt className="col-md-3">Requested Priority</dt>
+            <dd className="col-md-9">
               <span className={`badge ${PRIORITY_BADGES[detail.requestedPriority]}`}>
                 {detail.requestedPriority}
               </span>
             </dd>
 
-            <dt className="col-sm-3">IT Priority</dt>
-            <dd className="col-sm-9">
+            <dt className="col-md-3">IT Priority</dt>
+            <dd className="col-md-9">
               <span className={`badge ${PRIORITY_BADGES[detail.itPriority]}`}>
                 {detail.itPriority}
               </span>
