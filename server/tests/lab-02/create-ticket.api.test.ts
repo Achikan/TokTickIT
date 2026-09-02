@@ -30,14 +30,17 @@ describe("POST /api/tickets", () => {
     expect(category).toBeTruthy();
     expect(system).toBeTruthy();
 
-    const res = await request(app).post("/api/tickets").send({
-      requesterId: alice!.id,
-      summary: "Laptop battery drains quickly",
-      description: "Battery drops from 100% to 20% in an hour.",
-      categoryId: category!.id,
-      relatedSystemId: system!.id,
-      requestedPriority: "MEDIUM",
-    });
+    const res = await request(app)
+      .post("/api/tickets")
+      .set("X-Requester-Id", String(alice!.id))
+      .send({
+        requesterId: alice!.id,
+        summary: "Laptop battery drains quickly",
+        description: "Battery drops from 100% to 20% in an hour.",
+        categoryId: category!.id,
+        relatedSystemId: system!.id,
+        requestedPriority: "MEDIUM",
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.ticket.ticketNumber).toMatch(/^TK-\d{6}$/);
@@ -63,13 +66,16 @@ describe("POST /api/tickets", () => {
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();
 
-    const res = await request(app).post("/api/tickets").send({
-      requesterId: alice!.id,
-      summary: "",
-      description: "  ",
-      categoryId: category!.id,
-      relatedSystemId: system!.id,
-    });
+    const res = await request(app)
+      .post("/api/tickets")
+      .set("X-Requester-Id", String(alice!.id))
+      .send({
+        requesterId: alice!.id,
+        summary: "",
+        description: "  ",
+        categoryId: category!.id,
+        relatedSystemId: system!.id,
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.error.fields.summary).toBeTruthy();
@@ -89,13 +95,16 @@ describe("POST /api/tickets", () => {
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();
 
-    const res = await request(app).post("/api/tickets").send({
-      requesterId: alice!.id,
-      summary: "Printer offline",
-      description: "The printer in room 202 is unreachable.",
-      categoryId: category!.id,
-      relatedSystemId: system!.id,
-    });
+    const res = await request(app)
+      .post("/api/tickets")
+      .set("X-Requester-Id", String(alice!.id))
+      .send({
+        requesterId: alice!.id,
+        summary: "Printer offline",
+        description: "The printer in room 202 is unreachable.",
+        categoryId: category!.id,
+        relatedSystemId: system!.id,
+      });
 
     expect(res.status).toBe(201);
     expect(res.body.ticket.requestedPriority).toBe("MEDIUM");
@@ -110,16 +119,75 @@ describe("POST /api/tickets", () => {
     });
     const system = await prisma.relatedSystem.findFirst();
 
-    const res = await request(app).post("/api/tickets").send({
-      requesterId: alice!.id,
-      summary: "Bad category",
-      description: "This ticket refers to a missing category.",
-      categoryId: 999999,
-      relatedSystemId: system!.id,
-    });
+    const res = await request(app)
+      .post("/api/tickets")
+      .set("X-Requester-Id", String(alice!.id))
+      .send({
+        requesterId: alice!.id,
+        summary: "Bad category",
+        description: "This ticket refers to a missing category.",
+        categoryId: 999999,
+        relatedSystemId: system!.id,
+      });
 
     expect(res.status).toBe(400);
     expect(res.body.error.fields.categoryId).toBeTruthy();
+
+    const after = await prisma.ticket.count();
+    expect(after).toBe(before);
+  });
+
+  it("rejects a missing X-Requester-Id header with 403", async () => {
+    const prisma = getPrisma();
+    const before = await prisma.ticket.count();
+
+    const alice = await prisma.developmentRequester.findFirst({
+      where: { email: "alice.anderson@example.com" },
+    });
+    const category = await prisma.category.findFirst();
+    const system = await prisma.relatedSystem.findFirst();
+
+    const res = await request(app).post("/api/tickets").send({
+      requesterId: alice!.id,
+      summary: "No header",
+      description: "This should not be created.",
+      categoryId: category!.id,
+      relatedSystemId: system!.id,
+    });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe("FORBIDDEN");
+
+    const after = await prisma.ticket.count();
+    expect(after).toBe(before);
+  });
+
+  it("rejects an X-Requester-Id that does not match the request body with 403", async () => {
+    const prisma = getPrisma();
+    const before = await prisma.ticket.count();
+
+    const alice = await prisma.developmentRequester.findFirst({
+      where: { email: "alice.anderson@example.com" },
+    });
+    const other = await prisma.developmentRequester.findFirst({
+      where: { email: "bob.brown@example.com" },
+    });
+    const category = await prisma.category.findFirst();
+    const system = await prisma.relatedSystem.findFirst();
+
+    const res = await request(app)
+      .post("/api/tickets")
+      .set("X-Requester-Id", String(other!.id))
+      .send({
+        requesterId: alice!.id,
+        summary: "Spoofed header",
+        description: "Header must match the requester in the body.",
+        categoryId: category!.id,
+        relatedSystemId: system!.id,
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe("FORBIDDEN");
 
     const after = await prisma.ticket.count();
     expect(after).toBe(before);

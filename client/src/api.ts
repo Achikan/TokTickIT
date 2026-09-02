@@ -90,7 +90,10 @@ export async function createTicket(
 ): Promise<Ticket> {
   const res = await fetch(`${API_URL}/api/tickets`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-Requester-Id": String(input.requesterId),
+    },
     body: JSON.stringify(input),
   });
   const body = await res.json().catch(() => ({}));

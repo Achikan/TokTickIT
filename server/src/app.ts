@@ -81,6 +81,13 @@ app.get("/api/development-requesters", async (_req: Request, res: Response) => {
 const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
 app.post("/api/tickets", async (req: Request, res: Response) => {
+  const headerRequesterId = req.header("X-Requester-Id") ?? "";
+  if (headerRequesterId === "") {
+    return res
+      .status(403)
+      .json({ error: { code: "FORBIDDEN", message: "Missing X-Requester-Id header" } });
+  }
+
   const { requesterId, summary, description, categoryId, relatedSystemId, requestedPriority } =
     req.body ?? {};
 
@@ -111,6 +118,17 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
 
   if (Object.keys(fields).length > 0) {
     return res.status(400).json({ error: { code: "VALIDATION_ERROR", message: "Invalid input.", fields } });
+  }
+
+  if (headerRequesterId !== String(requesterId)) {
+    return res
+      .status(403)
+      .json({
+        error: {
+          code: "FORBIDDEN", 
+          message: "X-Requester-Id does not match the requester in the request body.",
+        },
+      });
   }
 
   try {
