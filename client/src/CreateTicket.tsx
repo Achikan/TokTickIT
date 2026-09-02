@@ -98,7 +98,11 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
             <span className="fw-bold"> {created.ticketNumber}</span>
           </div>
           {onViewTickets && (
-            <button type="button" className="btn btn-success btn-sm" onClick={onViewTickets}>
+            <button
+              type="button"
+              className="btn btn-tok-secondary btn-sm"
+              onClick={onViewTickets}
+            >
               View in My Tickets
             </button>
           )}
@@ -258,7 +262,7 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
 
         <button
           type="submit"
-          className="btn btn-success"
+          className="btn btn-tok-primary"
           disabled={formState === "submitting"}
         >
           {formState === "submitting" ? "Submitting…" : "Submit Ticket"}

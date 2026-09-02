@@ -6,6 +6,17 @@ import * as api from "../../src/api.js";
 
 const ALICE = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com" };
 
+const MY_TICKET = {
+  ticketNumber: "TK-000007",
+  id: 7,
+  summary: "Laptop battery drains quickly",
+  category: { id: 1, name: "Hardware" },
+  requestedPriority: "HIGH" as const,
+  itPriority: "HIGH" as const,
+  currentStatus: "IN_PROGRESS" as const,
+  updatedAt: "2026-09-01T10:00:00.000Z",
+};
+
 const TICKET = {
   ticketNumber: "TK-000009",
   id: 9,
@@ -25,8 +36,8 @@ describe("App shell navigation", () => {
   beforeEach(() => {
     vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue([ALICE]);
     vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
-      items: [],
-      pagination: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+      items: [MY_TICKET],
+      pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
       filtersApplied: {},
     });
     vi.spyOn(api, "fetchCategories").mockResolvedValue([{ id: 1, name: "Hardware" }]);
@@ -54,6 +65,26 @@ describe("App shell navigation", () => {
     expect(myTicketsNav).toHaveAttribute("aria-current", "page");
     expect(createNav).not.toHaveAttribute("aria-current");
     expect(screen.getByText(/Selected Requester/i)).toBeInTheDocument();
+  });
+
+  it("opens a ticket from My Tickets and returns via Back to My Tickets", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    await login(user);
+
+    const openButtons = await screen.findAllByRole("button", {
+      name: /Open ticket TK-000007/i,
+    });
+    await user.click(openButtons[0]);
+    expect(
+      await screen.findByRole("heading", { name: /Ticket TK-000007/i })
+    ).toBeInTheDocument();
+    expect(screen.getByText("Laptop battery drains quickly")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Back to My Tickets/i }));
+    expect(
+      await screen.findByRole("heading", { name: /My Tickets/i })
+    ).toBeInTheDocument();
   });
 
   it("switches from My Tickets to the Create Ticket form and back via View in My Tickets (AC-05)", async () => {

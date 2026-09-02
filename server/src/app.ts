@@ -1,5 +1,6 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import type { Prisma } from "@prisma/client";
 import { getPrisma } from "./prisma.js";
 import { formatTicketNumber } from "./ticketNumber.js";
 // getPrisma() is your lazy database handle. Call it INSIDE a route when you
@@ -276,12 +277,25 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
     }
   }
 
-  let orderBy: Record<string, "asc" | "desc"> = { createdAt: "desc" };
+  // Primary sort (from `sort`), always followed by a deterministic secondary
+  // sort on createdAt (desc) and id (asc) so equal-principal rows stay
+  // ordered predictably (secondary-sort guideline).
+  let orderBy: Prisma.TicketOrderByWithRelationInput[] = [
+    { createdAt: "desc" },
+    { id: "asc" },
+  ];
   if (sortRaw !== null) {
     const match = /^([+-]?)([A-Za-z]+)$/.exec(sortRaw);
     const column = match?.[2] ?? "";
     if (match && (VALID_SORT_COLUMNS as readonly string[]).includes(column)) {
-      orderBy = { [column]: match[1] === "-" ? "desc" : "asc" };
+      const dir = match[1] === "-" ? "desc" : "asc";
+      orderBy = [
+        { [column]: dir } as Prisma.TicketOrderByWithRelationInput,
+        ...(column === "createdAt"
+          ? []
+          : ([{ createdAt: "desc" }] as Prisma.TicketOrderByWithRelationInput[])),
+        { id: "asc" },
+      ];
     } else {
       fields.sort = "Sort value is invalid.";
     }
@@ -305,6 +319,7 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
       where.OR = [
         { summary: { contains: search, mode: "insensitive" } },
         { description: { contains: search, mode: "insensitive" } },
+        { ticketNumber: { contains: search, mode: "insensitive" } },
       ];
     }
     if (categoryId !== null) where.categoryId = categoryId;

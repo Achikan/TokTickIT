@@ -17,6 +17,7 @@ interface TicketSeed {
   relatedSystemId: number;
   requestedPriority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   currentStatus?: "SUBMITTED" | "IN_PROGRESS" | "RESOLVED";
+  createdAt?: Date;
   sequence: number;
 }
 
@@ -31,6 +32,7 @@ async function seedTicket(prisma: ReturnType<typeof getPrisma>, t: TicketSeed) {
       relatedSystemId: t.relatedSystemId,
       requestedPriority: t.requestedPriority ?? "MEDIUM",
       currentStatus: t.currentStatus ?? "SUBMITTED",
+      createdAt: t.createdAt,
     },
     include: { category: true, relatedSystem: true },
   });
@@ -197,6 +199,17 @@ describe("GET /api/tickets (My Tickets)", () => {
     ]);
     expect(searchRes.body.filtersApplied.search).toBe("printer");
 
+    // Search by official Ticket Number (review point 1).
+    const ticketNumberSearch = await request(app)
+      .get("/api/tickets")
+      .set("X-Requester-Id", String(alice.id))
+      .query("search=TK-00");
+    expect(ticketNumberSearch.status).toBe(200);
+    expect(ticketNumberSearch.body.items).toHaveLength(3);
+    expect(
+      ticketNumberSearch.body.items.map((t: { ticketNumber: string }) => t.ticketNumber).sort()
+    ).toEqual(["TK-000001", "TK-000002", "TK-000003"]);
+
     const categoryRes = await request(app)
       .get("/api/tickets")
       .set("X-Requester-Id", String(alice.id))
@@ -260,6 +273,53 @@ describe("GET /api/tickets (My Tickets)", () => {
       "Charlie issue",
       "Bravo issue",
       "Alpha issue",
+    ]);
+  });
+
+  it("uses a deterministic secondary sort when sorting by a non-unique column", async () => {
+    const prisma = getPrisma();
+    const base = Date.UTC(2026, 8, 1, 9, 0, 0);
+    await seedTicket(prisma, {
+      requesterId: alice.id,
+      summary: "Oldest low priority",
+      description: "A",
+      categoryId: hardware.id,
+      relatedSystemId: erp.id,
+      requestedPriority: "LOW",
+      createdAt: new Date(base),
+      sequence: 1,
+    });
+    await seedTicket(prisma, {
+      requesterId: alice.id,
+      summary: "Middle low priority",
+      description: "B",
+      categoryId: hardware.id,
+      relatedSystemId: erp.id,
+      requestedPriority: "LOW",
+      createdAt: new Date(base + 1000),
+      sequence: 2,
+    });
+    await seedTicket(prisma, {
+      requesterId: alice.id,
+      summary: "Newest low priority",
+      description: "C",
+      categoryId: hardware.id,
+      relatedSystemId: erp.id,
+      requestedPriority: "LOW",
+      createdAt: new Date(base + 2000),
+      sequence: 3,
+    });
+
+    const res = await request(app)
+      .get("/api/tickets")
+      .set("X-Requester-Id", String(alice.id))
+      .query("sort=requestedPriority");
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.map((t: { summary: string }) => t.summary)).toEqual([
+      "Newest low priority",
+      "Middle low priority",
+      "Oldest low priority",
     ]);
   });
 

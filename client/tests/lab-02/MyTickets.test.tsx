@@ -62,10 +62,20 @@ describe("MyTickets", () => {
     expect(within(table).getByText("Printer offline in room 202")).toBeInTheDocument();
 
     // Badges for Requested Priority and Current Status (ui-spec §10).
-    expect(within(table).getByText("IN_PROGRESS").className).toContain("badge");
-    expect(
-      within(table).getAllByText("HIGH").some((el) => el.className.includes("badge"))
-    ).toBe(true);
+    // Severity scale: MEDIUM is blue (not green), HIGH is orange (not yellow).
+    expect(within(table).getByText("IN_PROGRESS").className).toContain(
+      "badge-status-in-progress"
+    );
+    const highBadge = within(table)
+      .getAllByText("HIGH")
+      .find((el) => el.className.includes("badge"));
+    expect(highBadge?.className).toContain("badge-priority-high");
+    const mediumBadge = within(table)
+      .getAllByText("MEDIUM")
+      .find((el) => el.className.includes("badge"));
+    expect(mediumBadge?.className).toContain("badge-priority-medium");
+    expect(mediumBadge?.className).not.toContain("success");
+    expect(highBadge?.className).not.toContain("warning");
 
     // Result metadata: total + page indicator.
     expect(screen.getByText(/2 tickets · Page 1 of 1/i)).toBeInTheDocument();
@@ -169,6 +179,21 @@ describe("MyTickets", () => {
     await new Promise((r) => setTimeout(r, 0));
 
     expect(fetchSpy).toHaveBeenLastCalledWith(BOB.id, expect.anything());
+  });
+
+  it("lets the requester open a ticket via the ticket number (find and open)", async () => {
+    vi.spyOn(api, "fetchMyTickets").mockResolvedValue(listResponse(TICKETS));
+    const onViewTicket = vi.fn();
+    render(
+      <MyTickets requester={ALICE} onCreate={() => {}} onViewTicket={onViewTicket} />
+    );
+
+    const openButtons = await screen.findAllByRole("button", { name: /Open ticket/i });
+    expect(openButtons.length).toBeGreaterThan(0);
+
+    const user = userEvent.setup();
+    await user.click(openButtons[0]);
+    expect(onViewTicket).toHaveBeenCalledWith(TICKETS[0]);
   });
 
   it("renders mobile cards in addition to the desktop table (utilities present)", async () => {

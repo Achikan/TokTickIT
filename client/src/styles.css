@@ -19,3 +19,59 @@ body {
   background-color: var(--tok-readonly) !important;
   color: var(--tok-text);
 }
+
+/* Zen Green button hierarchy (ui-spec §5): primary filled #006B3C. */
+.btn-tok-primary {
+  background-color: var(--tok-primary);
+  border-color: var(--tok-primary);
+  color: #fff;
+}
+.btn-tok-primary:hover,
+.btn-tok-primary:focus {
+  background-color: var(--tok-secondary);
+  border-color: var(--tok-secondary);
+  color: #fff;
+}
+.btn-tok-secondary {
+  background-color: var(--tok-secondary);
+  border-color: var(--tok-secondary);
+  color: #fff;
+}
+.btn-tok-secondary:hover,
+.btn-tok-secondary:focus {
+  background-color: var(--tok-primary);
+  border-color: var(--tok-primary);
+  color: #fff;
+}
+
+/* Badges (ui-spec §10): Requested Priority follows an escalating severity
+   scale (gray -> blue -> orange -> red); Current Status is informational
+   (gray/submitted, blue/in-progress, green/resolved). */
+.badge-priority-low {
+  background-color: #6c757d;
+  color: #fff;
+}
+.badge-priority-medium {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.badge-priority-high {
+  background-color: #e07b00;
+  color: #fff;
+}
+.badge-priority-urgent {
+  background-color: #dc3545;
+  color: #fff;
+}
+.badge-status-submitted {
+  background-color: #6c757d;
+  color: #fff;
+}
+.badge-status-in-progress {
+  background-color: #0d6efd;
+  color: #fff;
+}
+.badge-status-resolved {
+  background-color: #198754;
+  color: #fff;
+}

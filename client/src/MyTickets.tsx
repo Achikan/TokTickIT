@@ -20,16 +20,16 @@ const PRIORITIES: ("LOW" | "MEDIUM" | "HIGH" | "URGENT")[] = [
 const STATUSES: Status[] = ["SUBMITTED", "IN_PROGRESS", "RESOLVED"];
 
 const PRIORITY_BADGES: Record<Priority, string> = {
-  LOW: "bg-secondary",
-  MEDIUM: "bg-success",
-  HIGH: "bg-warning text-dark",
-  URGENT: "bg-danger",
+  LOW: "badge-priority-low",
+  MEDIUM: "badge-priority-medium",
+  HIGH: "badge-priority-high",
+  URGENT: "badge-priority-urgent",
 };
 
 const STATUS_BADGES: Record<Status, string> = {
-  SUBMITTED: "bg-secondary",
-  IN_PROGRESS: "bg-warning text-dark",
-  RESOLVED: "bg-success",
+  SUBMITTED: "badge-status-submitted",
+  IN_PROGRESS: "badge-status-in-progress",
+  RESOLVED: "badge-status-resolved",
 };
 
 function formatUpdatedAt(value: string): string {
@@ -39,11 +39,12 @@ function formatUpdatedAt(value: string): string {
 interface Props {
   requester: DevelopmentRequester;
   onCreate: () => void;
+  onViewTicket?: (t: MyTicket) => void;
 }
 
 type ListStatus = "loading" | "ready" | "failure";
 
-export default function MyTickets({ requester, onCreate }: Props) {
+export default function MyTickets({ requester, onCreate, onViewTicket }: Props) {
   const [listStatus, setListStatus] = useState<ListStatus>("loading");
   const [items, setItems] = useState<MyTicket[]>([]);
   const [pagination, setPagination] = useState({
@@ -109,7 +110,7 @@ export default function MyTickets({ requester, onCreate }: Props) {
         <h2 className="h4 mb-0">My Tickets</h2>
         <button
           type="button"
-          className="btn btn-success"
+          className="btn btn-tok-primary"
           onClick={onCreate}
           aria-label="Create a new ticket"
         >
@@ -285,7 +286,20 @@ export default function MyTickets({ requester, onCreate }: Props) {
                   <tbody>
                     {items.map((t) => (
                       <tr key={t.id}>
-                        <td className="text-nowrap fw-semibold">{t.ticketNumber}</td>
+                        <td className="text-nowrap fw-semibold">
+                          {onViewTicket ? (
+                            <button
+                              type="button"
+                              className="btn btn-link btn-sm p-0 fw-semibold text-decoration-none"
+                              onClick={() => onViewTicket(t)}
+                              aria-label={`Open ticket ${t.ticketNumber}`}
+                            >
+                              {t.ticketNumber}
+                            </button>
+                          ) : (
+                            t.ticketNumber
+                          )}
+                        </td>
                         <td>{t.summary}</td>
                         <td>{t.category.name}</td>
                         <td>
@@ -314,7 +328,15 @@ export default function MyTickets({ requester, onCreate }: Props) {
               <ul className="list-unstyled d-md-none">
                 {items.map((t) => (
                   <li key={t.id} className="card mb-2">
-                    <div className="card-body py-2">
+                    <button
+                      type="button"
+                      className={`card-body py-2 text-start w-100 border-0 ${
+                        onViewTicket ? "" : "bg-transparent"
+                      }`}
+                      onClick={() => onViewTicket?.(t)}
+                      disabled={!onViewTicket}
+                      aria-label={`Open ticket ${t.ticketNumber}`}
+                    >
                       <div className="fw-semibold">{t.ticketNumber}</div>
                       <div className="mb-2">{t.summary}</div>
                       <div className="small text-muted mb-2">
@@ -328,7 +350,7 @@ export default function MyTickets({ requester, onCreate }: Props) {
                           {t.currentStatus}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   </li>
                 ))}
               </ul>
