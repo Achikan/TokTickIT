@@ -147,7 +147,7 @@ function AttachmentSection({
         {uploadError && <p className="text-danger small">{uploadError}</p>}
         {removeError && <p className="text-danger small">{removeError}</p>}
         {unavailableError && (
-          <p className="text-warning small">
+          <p className="callout-warning px-2 py-1 small mb-3" role="alert">
             The file "{unavailableError}" is not available on the server.
           </p>
         )}
@@ -202,7 +202,7 @@ function AttachmentSection({
                             </button>
                             <button
                               type="button"
-                              className="btn btn-outline-danger btn-sm"
+                              className="btn btn-tok-danger btn-sm"
                               onClick={() => handleRemove(a)}
                               disabled={isDownloading || isRemoving}
                             >
