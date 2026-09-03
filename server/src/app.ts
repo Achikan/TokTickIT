@@ -628,7 +628,14 @@ app.get("/api/attachments/:id/download", async (req: Request, res: Response) => 
   const attachmentId = Number(req.params.id);
   try {
     const attachment = await resolveOwnedAttachment(requesterId, attachmentId);
-    if (!attachment || attachment.removedAt) return attachNotFound(res);
+    if (!attachment) return attachNotFound(res);
+    // A soft-removed attachment cannot be downloaded; report 410 Gone
+    // (AC-06, labsheet §4.5 "Removed files must not be downloadable").
+    if (attachment.removedAt) {
+      return res
+        .status(410)
+        .json({ error: { code: "REMOVED", message: "Attachment was removed" } });
+    }
 
     const storedPath = path.join(resolveUploadDir(), attachment.storedName);
     let exists = true;

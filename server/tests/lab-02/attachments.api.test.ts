@@ -144,12 +144,12 @@ describe("Attachment lifecycle (API-11..14)", () => {
     expect(row!.removedReason).toBe("Uploaded the wrong file");
   });
 
-  it("API-13: blocks download of a removed attachment with 404", async () => {
+  it("API-13: blocks download of a removed attachment with 410 Gone", async () => {
     const res = await request(app)
       .get(`/api/attachments/${attachmentId}/download`)
       .set("X-Requester-Id", String(aliceId));
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(410);
   });
 
   it("API-13: returns 400 when soft-remove has no reason", async () => {
