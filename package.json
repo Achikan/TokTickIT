@@ -1,0 +1,15 @@
+{
+  "name": "toktickit-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end and responsive (Playwright) tests + visual screenshots for TokTickIT Lab 2 (Issue 13).",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "screenshots": "node scripts/screenshots.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
+  }
+}
