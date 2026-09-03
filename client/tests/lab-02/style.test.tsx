@@ -1,4 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import CreateTicket from "../../src/CreateTicket.js";
@@ -58,17 +60,10 @@ const TICKET_RESP = {
 
 describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
   it("keeps Zen Green color tokens in :root (ui-spec §1)", () => {
-    const cssText = `
-      :root {
-        --tok-primary: #006b3c;
-        --tok-secondary: #0b7a46;
-        --tok-pale: #eaf6ef;
-        --tok-bg: #f5f7f6;
-        --tok-surface: #ffffff;
-        --tok-text: #1c2b22;
-        --tok-readonly: #eef2f0;
-      }`;
-    // The source-of-truth tokens are defined in styles.css; assert they exist.
+    const cssText = readFileSync(
+      resolve(__dirname, "../../src/styles.css"),
+      "utf-8"
+    );
     const root = cssText.match(/--tok-\w+/g) ?? [];
     for (const token of [
       "--tok-primary",
@@ -92,16 +87,20 @@ describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
     expect(container.querySelector('label[for="description"]')).toHaveTextContent("*");
   });
 
-  it("shows near-field validation messages directly below fields (ui-spec §4)", async () => {
+  it("shows near-field validation messages and marks invalid fields (ui-spec §4)", async () => {
     vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
     vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
     const user = userEvent.setup();
-    render(<CreateTicket requester={ALICE} />);
+    const { container } = render(<CreateTicket requester={ALICE} />);
 
     await user.click(await screen.findByRole("button", { name: /Submit Ticket/i }));
 
     expect(screen.getByText(/Summary is required/i)).toBeInTheDocument();
     expect(screen.getByText(/Description is required/i)).toBeInTheDocument();
+
+    // Invalid fields must be visually marked with the is-invalid class (ui-spec §3).
+    expect(container.querySelector("#summary")).toHaveClass("is-invalid");
+    expect(container.querySelector("#description")).toHaveClass("is-invalid");
   });
 
   it("marks invalid fields and keeps the submit button in a disabled state while busy (ui-spec §3, §5)", async () => {
@@ -179,9 +178,20 @@ describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
     await user.selectOptions(combobox, "1");
     await user.click(screen.getByRole("button", { name: /Continue/i }));
 
-    expect(screen.getByRole("button", { name: "My Tickets" })).toHaveAttribute(
-      "aria-current",
-      "page"
+    expect(
+      screen.getByRole("button", { name: "My Tickets" })
+    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "Create Ticket" })).not.toHaveAttribute(
+      "aria-current"
+    );
+
+    // The aria-current indicator must move with the active tab.
+    await user.click(screen.getByRole("button", { name: "Create Ticket" }));
+    expect(
+      screen.getByRole("button", { name: "Create Ticket" })
+    ).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("button", { name: "My Tickets" })).not.toHaveAttribute(
+      "aria-current"
     );
   });
 });
