@@ -18,3 +18,8 @@ server/prisma/*.db
 
 # attachment file storage (runtime only; DB stores metadata)
 server/uploads/
+
+# Playwright runtime output (retained evidence lives in artifacts/)
+test-results/
+playwright-report/
+.playwright/
