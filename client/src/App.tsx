@@ -110,6 +110,10 @@ export default function App() {
   }
 
   const myTicketsActive = view !== "create-ticket";
+  const createTicketActive = view === "create-ticket";
+  // ui-spec §8 / §13: the active view is exposed to assistive tech via
+  // aria-current="page" so screen readers announce the current navigation item.
+  const currentPageFor = (active: boolean) => (active ? "page" : undefined);
 
   return (
     <div className="app-shell">
@@ -143,16 +147,16 @@ export default function App() {
               className={`nav-link ${myTicketsActive ? "active" : ""}`}
               style={myTicketsActive ? { background: "#0B7A46" } : { color: "#fff" }}
               onClick={() => setView("my-tickets")}
-              aria-current={myTicketsActive ? "page" : undefined}
+              aria-current={currentPageFor(myTicketsActive)}
             >
               My Tickets
             </button>
             <button
               type="button"
-              className={`nav-link ${view === "create-ticket" ? "active" : ""}`}
-              style={view === "create-ticket" ? { background: "#0B7A46" } : { color: "#fff" }}
+              className={`nav-link ${createTicketActive ? "active" : ""}`}
+              style={createTicketActive ? { background: "#0B7A46" } : { color: "#fff" }}
               onClick={() => setView("create-ticket")}
-              aria-current={view === "create-ticket" ? "page" : undefined}
+              aria-current={currentPageFor(createTicketActive)}
             >
               Create Ticket
             </button>
