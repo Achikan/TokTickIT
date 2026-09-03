@@ -187,6 +187,17 @@ export async function fetchMyTickets(
   return (await res.json()) as MyTicketsResponse;
 }
 
+export interface AttachmentInfo {
+  id: number;
+  ticketId?: number;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  uploadedAt: string;
+  removedAt: string | null;
+  removedReason: string | null;
+}
+
 // Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §6).
 export async function fetchTicketDetail(
   requesterId: number,
@@ -198,4 +209,93 @@ export async function fetchTicketDetail(
   if (!res.ok) throw new Error("Unable to load ticket");
   const body = await res.json();
   return body.ticket as TicketDetail;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 11 — Attachment lifecycle (FR-15..FR-18).
+// Upload, list metadata, download (active only), and soft-remove with reason.
+// ---------------------------------------------------------------------------
+
+// Upload a file to an owned Ticket (multipart, field `file`).
+export async function uploadAttachment(
+  requesterId: number,
+  ticketId: number,
+  file: File
+): Promise<AttachmentInfo> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+    method: "POST",
+    headers: { "X-Requester-Id": String(requesterId) },
+    body: form,
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to upload attachment") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.attachment as AttachmentInfo;
+}
+
+// List metadata for an owned Ticket's attachments (removed are included).
+export async function fetchTicketAttachments(
+  requesterId: number,
+  ticketId: number
+): Promise<AttachmentInfo[]> {
+  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+    headers: { "X-Requester-Id": String(requesterId) },
+  });
+  if (!res.ok) throw new Error("Unable to load attachments");
+  const body: { items: AttachmentInfo[] } = await res.json();
+  return body.items;
+}
+
+// Download an active attachment. Returns the file data + suggested filename.
+export async function downloadAttachment(
+  requesterId: number,
+  attachment: AttachmentInfo
+): Promise<{ blob: Blob; filename: string; mimeType: string }> {
+  const res = await fetch(`${API_URL}/api/attachments/${attachment.id}/download`, {
+    headers: { "X-Requester-Id": String(requesterId) },
+  });
+  if (!res.ok) {
+    const err = new Error("Unable to download attachment") as Error & {
+      code?: string;
+    };
+    if (res.status === 410) err.code = "UNAVAILABLE";
+    throw err;
+  }
+  return {
+    blob: await res.blob(),
+    filename: attachment.originalName,
+    mimeType: attachment.mimeType,
+  };
+}
+
+// Soft-remove an attachment with a reason (BR-08).
+export async function removeAttachment(
+  requesterId: number,
+  attachmentId: number,
+  removedReason: string
+): Promise<AttachmentInfo> {
+  const res = await fetch(`${API_URL}/api/attachments/${attachmentId}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Requester-Id": String(requesterId),
+    },
+    body: JSON.stringify({ removedReason }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to remove attachment") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.attachment as AttachmentInfo;
 }
