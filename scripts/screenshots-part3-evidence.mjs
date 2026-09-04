@@ -28,13 +28,13 @@ const css = `
         font-size:11.5px; line-height:1.42; overflow:auto; white-space:pre; max-height:820px; }
 `;
 
-const serverOut = await readFile("/tmp/opencode/server-test-output3.txt", "utf-8").catch(
+const serverOut = await readFile("/tmp/opencode/server-test-output-final.txt", "utf-8").catch(
   () => "(server output unavailable — run server 'npm test' first)"
 );
-const clientOut = await readFile("/tmp/opencode/client-test-output3.txt", "utf-8").catch(
+const clientOut = await readFile("/tmp/opencode/client-test-output-final.txt", "utf-8").catch(
   () => "(client output unavailable — run client 'npm test' first)"
 );
-const e2eOut = await readFile("/tmp/opencode/e2e-out.txt", "utf-8").catch(
+const e2eOut = await readFile("/tmp/opencode/e2e-out-final.txt", "utf-8").catch(
   () => "(e2e output unavailable — run e2e 'npm run test:e2e' first)"
 );
 
