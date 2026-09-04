@@ -69,7 +69,8 @@ A **Health Check** of the API is available at http://localhost:3000/api/health.
 ```bash
 cd server && npm test       # Supertest API tests (Vitest)
 cd client && npm test       # UI tests (Vitest + Testing Library)
-npm run test:e2e            # Playwright E2E + responsive (root; starts server on :3000, client on :5173)
+npm run test:e2e            # Playwright E2E + responsive (root; starts the client on :5173).
+                            # Start the API first on :3000 with `cd server && npm run dev`.
 npm run screenshots         # regenerate desktop/tablet/mobile evidence PNGs into artifacts/
 ```
 
