@@ -16,7 +16,7 @@ interface TicketSeed {
   categoryId: number;
   relatedSystemId: number;
   requestedPriority?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-  currentStatus?: "SUBMITTED" | "IN_PROGRESS" | "RESOLVED";
+  currentStatus?: "NEW" | "IN_PROGRESS" | "RESOLVED";
   createdAt?: Date;
   sequence: number;
 }
@@ -31,7 +31,7 @@ async function seedTicket(prisma: ReturnType<typeof getPrisma>, t: TicketSeed) {
       categoryId: t.categoryId,
       relatedSystemId: t.relatedSystemId,
       requestedPriority: t.requestedPriority ?? "MEDIUM",
-      currentStatus: t.currentStatus ?? "SUBMITTED",
+      currentStatus: t.currentStatus ?? "NEW",
       createdAt: t.createdAt,
     },
     include: { category: true, relatedSystem: true },
@@ -175,7 +175,7 @@ describe("GET /api/tickets (My Tickets)", () => {
       categoryId: software.id,
       relatedSystemId: erp.id,
       requestedPriority: "HIGH",
-      currentStatus: "SUBMITTED",
+      currentStatus: "NEW",
       sequence: 2,
     });
     await seedTicket(prisma, {

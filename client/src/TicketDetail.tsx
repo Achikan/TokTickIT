@@ -20,7 +20,7 @@ const PRIORITY_BADGES: Record<Priority, string> = {
 };
 
 const STATUS_BADGES: Record<Status, string> = {
-  SUBMITTED: "badge-status-submitted",
+  NEW: "badge-status-new",
   IN_PROGRESS: "badge-status-in-progress",
   RESOLVED: "badge-status-resolved",
 };
@@ -57,6 +57,8 @@ function AttachmentSection({
   const [removingId, setRemovingId] = useState<number | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
   const [unavailableError, setUnavailableError] = useState<string | null>(null);
+  const [removingTarget, setRemovingTarget] = useState<AttachmentInfo | null>(null);
+  const [removalReason, setRemovalReason] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleUpload() {
@@ -97,21 +99,30 @@ function AttachmentSection({
     }
   }
 
-  async function handleRemove(a: AttachmentInfo) {
-    const reason = window.prompt(
-      `Provide a removal reason for "${a.originalName}":`,
-      ""
-    );
-    if (reason === null) return;
-    if (reason.trim() === "") {
+  function startRemove(a: AttachmentInfo) {
+    setRemoveError(null);
+    setRemovalReason("");
+    setRemovingTarget(a);
+  }
+
+  function cancelRemove() {
+    setRemovingTarget(null);
+    setRemovalReason("");
+  }
+
+  async function confirmRemove() {
+    if (!removingTarget) return;
+    if (removalReason.trim() === "") {
       setRemoveError("A removal reason is required.");
       return;
     }
+    const a = removingTarget;
     setRemovingId(a.id);
     setRemoveError(null);
     try {
-      const updated = await removeAttachment(requesterId, a.id, reason.trim());
+      const updated = await removeAttachment(requesterId, a.id, removalReason.trim());
       onUpdated(updated);
+      cancelRemove();
     } catch (e) {
       const err = e as Error & { fields?: Record<string, string> };
       setRemoveError(err.fields?.removedReason ?? err.message);
@@ -133,7 +144,10 @@ function AttachmentSection({
             ref={fileInputRef}
             type="file"
             data-testid="attachment-file-input"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => {
+              setSelectedFile(e.target.files?.[0] ?? null);
+              setUploadError(null);
+            }}
           />
           <button
             type="button"
@@ -143,6 +157,11 @@ function AttachmentSection({
           >
             {uploadPhase === "busy" ? "Uploading…" : "Upload Attachment"}
           </button>
+          {selectedFile && uploadPhase !== "busy" && (
+            <span className="text-muted small" data-testid="selected-file-name">
+              Selected: {selectedFile.name}
+            </span>
+          )}
         </div>
         {uploadError && <p className="text-danger small">{uploadError}</p>}
         {removeError && <p className="text-danger small">{removeError}</p>}
@@ -150,6 +169,39 @@ function AttachmentSection({
           <p className="callout-warning px-2 py-1 small mb-3" role="alert">
             The file "{unavailableError}" is not available on the server.
           </p>
+        )}
+
+        {removingTarget && (
+          <div className="border rounded p-3 mb-3" data-testid="removal-reason-panel">
+            <label htmlFor="removal-reason" className="form-label fw-semibold">
+              Removal reason for "{removingTarget.originalName}"
+            </label>
+            <textarea
+              id="removal-reason"
+              className="form-control"
+              rows={2}
+              value={removalReason}
+              onChange={(e) => setRemovalReason(e.target.value)}
+              placeholder="e.g. Wrong file — Attached to the wrong ticket"
+            />
+            <div className="d-flex gap-2 mt-2">
+              <button
+                type="button"
+                className="btn btn-tok-danger btn-sm"
+                onClick={confirmRemove}
+                disabled={removingId !== null}
+              >
+                {removingId !== null ? "Removing…" : "Confirm Removal"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline-secondary btn-sm"
+                onClick={cancelRemove}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         )}
 
         {attachments.length === 0 ? (
@@ -203,7 +255,7 @@ function AttachmentSection({
                             <button
                               type="button"
                               className="btn btn-tok-danger btn-sm"
-                              onClick={() => handleRemove(a)}
+                              onClick={() => startRemove(a)}
                               disabled={isDownloading || isRemoving}
                             >
                               {isRemoving ? "Removing…" : "Remove"}

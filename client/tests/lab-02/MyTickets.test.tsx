@@ -28,7 +28,7 @@ const TICKETS: api.MyTicket[] = [
     category: { id: 2, name: "Printing" },
     requestedPriority: "MEDIUM",
     itPriority: "MEDIUM",
-    currentStatus: "SUBMITTED",
+    currentStatus: "NEW",
     updatedAt: "2026-09-01T09:00:00.000Z",
   },
 ];
@@ -137,11 +137,11 @@ describe("MyTickets", () => {
     // Status filter.
     await user.selectOptions(
       screen.getByLabelText(/Status/i),
-      "SUBMITTED"
+      "NEW"
     );
     expect(fetchSpy).toHaveBeenLastCalledWith(
       ALICE.id,
-      expect.objectContaining({ status: "SUBMITTED", page: 1 })
+      expect.objectContaining({ status: "NEW", page: 1 })
     );
 
     // Priority filter.

@@ -82,7 +82,7 @@ Reusable "Zen Green" presentation system applied to the application shell and al
 - **RelatedSystem**: `id`, `name`, `type`, `active`, timestamps.
 - **Ticket**: `id`, `ticketNumber` (unique, official), `summary`, `description`, `requesterId` (FK), `categoryId` (FK), `relatedSystemId` (FK), `requestedPriority` (enum), `itPriority` (enum, defaulted), `currentStatus` (enum), `locked`/read-only system fields, `createdAt`, `updatedAt`.
 - **Attachment**: `id`, `ticketId` (FK), `originalName`, `storedName`, `mimeType`, `size`, `removedAt` (nullable), `removedReason` (nullable), `uploadedAt`.
-- Enums: `Priority` (`LOW`/`MEDIUM`/`HIGH`/`URGENT`), `Status` (requester-visible current status, e.g. `SUBMITTED`/`IN_PROGRESS`/`RESOLVED` — status workflow is not editable by requester).
+- Enums: `Priority` (`LOW`/`MEDIUM`/`HIGH`/`URGENT`), `Status` (requester-visible current status: `NEW`/`IN_PROGRESS`/`RESOLVED` — a new Ticket begins with `NEW`; status workflow is not editable by requester).
 - Indexes: unique on `Ticket.ticketNumber`, index on `Ticket.requesterId`, index on `Attachment.ticketId`.
 - Seed data (idempotent): 8+ active Categories, 6+ active RelatedSystems, 4+ active + 1 inactive DevelopmentRequesters.
 - Removal is soft at the attachment level only; Ticket rows are never deleted in Lab 2.
@@ -147,6 +147,6 @@ The Lab 2 specification is implemented and verified end to end: every user story
 acceptance criterion, and non-functional requirement referenced across
 `api-spec.md` / `ui-spec.md` is covered by passing automated tests and visual
 inspection (see `tests.md` and `visual-inspection.md`). No Lab 2 requirement is
-left unimplemented; the only documented divergence is the initial current status
-(`SUBMITTED` in the data model vs labs-sheet §4.3 wording "New"), which is a follow-up
-status-workflow item and does not block the completeness of the Lab 2 features.
+left unimplemented. A new Ticket begins with Current Status `NEW`, matching the
+labs-sheet §4.3 wording; status workflow remains a later-lab concern and is read-only
+for the requester.

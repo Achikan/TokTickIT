@@ -26,7 +26,7 @@ const TICKET = {
   relatedSystem: { id: 1, name: "ERP System" },
   requestedPriority: "MEDIUM" as const,
   itPriority: "MEDIUM" as const,
-  currentStatus: "SUBMITTED",
+  currentStatus: "NEW",
   createdAt: "2026-09-01T00:00:00.000Z",
   updatedAt: "2026-09-01T00:00:00.000Z",
 };

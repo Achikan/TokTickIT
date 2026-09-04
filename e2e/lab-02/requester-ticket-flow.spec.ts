@@ -44,7 +44,7 @@ test.describe.serial("Requester ticket flow (E2E-01, E2E-02)", () => {
     await openBtn.click();
     await expect(page.getByText(ticketNumber, { exact: true }).first()).toBeVisible();
     await expect(page.getByText(summary)).toBeVisible();
-    await expect(page.getByText("SUBMITTED")).toBeVisible();
+    await expect(page.getByText("NEW")).toBeVisible();
   });
 
   test("E2E-02: uploads an Attachment, then soft-removes it; download is blocked", async ({
@@ -81,8 +81,9 @@ test.describe.serial("Requester ticket flow (E2E-01, E2E-02)", () => {
     await expect(page.getByRole("button", { name: "Download" })).toBeVisible();
 
     // AC-09 / FR-18: soft-remove with a reason, then download is blocked (410).
-    page.on("dialog", (dialog) => dialog.accept("No longer needed."));
     await page.getByRole("button", { name: "Remove" }).click();
+    await page.getByLabel(/Removal reason for/).fill("No longer needed.");
+    await page.getByRole("button", { name: "Confirm Removal" }).click();
     await expect(page.getByText(/Removed — No longer needed\./)).toBeVisible();
     await expect(page.getByText("Blocked", { exact: true })).toBeVisible();
     // The attachment row no longer offers Download/Remove actions.

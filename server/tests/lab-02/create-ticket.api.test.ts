@@ -46,7 +46,7 @@ describe("POST /api/tickets", () => {
     expect(res.body.ticket.ticketNumber).toMatch(/^TK-\d{6}$/);
     expect(res.body.ticket.summary).toBe("Laptop battery drains quickly");
     expect(res.body.ticket.requesterId).toBe(alice!.id);
-    expect(res.body.ticket.currentStatus).toBe("SUBMITTED");
+    expect(res.body.ticket.currentStatus).toBe("NEW");
     expect(res.body.ticket.category.name).toBe("Hardware");
     expect(res.body.ticket.relatedSystem.name).toBe("ERP System");
 

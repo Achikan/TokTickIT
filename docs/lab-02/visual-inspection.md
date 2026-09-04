@@ -67,24 +67,22 @@ captured by dedicated Playwright scripts in `scripts/`:
 | Part | Folder | Captures |
 |---|---|---|
 | 1 (Working methodology) | `artifacts/lab-02/screenshots/part-1-git-evidence/` | commit graph, repo structure, README, .gitignore, PR review table, Issues (all Closed) |
-| 1 (Requester states) | `artifacts/lab-02/screenshots/requester-selection/` | loading / loaded / selected |
-| 1/6 (Create Ticket states) | `artifacts/lab-02/screenshots/create-ticket-states/` | initial / validation-error / submitting / success / API-failure |
+| 1 (Requester states) | `artifacts/lab-02/screenshots/requester-selection/` | loading / loaded dropdown / selected / empty / API-failure |
+| 1/6 (Create Ticket states) | `artifacts/lab-02/screenshots/create-ticket-states/` | initial / validation-error / invalid-attachment / files-selected / submitting / success / API-failure |
 | 2 (Requirement analysis) | `artifacts/lab-02/screenshots/part-2-spec-evidence/` | spec.md existed before implementation PRs (git order) |
-| 3 (Testing & traceability) | `artifacts/lab-02/screenshots/part-3-test-evidence/` | full passing server (52) + client (51) outputs |
+| 3 (Testing & traceability) | `artifacts/lab-02/screenshots/part-3-test-evidence/` | full passing server (52), client (51), and E2E (11) outputs |
 | 6 (Design documents) | `artifacts/lab-02/screenshots/part-6-evidence/` | UI field ↔ DB column, reference-data seed |
 | 7 (My Tickets) | `artifacts/lab-02/screenshots/part-7-my-tickets/` | list, search, filter category/priority/status, sort, pagination, empty, no-results |
-| 8 (Ticket Detail + attachments) | `artifacts/lab-02/screenshots/part-8-ticket-detail/` | owned detail, upload, download, soft-remove, blocked-download |
+| 8 (Ticket Detail + attachments) | `artifacts/lab-02/screenshots/part-8-ticket-detail/` | owned detail, add-attachment (selected file), download-active, removal-reason input, soft-remove, blocked-download |
 | (Attachment states) | `artifacts/lab-02/screenshots/ticket-detail-attachments/` | initial / valid upload / invalid / soft-removed |
 | (Cross-requester security) | `artifacts/lab-02/screenshots/part-78-evidence/` | owner-only list, unauthorized 404 |
 
 ## 6. Deviations / Notes
 
-- **Initial Current Status is `SUBMITTED`** in the current implementation
-  (`server/prisma/schema.prisma`: `@default(SUBMITTED)`, UI read-only `SUBMITTED`),
-  whereas **BR-02 / labsheet §4.3** ("A new Ticket begins with Current Status New")
-  requires `New`. This is a **known spec divergence** tracked separately (issue on the
-  status workflow) and is **not** a styling defect; screenshots therefore show
-  `SUBMITTED`.
+- The initial Current Status is `NEW` in the current implementation
+  (`server/prisma/schema.prisma`: `@default(NEW)`, UI read-only badge `NEW`), matching
+  **labsheet §4.3** ("A new Ticket begins with Current Status New"). Status changes
+  remain system-managed and read-only for the requester in Lab 2.
 - No other visual deviations against ui-spec §14 were found in this inspection.
 
 ## 7. How to Reproduce
@@ -96,4 +94,5 @@ npm run test:e2e               # RESP-01 responsive assertions (no h-scroll, usa
 cd client && npm test          # STYLE-01 + UI style assertions
 ```
 
-Status: **All checklist items pass** except the documented status divergence in §5.
+Status: **All checklist items pass.** The initial Current Status is `NEW`, matching the
+labs-sheet §4.3 wording; no deviations remain.
