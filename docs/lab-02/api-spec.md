@@ -11,15 +11,15 @@
 
 ## 1. Retrieve Active Categories
 
-`GET /api/categories`
+`GET /api/categories` (infrastructure health companion `GET /api/health` returns `{ "status": "ok", "service": "TokTickIT API" }`)
 
 Query: none.
 
-Success `200`:
+Success `200`: bare array (not wrapped in `items`), all categories in id order:
 ```json
-{ "items": [ { "id": 1, "name": "Hardware" } ] }
+[ { "id": 1, "name": "Hardware" } ]
 ```
-Error: `500 INTERNAL_ERROR` on failure. Only active categories are returned.
+Error: `500 INTERNAL_ERROR` on failure.
 
 ## 2. Retrieve Active Related Systems
 
