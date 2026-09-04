@@ -1,7 +1,7 @@
 # Lab 2 — Peer Review Record
 
 **Author:** <full name> — <student id> — GitHub: [@Achikan](https://github.com/Achikan)
-**Peer reviewer:** <full name> — <student id> — GitHub: [@il0lk3](https://github.com/il0lk3)
+**Peer reviewer:** นายธนากร พหุลรัตน์ — 67070505217 — GitHub: [@il0lk3](https://github.com/il0lk3)
 
 > Every Lab 2 Issue was developed on its own `feature/<n>-<slug>` branch and merged
 > into `lab2-staging` only after the peer reviewer approved (no direct commits to
