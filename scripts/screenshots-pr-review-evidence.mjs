@@ -15,6 +15,7 @@ import { fileURLToPath } from "node:url";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = path.join(ROOT, "artifacts", "lab-02", "screenshots");
 const PRDATA = "/tmp/opencode/prdata";
+const PRDATA2 = "/tmp/opencode/prdata2";
 const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
 const css = `
@@ -32,6 +33,13 @@ const css = `
 const readPr = async (n) => {
   try {
     return JSON.parse(await readFile(path.join(PRDATA, `${n}.json`), "utf-8"));
+  } catch {
+    return null;
+  }
+};
+const readPr2 = async (n) => {
+  try {
+    return JSON.parse(await readFile(path.join(PRDATA2, `${n}.json`), "utf-8"));
   } catch {
     return null;
   }
@@ -86,6 +94,53 @@ const issueRows = issues
   .map((i) => `<tr><td>#${i.number}</td><td>${esc(i.title)}</td><td>${esc(i.state)}</td></tr>`)
   .join("");
 
+// Partner's Lab 2 PRs (il0lk3/TokTickIT) — the PRs *I* reviewed as @Achikan
+const PRS2 = [22, 23, 24, 25, 26, 27, 28, 29, 30];
+const rows2 = [];
+for (const n of PRS2) {
+  const info = await readPr2(n);
+  if (!info) continue;
+  const reviews = info.reviews || [];
+  let revStr;
+  const mine = reviews.filter((r) => r.author.login === "Achikan");
+  if (mine.length === 0) {
+    revStr = `<span class="chg">No Achikan review</span>`;
+  } else {
+    const set = [...new Set(mine.map((r) => r.state))];
+    revStr = set
+      .map((s) =>
+        s === "APPROVED" ? `<span class="ok">APPROVED</span>` : s === "CHANGES_REQUESTED" ? `<span class="chg">CHANGES_REQUESTED</span>` : `<span>${esc(s)}</span>`
+      )
+      .join(" → ");
+  }
+  const mineAt = mine.length
+    ? new Date(Math.max(...mine.map((r) => Date.parse(r.submittedAt)))).toISOString().slice(0, 10)
+    : "—";
+  rows2.push({
+    n: info.number,
+    title: info.title,
+    head: info.headRefName,
+    base: info.baseRefName,
+    state: info.state,
+    revStr,
+    mineCount: mine.length,
+    mineAt,
+  });
+}
+
+const table2 = rows2
+  .map(
+    (r) => `<tr>
+      <td>PR #${r.n}</td>
+      <td>${esc(r.title)}</td>
+      <td><code>${esc(r.head)}</code> → <code>${esc(r.base)}</code></td>
+      <td>${esc(r.state)}</td>
+      <td>${r.mineAt} (${r.mineCount} review(s))</td>
+      <td>${r.revStr}</td>
+    </tr>`
+  )
+  .join("");
+
 const html1 = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
 <h1>Part 1 Evidence — PR Review Record (every Lab 2 PR reviewed by peer @il0lk3)</h1>
 <table>
@@ -112,6 +167,20 @@ const html2 = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</s
 </div>
 </body></html>`;
 
+const html3 = `<!doctype html><html><head><meta charset="utf-8"><style>${css}</style></head><body>
+<h1>Part 1 Evidence — Peer reviews I gave on my partner's Lab 2 PRs (@Achikan → @il0lk3)</h1>
+<table>
+  <tr><th>PR</th><th>Title</th><th>Branches</th><th>State</th><th>My review date</th><th>My verdict(s)</th></tr>
+  ${table2}
+</table>
+<div class="note">
+  Every Lab 2 Issue was peer-reviewed <strong>in both directions</strong>: my partner @il0lk3
+  reviewed all my PRs in <code>Achikan/TokTickIT</code>, and I (as @Achikan) reviewed all of my
+  partner's PRs in <code>il0lk3/TokTickIT</code>. The table above is the exact review trail I left
+  on the partner's PRs (CHANGES_REQUESTED → fixes → APPROVED where applicable).
+</div>
+</body></html>`;
+
 const browser = await chromium.launch();
 try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
@@ -122,6 +191,9 @@ try {
   await page.setContent(html2);
   await page.screenshot({ path: path.join(OUT, "part-1-git-evidence", "06-issues-done.png"), fullPage: true });
   console.log("saved", "part-1-git-evidence/06-issues-done.png");
+  await page.setContent(html3);
+  await page.screenshot({ path: path.join(OUT, "part-1-git-evidence", "05b-reviewed-partner-prs.png"), fullPage: true });
+  console.log("saved", "part-1-git-evidence/05b-reviewed-partner-prs.png");
 } finally {
   await browser.close();
 }

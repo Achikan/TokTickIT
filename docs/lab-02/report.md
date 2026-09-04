@@ -25,7 +25,8 @@ Commits are small, conventional, and tied to Issues (`feat:`, `docs:`, `refactor
 | Item | Evidence |
 |---|---|
 | Commit history (feature → staging → main graph) | `artifacts/lab-02/screenshots/part-1-git-evidence/01-commit-history.png` |
-| PR review record (all Lab 2 PRs reviewed and approved) | `artifacts/lab-02/screenshots/part-1-git-evidence/05-pr-review-table.png` |
+| PR review record (all Lab 2 PRs reviewed and approved, 2-way) | `artifacts/lab-02/screenshots/part-1-git-evidence/05-pr-review-table.png` |
+| Peer reviews I gave on my partner's PRs | `artifacts/lab-02/screenshots/part-1-git-evidence/05b-reviewed-partner-prs.png` |
 | GitHub Issues (all closed = Kanban Done) | `artifacts/lab-02/screenshots/part-1-git-evidence/06-issues-done.png` |
 | Rendered reviewer.md | [docs/lab-02/reviewer.md](reviewer.md) |
 | README | [README.md](../../README.md) |
@@ -53,10 +54,15 @@ Commits are small, conventional, and tied to Issues (`feat:`, `docs:`, `refactor
 
 > Lab 2 GitHub Issues are **#13–#23** (Issue 5 "Sprint Specification & Test Plan" through
 > Issue 15 "Documentation, Review & Release"; Issues #2–#12 are Lab 1 and earlier setup).
+> Peer review is **two-way**: I reviewed all of my partner's Lab 2 PRs
+> (`il0lk3/TokTickIT` #22–#30) in addition to receiving my partner's reviews — see
+> `05b-reviewed-partner-prs.png` below.
 
 ![Commit history](../../artifacts/lab-02/screenshots/part-1-git-evidence/01-commit-history.png)
 
 ![PR review table](../../artifacts/lab-02/screenshots/part-1-git-evidence/05-pr-review-table.png)
+
+![Peer reviews I gave on partner's PRs](../../artifacts/lab-02/screenshots/part-1-git-evidence/05b-reviewed-partner-prs.png)
 
 ![Issues all closed](../../artifacts/lab-02/screenshots/part-1-git-evidence/06-issues-done.png)
 
