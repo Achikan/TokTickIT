@@ -140,3 +140,13 @@ All requester-scoped endpoints enforce ownership: a requester may only reach (an
 - `itPriority` and `currentStatus` are system-managed (defaulted) and read-only for the requester in Lab 2; no status transitions are exposed.
 - Cross-requester access that would disclose existence returns the same safe error as a missing resource (e.g. 404 or 403 without leaking data).
 - Seed categories/related systems/requesters are upserted by unique keys so re-running the seed is harmless.
+
+## 12. Final Status (Issue 15)
+
+The Lab 2 specification is implemented and verified end to end: every user story,
+acceptance criterion, and non-functional requirement referenced across
+`api-spec.md` / `ui-spec.md` is covered by passing automated tests and visual
+inspection (see `tests.md` and `visual-inspection.md`). No Lab 2 requirement is
+left unimplemented; the only documented divergence is the initial current status
+(`SUBMITTED` in the data model vs labs-sheet §4.3 wording "New"), which is a follow-up
+status-workflow item and does not block the completeness of the Lab 2 features.

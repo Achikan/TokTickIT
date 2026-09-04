@@ -110,3 +110,10 @@ No planned test is skipped, disabled, or commented out.
 - No authentication-level tests (Lab 3 concern); requester identity is passed directly.
 - No IT Staff workflow tests (out of scope).
 - Real browser download verification is covered by E2E; unit layer verifies blocking logic.
+
+## 8. Final Status (Issue 15)
+
+Lab 2 test plan is complete and stable on `lab2-staging`: all suites above pass
+(`server` 52/52, `client` 51/51, E2E+Responsive 11/11) with no skipped or disabled
+tests. Results are current as of the release PR (Issue 15) and are considered the
+final, grading baseline for Lab 2.
