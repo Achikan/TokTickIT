@@ -12,3 +12,20 @@ server/prisma/*.db
 # logs & OS
 *.log
 .DS_Store
+
+# vite dev cache
+.vite/
+
+# attachment file storage (runtime only; DB stores metadata)
+server/uploads/
+
+# Playwright runtime output (retained evidence lives in artifacts/)
+test-results/
+playwright-report/
+.playwright/
+
+# local-only report evidence (referenced by report.md/PDF but not committed)
+artifacts/lab-02/report-evidence/
+
+# built report PDF (rebuilt from report.md when needed; not committed)
+docs/lab-02/report_lab02_67070505229.pdf
