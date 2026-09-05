@@ -66,16 +66,16 @@ captured by dedicated Playwright scripts in `scripts/`:
 
 | Part | Folder | Captures |
 |---|---|---|
-| 1 (Working methodology) | `artifacts/lab-02/screenshots/part-1-git-evidence/` | commit graph, repo structure, README, .gitignore, PR review table, Issues (all Closed) |
-| 1 (Requester states) | `artifacts/lab-02/screenshots/requester-selection/` | loading / loaded dropdown / selected / empty / API-failure |
-| 1/6 (Create Ticket states) | `artifacts/lab-02/screenshots/create-ticket-states/` | initial / validation-error / invalid-attachment / files-selected / submitting / success / API-failure |
-| 2 (Requirement analysis) | `artifacts/lab-02/screenshots/part-2-spec-evidence/` | spec.md existed before implementation PRs (git order) |
-| 3 (Testing & traceability) | `artifacts/lab-02/screenshots/part-3-test-evidence/` | full passing server (52), client (51), and E2E (11) outputs |
-| 6 (Design documents) | `artifacts/lab-02/screenshots/part-6-evidence/` | UI field ↔ DB column, reference-data seed |
-| 7 (My Tickets) | `artifacts/lab-02/screenshots/part-7-my-tickets/` | list, search, filter category/priority/status, sort, pagination, empty, no-results |
-| 8 (Ticket Detail + attachments) | `artifacts/lab-02/screenshots/part-8-ticket-detail/` | owned detail, add-attachment (selected file), download-active, removal-reason input, soft-remove, blocked-download |
-| (Attachment states) | `artifacts/lab-02/screenshots/ticket-detail-attachments/` | initial / valid upload / invalid / soft-removed |
-| (Cross-requester security) | `artifacts/lab-02/screenshots/part-78-evidence/` | owner-only list, unauthorized 404 |
+| 1 (Working methodology) | `artifacts/lab-02/report-evidence/part-1-git-evidence/` | commit graph, repo structure, README, .gitignore, PR review table, Issues (all Closed) |
+| 1 (Requester states) | `artifacts/lab-02/report-evidence/requester-selection/` | loading / loaded dropdown / selected / empty / API-failure |
+| 1/6 (Create Ticket states) | `artifacts/lab-02/report-evidence/create-ticket-states/` | initial / validation-error / invalid-attachment / files-selected / submitting / success / API-failure |
+| 2 (Requirement analysis) | `artifacts/lab-02/report-evidence/part-2-spec-evidence/` | spec.md existed before implementation PRs (git order) |
+| 3 (Testing & traceability) | `artifacts/lab-02/report-evidence/part-3-test-evidence/` | full passing server (52), client (51), and E2E (11) outputs |
+| 6 (Design documents) | `artifacts/lab-02/report-evidence/part-6-evidence/` | UI field ↔ DB column, reference-data seed |
+| 7 (My Tickets) | `artifacts/lab-02/report-evidence/part-7-my-tickets/` | list, search, filter category/priority/status, sort, pagination, empty, no-results |
+| 8 (Ticket Detail + attachments) | `artifacts/lab-02/report-evidence/part-8-ticket-detail/` | owned detail, add-attachment (selected file), download-active, removal-reason input, soft-remove, blocked-download |
+| (Attachment states) | `artifacts/lab-02/report-evidence/ticket-detail-attachments/` | initial / valid upload / invalid / soft-removed |
+| (Cross-requester security) | `artifacts/lab-02/report-evidence/part-78-evidence/` | owner-only list, unauthorized 404 |
 
 ## 6. Deviations / Notes
 

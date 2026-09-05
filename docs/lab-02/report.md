@@ -24,16 +24,16 @@ Commits are small, conventional, and tied to Issues (`feat:`, `docs:`, `refactor
 
 | Item | Evidence |
 |---|---|
-| Commit history (feature → staging → main graph) | `artifacts/lab-02/screenshots/part-1-git-evidence/01-commit-history.png` |
-| PR review record (all Lab 2 PRs reviewed and approved, 2-way) | `artifacts/lab-02/screenshots/part-1-git-evidence/05-pr-review-table.png` |
-| Peer reviews I gave on my partner's PRs | `artifacts/lab-02/screenshots/part-1-git-evidence/05b-reviewed-partner-prs.png` |
-| GitHub Issues (all closed = Kanban Done) | `artifacts/lab-02/screenshots/part-1-git-evidence/06-issues-done.png` |
+| Commit history (feature → staging → main graph) | `artifacts/lab-02/report-evidence/part-1-git-evidence/01-commit-history.png` |
+| PR review record (all Lab 2 PRs reviewed and approved, 2-way) | `artifacts/lab-02/report-evidence/part-1-git-evidence/05-pr-review-table.png` |
+| Peer reviews I gave on my partner's PRs | `artifacts/lab-02/report-evidence/part-1-git-evidence/05b-reviewed-partner-prs.png` |
+| GitHub Issues (all closed = Kanban Done) | `artifacts/lab-02/report-evidence/part-1-git-evidence/06-issues-done.png` |
 | Rendered reviewer.md | [docs/lab-02/reviewer.md](reviewer.md) |
 | README | [README.md](../../README.md) |
 | .gitignore | [.gitignore](../../.gitignore) |
-| Directory structure in the IDE | `artifacts/lab-02/screenshots/part-1-git-evidence/02-directory-structure.png` |
-| README content | `artifacts/lab-02/screenshots/part-1-git-evidence/03-readme.png` |
-| .gitignore content | `artifacts/lab-02/screenshots/part-1-git-evidence/04-gitignore.png` |
+| Directory structure in the IDE | `artifacts/lab-02/report-evidence/part-1-git-evidence/02-directory-structure.png` |
+| README content | `artifacts/lab-02/report-evidence/part-1-git-evidence/03-readme.png` |
+| .gitignore content | `artifacts/lab-02/report-evidence/part-1-git-evidence/04-gitignore.png` |
 
 **PR list (all written by me, reviewed by @il0lk3, merged into `lab2-staging`):**
 
@@ -58,26 +58,26 @@ Commits are small, conventional, and tied to Issues (`feat:`, `docs:`, `refactor
 > (`il0lk3/TokTickIT` #22–#30) in addition to receiving my partner's reviews — see
 > `05b-reviewed-partner-prs.png` below.
 
-![Commit history](../../artifacts/lab-02/screenshots/part-1-git-evidence/01-commit-history.png)
+![Commit history](../../artifacts/lab-02/report-evidence/part-1-git-evidence/01-commit-history.png)
 
-![PR review table](../../artifacts/lab-02/screenshots/part-1-git-evidence/05-pr-review-table.png)
+![PR review table](../../artifacts/lab-02/report-evidence/part-1-git-evidence/05-pr-review-table.png)
 
-![Peer reviews I gave on partner's PRs](../../artifacts/lab-02/screenshots/part-1-git-evidence/05b-reviewed-partner-prs.png)
+![Peer reviews I gave on partner's PRs](../../artifacts/lab-02/report-evidence/part-1-git-evidence/05b-reviewed-partner-prs.png)
 
-![Issues all closed](../../artifacts/lab-02/screenshots/part-1-git-evidence/06-issues-done.png)
+![Issues all closed](../../artifacts/lab-02/report-evidence/part-1-git-evidence/06-issues-done.png)
 
-![Directory structure](../../artifacts/lab-02/screenshots/part-1-git-evidence/02-directory-structure.png)
+![Directory structure](../../artifacts/lab-02/report-evidence/part-1-git-evidence/02-directory-structure.png)
 
-![README](../../artifacts/lab-02/screenshots/part-1-git-evidence/03-readme.png)
+![README](../../artifacts/lab-02/report-evidence/part-1-git-evidence/03-readme.png)
 
-![.gitignore](../../artifacts/lab-02/screenshots/part-1-git-evidence/04-gitignore.png)
+![.gitignore](../../artifacts/lab-02/report-evidence/part-1-git-evidence/04-gitignore.png)
 
 **Kanban:** GitHub Project board used with all Issues moved to **Done** as work completed.
 The final board screenshot (all cards in Done) is captured manually from the GitHub web UI —
 see `kanban-done.png` below. All Issues #13–#23 are *Closed* as shown in
 `part-1-git-evidence/06-issues-done.png`.
 
-![Kanban board — all Issues in Done](../../artifacts/lab-02/screenshots/kanban-done.png)
+![Kanban board — all Issues in Done](../../artifacts/lab-02/report-evidence/kanban-done.png)
 
 ---
 
@@ -154,7 +154,7 @@ The specification is an engineering contract written **before** any implementati
 
 The screenshot below proves the spec existed before the implementation PRs:
 
-![Spec before implementation PRs](../../artifacts/lab-02/screenshots/part-2-spec-evidence/01-spec-before-impl.png)
+![Spec before implementation PRs](../../artifacts/lab-02/report-evidence/part-2-spec-evidence/01-spec-before-impl.png)
 
 ---
 
@@ -219,11 +219,11 @@ AC-12 → UI-03 · AC-13 → STYLE-01, RESP-01 · AC-14 → UI-08 · AC-15 → A
 
 Complete passing output, captured from the current implementation:
 
-![Server tests 52/52](../../artifacts/lab-02/screenshots/part-3-test-evidence/01-server-tests-pass.png)
+![Server tests 52/52](../../artifacts/lab-02/report-evidence/part-3-test-evidence/01-server-tests-pass.png)
 
-![Client tests 51/51](../../artifacts/lab-02/screenshots/part-3-test-evidence/02-client-tests-pass.png)
+![Client tests 51/51](../../artifacts/lab-02/report-evidence/part-3-test-evidence/02-client-tests-pass.png)
 
-![E2E + responsive 11/11](../../artifacts/lab-02/screenshots/part-3-test-evidence/03-e2e-tests-pass.png)
+![E2E + responsive 11/11](../../artifacts/lab-02/report-evidence/part-3-test-evidence/03-e2e-tests-pass.png)
 
 (The rubric asks for output *from main*; the same code and counts are on `main` after the
 release PR #36 merge — output above was generated from the Lab 2 release branch.)
@@ -270,15 +270,15 @@ scored inside Part 6 (Working Ticket Screen: Create Mode).
 States captured — loading, loaded active-user dropdown, selected-user display, empty (no active
 requesters), and API-failure (safe error message):
 
-![Requester selection — loading](../../artifacts/lab-02/screenshots/requester-selection/loading.png)
+![Requester selection — loading](../../artifacts/lab-02/report-evidence/requester-selection/loading.png)
 
-![Requester selection — loaded dropdown (active requesters only)](../../artifacts/lab-02/screenshots/requester-selection/loaded-dropdown.png)
+![Requester selection — loaded dropdown (active requesters only)](../../artifacts/lab-02/report-evidence/requester-selection/loaded-dropdown.png)
 
-![Requester selection — selected](../../artifacts/lab-02/screenshots/requester-selection/selected.png)
+![Requester selection — selected](../../artifacts/lab-02/report-evidence/requester-selection/selected.png)
 
-![Requester selection — empty ("There are no active development requesters.")](../../artifacts/lab-02/screenshots/requester-selection/empty.png)
+![Requester selection — empty ("There are no active development requesters.")](../../artifacts/lab-02/report-evidence/requester-selection/empty.png)
 
-![Requester selection — API failure ("Unable to load development requesters.")](../../artifacts/lab-02/screenshots/requester-selection/api-failure.png)
+![Requester selection — API failure ("Unable to load development requesters.")](../../artifacts/lab-02/report-evidence/requester-selection/api-failure.png)
 
 The requested user is shown in the header ("Selected Requester") with a **Change Requester**
 action that returns to the selection screen. Inactive requesters (e.g. Evan) never appear
@@ -295,30 +295,30 @@ Evidence covers the Teacher's §4 User Stories and the required states.
 The requester is chosen *before* entering the app; the saved Ticket stores the matching
 `requesterId`, and the official ticket number + saved values come back from the database:
 
-![UI requester field ↔ DB requesterId](../../artifacts/lab-02/screenshots/part-6-evidence/01-requester-field-db.png)
+![UI requester field ↔ DB requesterId](../../artifacts/lab-02/report-evidence/part-6-evidence/01-requester-field-db.png)
 
 ### 2. Reference data loaded from the database
 
-![Reference data from DB (categories + related systems)](../../artifacts/lab-02/screenshots/part-6-evidence/02-reference-data-db.png)
+![Reference data from DB (categories + related systems)](../../artifacts/lab-02/report-evidence/part-6-evidence/02-reference-data-db.png)
 
 ### 3–6. Required states (initial, validation failure, submitting, success, API failure, invalid attachment)
 
 The Create Ticket form now includes the **Attachments** field (labsheet §4.4), so the invalid
 attachment check happens at Create mode itself:
 
-![Create Ticket — initial empty form](../../artifacts/lab-02/screenshots/create-ticket-states/01-initial.png)
+![Create Ticket — initial empty form](../../artifacts/lab-02/report-evidence/create-ticket-states/01-initial.png)
 
-![Create Ticket — validation failure (field-level messages)](../../artifacts/lab-02/screenshots/create-ticket-states/02-validation-failure.png)
+![Create Ticket — validation failure (field-level messages)](../../artifacts/lab-02/report-evidence/create-ticket-states/02-validation-failure.png)
 
-![Create Ticket — invalid attachment rejected (unsupported `.txt` type, field-level error)](../../artifacts/lab-02/screenshots/create-ticket-states/03-invalid-attachment.png)
+![Create Ticket — invalid attachment rejected (unsupported `.txt` type, field-level error)](../../artifacts/lab-02/report-evidence/create-ticket-states/03-invalid-attachment.png)
 
-![Create Ticket — valid files selected (attach before submit)](../../artifacts/lab-02/screenshots/create-ticket-states/04-files-selected.png)
+![Create Ticket — valid files selected (attach before submit)](../../artifacts/lab-02/report-evidence/create-ticket-states/04-files-selected.png)
 
-![Create Ticket — submitting (button busy "Submitting…")](../../artifacts/lab-02/screenshots/create-ticket-states/05-submitting.png)
+![Create Ticket — submitting (button busy "Submitting…")](../../artifacts/lab-02/report-evidence/create-ticket-states/05-submitting.png)
 
-![Create Ticket — success (official TK-###### number from backend)](../../artifacts/lab-02/screenshots/create-ticket-states/06-success.png)
+![Create Ticket — success (official TK-###### number from backend)](../../artifacts/lab-02/report-evidence/create-ticket-states/06-success.png)
 
-![Create Ticket — API failure (safe error, form values preserved)](../../artifacts/lab-02/screenshots/create-ticket-states/07-api-failure.png)
+![Create Ticket — API failure (safe error, form values preserved)](../../artifacts/lab-02/report-evidence/create-ticket-states/07-api-failure.png)
 
 ---
 
@@ -343,29 +343,29 @@ no-results, and cross-requester access evidence.
 | Cross-requester: Alice's list excludes Bob's tickets | `part-78-evidence/01-my-tickets-owner-only.png` |
 | Cross-requester: direct access to another requester's ticket rejected | `part-78-evidence/02-unauthorized-access-rejected.png` |
 
-![Alice list](../../artifacts/lab-02/screenshots/part-7-my-tickets/01-alice-list.png)
+![Alice list](../../artifacts/lab-02/report-evidence/part-7-my-tickets/01-alice-list.png)
 
-![Bob list](../../artifacts/lab-02/screenshots/part-7-my-tickets/02-bob-list.png)
+![Bob list](../../artifacts/lab-02/report-evidence/part-7-my-tickets/02-bob-list.png)
 
-![Search](../../artifacts/lab-02/screenshots/part-7-my-tickets/03-search.png)
+![Search](../../artifacts/lab-02/report-evidence/part-7-my-tickets/03-search.png)
 
-![Filter category](../../artifacts/lab-02/screenshots/part-7-my-tickets/04-filter-category.png)
+![Filter category](../../artifacts/lab-02/report-evidence/part-7-my-tickets/04-filter-category.png)
 
-![Filter priority](../../artifacts/lab-02/screenshots/part-7-my-tickets/05-filter-priority.png)
+![Filter priority](../../artifacts/lab-02/report-evidence/part-7-my-tickets/05-filter-priority.png)
 
-![Filter status no-match](../../artifacts/lab-02/screenshots/part-7-my-tickets/06-filter-status-no-matches.png)
+![Filter status no-match](../../artifacts/lab-02/report-evidence/part-7-my-tickets/06-filter-status-no-matches.png)
 
-![Sort](../../artifacts/lab-02/screenshots/part-7-my-tickets/07-sort.png)
+![Sort](../../artifacts/lab-02/report-evidence/part-7-my-tickets/07-sort.png)
 
-![Pagination](../../artifacts/lab-02/screenshots/part-7-my-tickets/08-pagination.png)
+![Pagination](../../artifacts/lab-02/report-evidence/part-7-my-tickets/08-pagination.png)
 
-![Empty state](../../artifacts/lab-02/screenshots/part-7-my-tickets/09-empty-state.png)
+![Empty state](../../artifacts/lab-02/report-evidence/part-7-my-tickets/09-empty-state.png)
 
-![No results](../../artifacts/lab-02/screenshots/part-7-my-tickets/10-no-results.png)
+![No results](../../artifacts/lab-02/report-evidence/part-7-my-tickets/10-no-results.png)
 
-![Owner-only list](../../artifacts/lab-02/screenshots/part-78-evidence/01-my-tickets-owner-only.png)
+![Owner-only list](../../artifacts/lab-02/report-evidence/part-78-evidence/01-my-tickets-owner-only.png)
 
-![Unauthorized access rejected](../../artifacts/lab-02/screenshots/part-78-evidence/02-unauthorized-access-rejected.png)
+![Unauthorized access rejected](../../artifacts/lab-02/report-evidence/part-78-evidence/02-unauthorized-access-rejected.png)
 
 ---
 
@@ -385,27 +385,27 @@ retained metadata, blocked removed download, and unauthorized ticket-access evid
 | Unauthorized ticket access rejected (non-disclosing 404) | `part-78-evidence/02-unauthorized-access-rejected.png` |
 | Attachment states (initial / valid / invalid / removed) | `ticket-detail-attachments/01..04` |
 
-![Owned ticket detail](../../artifacts/lab-02/screenshots/part-8-ticket-detail/01-owned-detail.png)
+![Owned ticket detail](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/01-owned-detail.png)
 
-![Add attachment — selected file](../../artifacts/lab-02/screenshots/part-8-ticket-detail/02-add-attachment.png)
+![Add attachment — selected file](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/02-add-attachment.png)
 
-![Download active](../../artifacts/lab-02/screenshots/part-8-ticket-detail/03-download-active.png)
+![Download active](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/03-download-active.png)
 
-![Soft-removal reason input](../../artifacts/lab-02/screenshots/part-8-ticket-detail/04-removal-reason-input.png)
+![Soft-removal reason input](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/04-removal-reason-input.png)
 
-![Soft removed — metadata retained](../../artifacts/lab-02/screenshots/part-8-ticket-detail/05-soft-removed.png)
+![Soft removed — metadata retained](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/05-soft-removed.png)
 
-![Blocked download](../../artifacts/lab-02/screenshots/part-8-ticket-detail/06-blocked-download.png)
+![Blocked download](../../artifacts/lab-02/report-evidence/part-8-ticket-detail/06-blocked-download.png)
 
 Attachment lifecycle states:
 
-![Attachments initial](../../artifacts/lab-02/screenshots/ticket-detail-attachments/01-initial.png)
+![Attachments initial](../../artifacts/lab-02/report-evidence/ticket-detail-attachments/01-initial.png)
 
-![Valid upload](../../artifacts/lab-02/screenshots/ticket-detail-attachments/02-valid-uploaded.png)
+![Valid upload](../../artifacts/lab-02/report-evidence/ticket-detail-attachments/02-valid-uploaded.png)
 
-![Invalid rejected](../../artifacts/lab-02/screenshots/ticket-detail-attachments/03-invalid-attach.png)
+![Invalid rejected](../../artifacts/lab-02/report-evidence/ticket-detail-attachments/03-invalid-attach.png)
 
-![Soft-removed, metadata retained](../../artifacts/lab-02/screenshots/ticket-detail-attachments/04-soft-removed.png)
+![Soft-removed, metadata retained](../../artifacts/lab-02/report-evidence/ticket-detail-attachments/04-soft-removed.png)
 
 **Soft removal (BR-08/BR-09):** the reason is captured in an **inline input panel** on Ticket
 Detail (no `window.prompt`), the row's metadata stays visible with the reason, and the download
