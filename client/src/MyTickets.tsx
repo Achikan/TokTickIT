@@ -17,7 +17,7 @@ const PRIORITIES: ("LOW" | "MEDIUM" | "HIGH" | "URGENT")[] = [
   "URGENT",
 ];
 
-const STATUSES: Status[] = ["SUBMITTED", "IN_PROGRESS", "RESOLVED"];
+const STATUSES: Status[] = ["NEW", "IN_PROGRESS", "RESOLVED"];
 
 const PRIORITY_BADGES: Record<Priority, string> = {
   LOW: "badge-priority-low",
@@ -27,7 +27,7 @@ const PRIORITY_BADGES: Record<Priority, string> = {
 };
 
 const STATUS_BADGES: Record<Status, string> = {
-  SUBMITTED: "badge-status-submitted",
+  NEW: "badge-status-new",
   IN_PROGRESS: "badge-status-in-progress",
   RESOLVED: "badge-status-resolved",
 };

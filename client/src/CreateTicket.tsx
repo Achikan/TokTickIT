@@ -1,16 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Category,
   RelatedSystem,
   DevelopmentRequester,
   Priority,
   Ticket,
+  AttachmentInfo,
   createTicket,
+  uploadAttachment,
   fetchCategories,
   fetchRelatedSystems,
 } from "./api.js";
 
 const PRIORITIES: Priority[] = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,application/pdf";
+const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5 MB (BR-07)
 
 interface Props {
   requester: DevelopmentRequester;
@@ -32,6 +36,14 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
   const [requestedPriority, setRequestedPriority] = useState<Priority>("MEDIUM");
   const [created, setCreated] = useState<Ticket | null>(null);
 
+  // Issue 8/11 — attachments chosen at creation (labsheet §4.4). Files are
+  // validated client-side against BR-07 (type + 5 MB), then uploaded to the
+  // ticket right after it is created (two-step reuse of the upload API).
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [attachmentsError, setAttachmentsError] = useState("");
+  const [uploaded, setUploaded] = useState<AttachmentInfo[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     let cancelled = false;
     Promise.all([fetchCategories(), fetchRelatedSystems()])
@@ -49,6 +61,33 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
     };
   }, []);
 
+  function handleFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setAttachmentsError("");
+    const next: File[] = [];
+    for (const file of Array.from(files)) {
+      if (!ACCEPTED_TYPES.includes(file.type)) {
+        setAttachmentsError(
+          `"${file.name}" is not an allowed file type. Use JPEG, PNG, WebP, or PDF (BR-07).`
+        );
+        continue;
+      }
+      if (file.size > MAX_ATTACHMENT_SIZE) {
+        setAttachmentsError(
+          `"${file.name}" exceeds the 5 MB limit. It was not attached (BR-07).`
+        );
+        continue;
+      }
+      next.push(file);
+    }
+    setAttachments((prev) => [...prev, ...next]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
+  function removeFile(file: File) {
+    setAttachments((prev) => prev.filter((f) => f !== file));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const local: Record<string, string> = {};
@@ -61,6 +100,7 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
 
     setFormState("submitting");
     setFieldsError({});
+    setAttachmentsError("");
     try {
       const ticket = await createTicket({
         requesterId: requester.id,
@@ -70,6 +110,20 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
         relatedSystemId: Number(relatedSystemId),
         requestedPriority,
       });
+
+      const uploadedItems: AttachmentInfo[] = [];
+      for (const file of attachments) {
+        try {
+          const created = await uploadAttachment(requester.id, ticket.id, file);
+          uploadedItems.push(created);
+        } catch (err) {
+          const e = err as Error & { fields?: Record<string, string> };
+          setAttachmentsError(
+            e.fields?.file ?? `Failed to upload "${file.name}". The ticket was still created.`
+          );
+        }
+      }
+      setUploaded(uploadedItems);
       setCreated(ticket);
       setFormState("success");
     } catch (err) {
@@ -92,20 +146,28 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
       )}
 
       {formState === "success" && created && (
-        <div className="alert alert-success d-flex justify-content-between align-items-center flex-wrap gap-2">
-          <div>
-            <strong>Ticket created.</strong> Official Ticket Number:
-            <span className="fw-bold"> {created.ticketNumber}</span>
+        <div className="alert alert-success">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <strong>Ticket created.</strong> Official Ticket Number:
+              <span className="fw-bold"> {created.ticketNumber}</span>
+              {uploaded.length > 0 && (
+                <div className="mt-1">
+                  Attached {uploaded.length} file{uploaded.length > 1 ? "s" : ""}:{" "}
+                  {uploaded.map((u) => u.originalName).join(", ")}
+                </div>
+              )}
+            </div>
+            {onViewTickets && (
+              <button
+                type="button"
+                className="btn btn-tok-secondary btn-sm"
+                onClick={onViewTickets}
+              >
+                View in My Tickets
+              </button>
+            )}
           </div>
-          {onViewTickets && (
-            <button
-              type="button"
-              className="btn btn-tok-secondary btn-sm"
-              onClick={onViewTickets}
-            >
-              View in My Tickets
-            </button>
-          )}
         </div>
       )}
 
@@ -131,7 +193,7 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
               <input
                 id="ticket-status-system"
                 className="form-control readonly-field"
-                value="SUBMITTED"
+                value="NEW"
                 readOnly
               />
             </div>
@@ -247,6 +309,47 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
             />
             {fieldsError.description && (
               <small className="text-danger d-block">{fieldsError.description}</small>
+            )}
+          </div>
+
+          {/* Issue 8/11 — Attachments (labsheet §4.4, BR-07) */}
+          <div className="mb-3">
+            <label htmlFor="attachment-files" className="form-label">
+              Attachments
+            </label>
+            <input
+              id="attachment-files"
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPTED_TYPES}
+              className="form-control"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <small className="text-secondary d-block mt-1">
+              Optional. JPEG, PNG, WebP, or PDF, up to 5 MB each (BR-07).
+            </small>
+            {attachmentsError && (
+              <small className="text-danger d-block">{attachmentsError}</small>
+            )}
+            {attachments.length > 0 && (
+              <ul className="list-group mt-2" aria-label="Files to attach">
+                {attachments.map((f) => (
+                  <li
+                    key={`${f.name}-${f.lastModified}`}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    <span>{f.name}</span>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger"
+                      onClick={() => removeFile(f)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
         </fieldset>

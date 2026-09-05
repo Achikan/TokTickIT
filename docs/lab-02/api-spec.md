@@ -79,7 +79,7 @@ Success `201` (values generated/stored by the backend):
     "relatedSystem": { "id": 3, "name": "ERP" },
     "requestedPriority": "MEDIUM",
     "itPriority": "MEDIUM",
-    "currentStatus": "SUBMITTED",
+    "currentStatus": "NEW",
     "createdAt": "2026-09-01T00:00:00.000Z",
     "updatedAt": "2026-09-01T00:00:00.000Z"
   }
@@ -90,7 +90,7 @@ Errors: `400` validation, `404`/`403` if requester context invalid, `500` intern
 
 ## 5. Retrieve the Selected Requester's Tickets (list)
 
-`GET /api/tickets?search=laptop&categoryId=2&status=SUBMITTED&requestedPriority=MEDIUM&page=1&pageSize=10&sort=-createdAt`
+`GET /api/tickets?search=laptop&categoryId=2&status=NEW&requestedPriority=MEDIUM&page=1&pageSize=10&sort=-createdAt`
 
 - Returns only Tickets owned by `X-Requester-Id` (BR-04).
 - Query params: `search` (matches summary/description), `categoryId`, `relatedSystemId`, `status`, `requestedPriority` (filters), `sort` (e.g. `-createdAt`, `summary`, `+ticketNumber`), `page` (default 1), `pageSize` (default 10, max 50).
@@ -107,7 +107,7 @@ Success `200`:
       "category": { "id": 2, "name": "Hardware" },
       "requestedPriority": "MEDIUM",
       "itPriority": "MEDIUM",
-      "currentStatus": "SUBMITTED",
+      "currentStatus": "NEW",
       "updatedAt": "2026-09-01T00:00:00.000Z"
     }
   ],
@@ -140,7 +140,7 @@ Success `200`: full Ticket detail:
     "relatedSystem": { "id": 3, "name": "ERP" },
     "requestedPriority": "MEDIUM",
     "itPriority": "MEDIUM",
-    "currentStatus": "SUBMITTED",
+    "currentStatus": "NEW",
     "createdAt": "2026-09-01T00:00:00.000Z",
     "updatedAt": "2026-09-01T00:00:00.000Z",
     "attachments": []

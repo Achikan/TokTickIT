@@ -22,7 +22,7 @@ async function createTicket(
     categoryId: number;
     relatedSystemId: number;
     requestedPriority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-    currentStatus: "SUBMITTED" | "IN_PROGRESS" | "RESOLVED";
+    currentStatus: "NEW" | "IN_PROGRESS" | "RESOLVED";
     sequence: number;
   }> = {}
 ) {
@@ -37,7 +37,7 @@ async function createTicket(
       categoryId: overrides.categoryId ?? hardware.id,
       relatedSystemId: overrides.relatedSystemId ?? erp.id,
       requestedPriority: overrides.requestedPriority ?? "MEDIUM",
-      currentStatus: overrides.currentStatus ?? "SUBMITTED",
+      currentStatus: overrides.currentStatus ?? "NEW",
     },
     include: { category: true, relatedSystem: true, attachments: true },
   });

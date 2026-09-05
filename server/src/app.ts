@@ -225,7 +225,7 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
 //   -> only Tickets owned by X-Requester-Id (BR-04); search/filter/sort/pagination per api-spec.md §5.
 //   Invalid page/size/sort/filter values are rejected with 400 (BR-10), never silently ignored.
 // ---------------------------------------------------------------------------
-const VALID_STATUSES = ["SUBMITTED", "IN_PROGRESS", "RESOLVED"] as const;
+const VALID_STATUSES = ["NEW", "IN_PROGRESS", "RESOLVED"] as const;
 const VALID_SORT_COLUMNS = [
   "ticketNumber",
   "summary",

@@ -165,15 +165,18 @@ describe("TicketDetail attachments — Issue 11 (UI-10, AC-11, AC-15)", () => {
       removedReason: "Uploaded the wrong file",
     };
     const removeSpy = vi.spyOn(api, "removeAttachment").mockResolvedValue(updated);
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("Uploaded the wrong file");
 
     render(<TicketDetail requester={ALICE} ticket={MY_TICKET} onBack={() => {}} />);
+    const user = userEvent.setup();
 
     const removeBtn = await screen.findByRole("button", { name: /Remove/i });
-    await userEvent.setup().click(removeBtn);
+    await user.click(removeBtn);
+
+    const reasonInput = await screen.findByLabelText(/Removal reason for/i);
+    await user.type(reasonInput, "Uploaded the wrong file");
+    await user.click(screen.getByRole("button", { name: /Confirm Removal/i }));
 
     expect(removeSpy).toHaveBeenCalledWith(1, ACTIVE.id, "Uploaded the wrong file");
-    expect(promptSpy).toHaveBeenCalled();
     expect(await screen.findByText(/Removed — Uploaded the wrong file/i)).toBeInTheDocument();
   });
 

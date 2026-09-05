@@ -14,11 +14,12 @@ toktickit/
  │   ├── src/                 # Express app and routes
  │   └── tests/lab-01, lab-02 # Supertest API tests (Lab 2: create/my-tickets/ticket-detail/attachments)
  ├── e2e/lab-02/              # Playwright E2E + responsive specs
- ├── scripts/                 # screenshots.mjs (Playwright screenshot generator)
+ ├── scripts/                 # Playwright screenshot generators (screenshots*.mjs)
  ├── docs/lab-01/             # ai_use.md, reviewer.md, tests.md
  ├── docs/lab-02/             # specification.md, api-spec.md, ui-spec.md, tests.md,
  │                            #   reviewer.md, ai-use.md, visual-inspection.md
- ├── artifacts/lab-02/screenshots/  # evidence PNGs (create-ticket, my-tickets, ticket-detail)
+ ├── artifacts/lab-02/screenshots/  # evidence PNGs (create-ticket, my-tickets, ticket-detail,
+ │                            #   create-ticket-states, part-1..8 evidence, attachments, ...)
  ├── playwright.config.ts     # E2E projects: desktop/tablet/mobile
  ├── package.json             # root scripts: test:e2e, screenshots
  ├── .gitignore

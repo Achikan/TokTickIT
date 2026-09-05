@@ -24,7 +24,7 @@ enum Priority {
 }
 
 enum Status {
-  SUBMITTED
+  NEW
   IN_PROGRESS
   RESOLVED
 }
@@ -68,7 +68,7 @@ model Ticket {
   relatedSystemId   Int
   requestedPriority Priority            @default(MEDIUM)
   itPriority        Priority            @default(MEDIUM)
-  currentStatus     Status              @default(SUBMITTED)
+  currentStatus     Status              @default(NEW)
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   requester         DevelopmentRequester @relation(fields: [requesterId], references: [id])

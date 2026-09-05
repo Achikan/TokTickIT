@@ -24,7 +24,7 @@ export interface SystemStatus {
 
 export type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type Status = "SUBMITTED" | "IN_PROGRESS" | "RESOLVED";
+export type Status = "NEW" | "IN_PROGRESS" | "RESOLVED";
 
 export interface Ticket {
   ticketNumber: string;
@@ -48,6 +48,7 @@ export interface CreateTicketInput {
   categoryId: number;
   relatedSystemId: number;
   requestedPriority: Priority;
+  attachments?: File[];
 }
 
 // Issue 9 — My Tickets list query and item shapes (api-spec.md §5).

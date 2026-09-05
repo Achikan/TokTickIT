@@ -140,7 +140,7 @@ input[type="file"]:focus-visible {
   background-color: #dc3545;
   color: #fff;
 }
-.badge-status-submitted {
+.badge-status-new {
   background-color: #6c757d;
   color: #fff;
 }
