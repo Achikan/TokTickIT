@@ -449,27 +449,33 @@ Desktop / tablet / mobile screenshots of the three main screens:
 
 | Screen | Desktop (1280) | Tablet (820) | Mobile (390) |
 |---|---|---|---|
-| Create Ticket | `create-ticket/desktop.png` | `create-ticket/tablet.png` | `create-ticket/mobile.png` |
-| My Tickets | `my-tickets/desktop.png` | `my-tickets/tablet.png` | `my-tickets/mobile.png` |
-| Ticket Detail | `ticket-detail/desktop.png` | `ticket-detail/tablet.png` | `ticket-detail/mobile.png` |
+| Create Ticket | `create-ticket/desktop-initial.png` | `create-ticket/tablet-initial.png` | `create-ticket/mobile-initial.png` |
+| My Tickets | `my-tickets/desktop-list.png` | `my-tickets/tablet-list.png` | `my-tickets/mobile-list.png` |
+| Ticket Detail | `ticket-detail/desktop-view-mode.png` | `ticket-detail/tablet-view-mode.png` | `ticket-detail/mobile-view-mode.png` |
 
-![Create Ticket desktop](../../artifacts/lab-02/screenshots/create-ticket/desktop.png)
+![Create Ticket desktop](../../artifacts/lab-02/screenshots/create-ticket/desktop-initial.png)
 
-![Create Ticket tablet](../../artifacts/lab-02/screenshots/create-ticket/tablet.png)
+![Create Ticket tablet](../../artifacts/lab-02/screenshots/create-ticket/tablet-initial.png)
 
-![Create Ticket mobile](../../artifacts/lab-02/screenshots/create-ticket/mobile.png)
+![Create Ticket mobile](../../artifacts/lab-02/screenshots/create-ticket/mobile-initial.png)
 
-![My Tickets desktop](../../artifacts/lab-02/screenshots/my-tickets/desktop.png)
+![My Tickets desktop](../../artifacts/lab-02/screenshots/my-tickets/desktop-list.png)
 
-![My Tickets tablet](../../artifacts/lab-02/screenshots/my-tickets/tablet.png)
+![My Tickets tablet](../../artifacts/lab-02/screenshots/my-tickets/tablet-list.png)
 
-![My Tickets mobile](../../artifacts/lab-02/screenshots/my-tickets/mobile.png)
+![My Tickets mobile](../../artifacts/lab-02/screenshots/my-tickets/mobile-list.png)
 
-![Ticket Detail desktop](../../artifacts/lab-02/screenshots/ticket-detail/desktop.png)
+![Ticket Detail desktop](../../artifacts/lab-02/screenshots/ticket-detail/desktop-view-mode.png)
 
-![Ticket Detail tablet](../../artifacts/lab-02/screenshots/ticket-detail/tablet.png)
+![Ticket Detail tablet](../../artifacts/lab-02/screenshots/ticket-detail/tablet-view-mode.png)
 
-![Ticket Detail mobile](../../artifacts/lab-02/screenshots/ticket-detail/mobile.png)
+![Ticket Detail mobile](../../artifacts/lab-02/screenshots/ticket-detail/mobile-view-mode.png)
+
+The screenshots above show each screen's main state at all three viewports; the full per-state
+captures (`initial`, `validation-error`, `attachment-invalid`, `files-selected`, `submitting`,
+`success`, `api-failure`, `search`, `filter-*`, `sorted`, `pagination`, `empty`, `no-results`,
+`attachment-added`) live in the same three folders and are referenced by
+[visual-inspection.md §3](visual-inspection.md).
 
 All 12 checklist items pass, enforced by the automated RESP-01 responsive assertions (no
 horizontal scroll at any viewport) and STYLE-01 token tests. Full per-state screen coverage is
