@@ -11,10 +11,16 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// Lab 2 (Issue 6) — Ticket management data model.
-// Run:  npx prisma migrate dev --name lab2
-// Seed: npx prisma db seed  (or: npm run prisma:seed)
+// Lab 3 (Issue 17) — Real users, roles, workflow, comments and notes.
+// Run:  npx prisma migrate deploy   (apply the handwritten migration)
+// Seed: npx prisma db seed          (or: npm run prisma:seed)
 // ---------------------------------------------------------------------------
+
+enum Role {
+  REQUESTER
+  IT_STAFF
+  ADMIN
+}
 
 enum Priority {
   LOW
@@ -25,18 +31,29 @@ enum Priority {
 
 enum Status {
   NEW
+  OPEN
   IN_PROGRESS
+  WAITING_FOR_REQUESTER
   RESOLVED
+  CLOSED
+  REOPENED
+  CANCELLED
 }
 
-model DevelopmentRequester {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tickets   Ticket[]
+model User {
+  id                    Int             @id @default(autoincrement())
+  name                  String
+  email                 String          @unique
+  passwordHash          String
+  role                  Role            @default(REQUESTER)
+  active                Boolean         @default(true)
+  requiresPasswordChange Boolean        @default(true)
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  submittedTickets      Ticket[]        @relation("Requester")
+  ownedTickets          Ticket[]        @relation("Owner")
+  comments              PublicComment[]
+  notes                 InternalNote[]
 }
 
 model Category {
@@ -59,26 +76,58 @@ model RelatedSystem {
 }
 
 model Ticket {
-  id                Int                 @id @default(autoincrement())
-  ticketNumber      String              @unique
-  summary           String
-  description       String
-  requesterId       Int
-  categoryId        Int
-  relatedSystemId   Int
-  requestedPriority Priority            @default(MEDIUM)
-  itPriority        Priority            @default(MEDIUM)
-  currentStatus     Status              @default(NEW)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  requester         DevelopmentRequester @relation(fields: [requesterId], references: [id])
-  category          Category            @relation(fields: [categoryId], references: [id])
-  relatedSystem     RelatedSystem       @relation(fields: [relatedSystemId], references: [id])
-  attachments       Attachment[]
+  id                         Int             @id @default(autoincrement())
+  ticketNumber               String          @unique
+  summary                    String
+  description                String
+  requesterId                Int
+  ownerId                    Int?
+  requesterIndicatedResolvedAt DateTime?
+  categoryId                 Int
+  relatedSystemId            Int
+  requestedPriority          Priority        @default(MEDIUM)
+  itPriority                 Priority        @default(MEDIUM)
+  currentStatus              Status          @default(NEW)
+  createdAt                  DateTime        @default(now())
+  updatedAt                  DateTime        @updatedAt
+  requester                  User            @relation("Requester", fields: [requesterId], references: [id])
+  owner                      User?           @relation("Owner", fields: [ownerId], references: [id])
+  category                   Category        @relation(fields: [categoryId], references: [id])
+  relatedSystem              RelatedSystem   @relation(fields: [relatedSystemId], references: [id])
+  attachments                Attachment[]
+  comments                   PublicComment[]
+  notes                      InternalNote[]
 
   @@index([requesterId])
+  @@index([ownerId])
   @@index([categoryId])
   @@index([relatedSystemId])
+}
+
+model PublicComment {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
+}
+
+model InternalNote {
+  id        Int      @id @default(autoincrement())
+  ticketId  Int
+  authorId  Int
+  content   String
+  createdAt DateTime @default(now())
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id])
+
+  @@index([ticketId])
+  @@index([authorId])
 }
 
 model Attachment {

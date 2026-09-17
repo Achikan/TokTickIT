@@ -46,20 +46,21 @@ async function createTicket(
 describe("GET /api/tickets/:id (Ticket Detail)", () => {
   beforeEach(async () => {
     const prisma = getPrisma();
+    await prisma.attachment.deleteMany();
     await prisma.ticket.deleteMany();
     await seedRequesters(prisma);
     await seedCategories(prisma);
     await seedRelatedSystems(prisma);
 
     alice = (
-      await prisma.developmentRequester.findFirstOrThrow({
-        where: { email: "alice.anderson@example.com" },
+      await prisma.user.findFirstOrThrow({
+        where: { email: "alice.anderson@example.com", role: "REQUESTER" },
         select: { id: true },
       })
     )!;
     bob = (
-      await prisma.developmentRequester.findFirstOrThrow({
-        where: { email: "bob.brown@example.com" },
+      await prisma.user.findFirstOrThrow({
+        where: { email: "bob.brown@example.com", role: "REQUESTER" },
         select: { id: true },
       })
     )!;
@@ -73,6 +74,7 @@ describe("GET /api/tickets/:id (Ticket Detail)", () => {
 
   afterAll(async () => {
     const prisma = getPrisma();
+    await prisma.attachment.deleteMany();
     await prisma.ticket.deleteMany();
     await seedRequesters(prisma);
     await seedCategories(prisma);

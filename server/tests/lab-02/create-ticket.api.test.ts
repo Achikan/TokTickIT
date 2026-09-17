@@ -21,8 +21,8 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     await prisma.ticket.deleteMany();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
     const category = await prisma.category.findFirst({ where: { name: "Hardware" } });
     const system = await prisma.relatedSystem.findFirst({ where: { name: "ERP System" } });
@@ -60,8 +60,8 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     const before = await prisma.ticket.count();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();
@@ -89,8 +89,8 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     await prisma.ticket.deleteMany();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();
@@ -114,8 +114,8 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     const before = await prisma.ticket.count();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
     const system = await prisma.relatedSystem.findFirst();
 
@@ -141,8 +141,8 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     const before = await prisma.ticket.count();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();
@@ -166,11 +166,11 @@ describe("POST /api/tickets", () => {
     const prisma = getPrisma();
     const before = await prisma.ticket.count();
 
-    const alice = await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    const alice = await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
     });
-    const other = await prisma.developmentRequester.findFirst({
-      where: { email: "bob.brown@example.com" },
+    const other = await prisma.user.findFirst({
+      where: { email: "bob.brown@example.com", role: "REQUESTER" },
     });
     const category = await prisma.category.findFirst();
     const system = await prisma.relatedSystem.findFirst();

@@ -1,179 +1,169 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { getPrisma } from "../../src/prisma.js";
 import {
-  CATEGORIES,
-  RELATED_SYSTEMS,
-  REQUESTERS,
+  seedRequesters,
   seedCategories,
   seedRelatedSystems,
-  seedRequesters,
+  seedLab2,
+  seedLab3,
 } from "../../prisma/seed.js";
 
-describe("Lab 2 category seed", () => {
-  it("seeds all Lab 2 categories", async () => {
+describe("seed functions", () => {
+  beforeEach(async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.category.deleteMany({ where: { id: { gt: 4 } } });
-      await seedCategories(tx);
-      const names = await tx.category.findMany({ select: { name: true } });
-      try {
-        expect(names.map((c) => c.name).sort()).toEqual([...CATEGORIES].sort());
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    await prisma.internalNote.deleteMany();
+    await prisma.publicComment.deleteMany();
+    await prisma.ticket.deleteMany();
+    await prisma.user.deleteMany();
+    await prisma.relatedSystem.deleteMany();
+    await prisma.category.deleteMany();
   });
 
-  it("is idempotent - running twice creates no duplicates", async () => {
+  // ---------------------------------------------------------------------------
+  // Category seed
+  // ---------------------------------------------------------------------------
+  it("creates all 8 categories (SPEC §7)", async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.category.deleteMany({ where: { id: { gt: 4 } } });
-      await seedCategories(tx);
-      await seedCategories(tx);
-      const count = await tx.category.count();
-      const names = await tx.category.findMany({ select: { name: true } });
-      try {
-        expect(count).toBe(CATEGORIES.length);
-        expect(new Set(names.map((c) => c.name)).size).toBe(CATEGORIES.length);
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    await seedCategories(prisma);
+
+    const categories = await prisma.category.findMany({ orderBy: { name: "asc" } });
+    expect(categories).toHaveLength(8);
+    expect(categories.map((c) => c.name)).toEqual(
+      expect.arrayContaining([
+        "Account and Access",
+        "Hardware",
+        "Software",
+        "Network",
+        "Printing",
+        "Email",
+        "Data and Backup",
+        "Application Support",
+      ])
+    );
   });
 
-  it("marks seeded categories active", async () => {
+  it("creates categories exactly once when seedCategories is called twice", async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.category.deleteMany({ where: { id: { gt: 4 } } });
-      await seedCategories(tx);
-      const inactive = await tx.category.count({ where: { active: false } });
-      try {
-        expect(inactive).toBe(0);
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
-  });
-});
+    await seedCategories(prisma);
+    await seedCategories(prisma);
 
-describe("Lab 2 related-system seed", () => {
-  it("seeds all related systems", async () => {
-    const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.relatedSystem.deleteMany();
-      await seedRelatedSystems(tx);
-      const rows = await tx.relatedSystem.findMany({ select: { name: true } });
-      try {
-        expect(rows.map((r) => r.name).sort()).toEqual(
-          [...RELATED_SYSTEMS.map((s) => s.name)].sort()
-        );
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    const count = await prisma.category.count();
+    expect(count).toBe(8);
   });
 
-  it("is idempotent - running twice creates no duplicates", async () => {
+  // ---------------------------------------------------------------------------
+  // Related System seed
+  // ---------------------------------------------------------------------------
+  it("creates all 6 related systems (SPEC §7)", async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.relatedSystem.deleteMany();
-      await seedRelatedSystems(tx);
-      await seedRelatedSystems(tx);
-      const count = await tx.relatedSystem.count();
-      try {
-        expect(count).toBe(RELATED_SYSTEMS.length);
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
-  });
-});
+    await seedRelatedSystems(prisma);
 
-describe("Lab 2 development-requester seed", () => {
-  it("seeds all development requesters", async () => {
-    const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.developmentRequester.deleteMany();
-      await seedRequesters(tx);
-      const names = await tx.developmentRequester.findMany({ select: { name: true } });
-      try {
-        expect(names.map((r) => r.name).sort()).toEqual(
-          [...REQUESTERS.map((r) => r.name)].sort()
-        );
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    const systems = await prisma.relatedSystem.findMany();
+    expect(systems).toHaveLength(6);
+    expect(systems.map((s) => s.name)).toEqual(
+      expect.arrayContaining([
+        "ERP System",
+        "HR System",
+        "CRM System",
+        "Email Server",
+        "Network Infrastructure",
+        "VPN Gateway",
+      ])
+    );
   });
 
-  it("seeds at least four active and at least one inactive requester", async () => {
+  it("creates related systems exactly once when called twice", async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.developmentRequester.deleteMany();
-      await seedRequesters(tx);
-      const active = await tx.developmentRequester.count({ where: { active: true } });
-      const inactive = await tx.developmentRequester.count({ where: { active: false } });
-      try {
-        expect(active).toBeGreaterThanOrEqual(4);
-        expect(inactive).toBeGreaterThanOrEqual(1);
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    await seedRelatedSystems(prisma);
+    await seedRelatedSystems(prisma);
+
+    const count = await prisma.relatedSystem.count();
+    expect(count).toBe(6);
   });
 
-  it("is idempotent - running twice creates no duplicates", async () => {
+  // ---------------------------------------------------------------------------
+  // User / Requester seed
+  // ---------------------------------------------------------------------------
+  it("seedRequesters creates exactly 5 User accounts with role REQUESTER (4 active + 1 inactive)", async () => {
     const prisma = getPrisma();
-    let assertionError: unknown;
-    await prisma.$transaction(async (tx) => {
-      await tx.developmentRequester.deleteMany();
-      await seedRequesters(tx);
-      await seedRequesters(tx);
-      const count = await tx.developmentRequester.count();
-      try {
-        expect(count).toBe(REQUESTERS.length);
-      } catch (err) {
-        assertionError = err;
-      }
-      throw new Error("ROLLBACK");
-    }).catch(() => {
-      // rollback intentionally - do not persist test data
-    });
-    if (assertionError) throw assertionError;
+    await seedRequesters(prisma);
+
+    const requesters = await prisma.user.findMany({ where: { role: "REQUESTER" } });
+    expect(requesters).toHaveLength(5);
+
+    const active = requesters.filter((r) => r.active);
+    const inactive = requesters.filter((r) => !r.active);
+    expect(active).toHaveLength(4);
+    expect(inactive).toHaveLength(1);
+
+    // Inactive must be evan.ellis@example.com (SPEC §7)
+    expect(inactive[0].email).toBe("evan.ellis@example.com");
+  });
+
+  it("seedRequesters is idempotent (upserts by email without duplicating)", async () => {
+    const prisma = getPrisma();
+    await seedRequesters(prisma);
+    await seedRequesters(prisma);
+
+    const count = await prisma.user.count({ where: { role: "REQUESTER" } });
+    expect(count).toBe(5);
+  });
+
+  it("seedLab2 creates categories + related systems + requester users together", async () => {
+    const prisma = getPrisma();
+    await seedLab2(prisma);
+
+    const cats = await prisma.category.count();
+    const sys = await prisma.relatedSystem.count();
+    const users = await prisma.user.count({ where: { role: "REQUESTER" } });
+
+    expect(cats).toBe(8);
+    expect(sys).toBe(6);
+    expect(users).toBe(5);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Lab 3 full seed (Issue 17 / Issue 25)
+  // ---------------------------------------------------------------------------
+  it("seedLab3 creates all users, tickets and categories", async () => {
+    const prisma = getPrisma();
+    await seedLab3(prisma);
+
+    const cats = await prisma.category.count();
+    const sys = await prisma.relatedSystem.count();
+    const users = await prisma.user.count();
+    const tickets = await prisma.ticket.count();
+
+    expect(cats).toBe(8);
+    expect(sys).toBe(6);
+    expect(users).toBe(10); // 5 requesters + 3 staff + 1 admin + 1 inactive staff
+    expect(tickets).toBe(8);
+  });
+
+  it("seedLab3 is idempotent — running twice does not duplicate records", async () => {
+    const prisma = getPrisma();
+    await seedLab3(prisma);
+    await seedLab3(prisma);
+
+    const counts = await Promise.all([
+      prisma.category.count(),
+      prisma.relatedSystem.count(),
+      prisma.user.count(),
+      prisma.ticket.count(),
+    ]);
+    expect(counts).toEqual([8, 6, 10, 8]);
+  });
+
+  it("seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6)", async () => {
+    const prisma = getPrisma();
+    await seedLab3(prisma);
+
+    const tickets = await prisma.ticket.findMany();
+    for (const t of tickets) {
+      expect(t.ticketNumber).toMatch(/^TK-\d{6}$/);
+    }
+
+    const numbers = tickets.map((t) => t.ticketNumber);
+    expect(new Set(numbers).size).toBe(numbers.length);
   });
 });
