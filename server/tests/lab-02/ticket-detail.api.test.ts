@@ -4,15 +4,19 @@ import { getPrisma } from "../../src/prisma.js";
 import { app } from "../../src/app.js";
 import { formatTicketNumber } from "../../src/ticketNumber.js";
 import {
-  seedRequesters,
-  seedCategories,
-  seedRelatedSystems,
-} from "../../prisma/seed.js";
+  resetDatabase,
+  seedReferenceAndUsers,
+  loginRequester,
+  REQUESTERS,
+  type ApiClient,
+} from "../helpers.js";
 
-let alice: { id: number };
-let bob: { id: number };
+let aliceId: number;
+let bobId: number;
 let hardware: { id: number };
 let erp: { id: number };
+let alice: ApiClient;
+let bob: ApiClient;
 
 async function createTicket(
   overrides: Partial<{
@@ -33,7 +37,7 @@ async function createTicket(
       ticketNumber: formatTicketNumber(seq),
       summary: overrides.summary ?? "Test ticket summary",
       description: overrides.description ?? "Test ticket description",
-      requesterId: overrides.requesterId ?? alice.id,
+      requesterId: overrides.requesterId ?? aliceId,
       categoryId: overrides.categoryId ?? hardware.id,
       relatedSystemId: overrides.relatedSystemId ?? erp.id,
       requestedPriority: overrides.requestedPriority ?? "MEDIUM",
@@ -46,39 +50,31 @@ async function createTicket(
 describe("GET /api/tickets/:id (Ticket Detail)", () => {
   beforeEach(async () => {
     const prisma = getPrisma();
-    await prisma.attachment.deleteMany();
-    await prisma.ticket.deleteMany();
-    await seedRequesters(prisma);
-    await seedCategories(prisma);
-    await seedRelatedSystems(prisma);
+    await resetDatabase();
+    await seedReferenceAndUsers(prisma);
 
-    alice = (
+    aliceId = (
       await prisma.user.findFirstOrThrow({
-        where: { email: "alice.anderson@example.com", role: "REQUESTER" },
+        where: { email: REQUESTERS.alice, role: "REQUESTER" },
         select: { id: true },
       })
-    )!;
-    bob = (
+    ).id;
+    bobId = (
       await prisma.user.findFirstOrThrow({
-        where: { email: "bob.brown@example.com", role: "REQUESTER" },
+        where: { email: REQUESTERS.bob, role: "REQUESTER" },
         select: { id: true },
       })
-    )!;
-    hardware = (
-      await prisma.category.findFirstOrThrow({ where: { name: "Hardware" } })
-    );
-    erp = (
-      await prisma.relatedSystem.findFirstOrThrow({ where: { name: "ERP System" } })
-    );
+    ).id;
+    hardware = await prisma.category.findFirstOrThrow({ where: { name: "Hardware" } });
+    erp = await prisma.relatedSystem.findFirstOrThrow({ where: { name: "ERP System" } });
+
+    alice = await loginRequester(app, REQUESTERS.alice);
+    bob = await loginRequester(app, REQUESTERS.bob);
   });
 
   afterAll(async () => {
-    const prisma = getPrisma();
-    await prisma.attachment.deleteMany();
-    await prisma.ticket.deleteMany();
-    await seedRequesters(prisma);
-    await seedCategories(prisma);
-    await seedRelatedSystems(prisma);
+    await resetDatabase();
+    await seedReferenceAndUsers();
   });
 
   it("returns the full Ticket detail for an owned ticket (API-10, FR-13)", async () => {
@@ -90,9 +86,7 @@ describe("GET /api/tickets/:id (Ticket Detail)", () => {
       sequence: 1,
     });
 
-    const res = await request(app)
-      .get(`/api/tickets/${ticket.id}`)
-      .set("X-Requester-Id", String(alice.id));
+    const res = await alice.get(`/api/tickets/${ticket.id}`);
 
     expect(res.status).toBe(200);
     expect(res.body.ticket).toMatchObject({
@@ -100,7 +94,7 @@ describe("GET /api/tickets/:id (Ticket Detail)", () => {
       id: ticket.id,
       summary: "Laptop battery drains quickly",
       description: "Battery drops from 100% to 20% in an hour.",
-      requesterId: alice.id,
+      requesterId: aliceId,
       category: { id: hardware.id, name: "Hardware" },
       relatedSystem: { id: erp.id, name: "ERP System" },
       requestedPriority: "HIGH",
@@ -113,34 +107,30 @@ describe("GET /api/tickets/:id (Ticket Detail)", () => {
     expect(res.body.ticket.attachments).toHaveLength(0);
   });
 
-  it("rejects a missing X-Requester-Id header with 403", async () => {
+  it("rejects an unauthenticated request with 401 (no session cookie)", async () => {
     const ticket = await createTicket({ sequence: 10 });
 
     const res = await request(app).get(`/api/tickets/${ticket.id}`);
 
-    expect(res.status).toBe(403);
-    expect(res.body.error.code).toBe("FORBIDDEN");
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe("UNAUTHORIZED");
   });
 
   it("returns 404 for a Ticket owned by another requester (non-disclosing) (API-09, AC-03, FR-14)", async () => {
     const aliceTicket = await createTicket({
-      requesterId: alice.id,
+      requesterId: aliceId,
       summary: "Alice private ticket",
       sequence: 2,
     });
 
-    const res = await request(app)
-      .get(`/api/tickets/${aliceTicket.id}`)
-      .set("X-Requester-Id", String(bob.id));
+    const res = await bob.get(`/api/tickets/${aliceTicket.id}`);
 
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe("NOT_FOUND");
   });
 
   it("returns 404 for a non-existent Ticket ID", async () => {
-    const res = await request(app)
-      .get("/api/tickets/999999")
-      .set("X-Requester-Id", String(alice.id));
+    const res = await alice.get("/api/tickets/999999");
 
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe("NOT_FOUND");

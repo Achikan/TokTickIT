@@ -54,6 +54,19 @@ model User {
   ownedTickets          Ticket[]        @relation("Owner")
   comments              PublicComment[]
   notes                 InternalNote[]
+  sessions              Session[]
+}
+
+// Lab 3 (Issue 18) — opaque server-side session tokens for cookie auth.
+// The token is a random string; logout deletes the row so it cannot be reused.
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Category {
