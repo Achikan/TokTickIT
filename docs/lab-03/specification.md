@@ -158,7 +158,8 @@ The application is presented in the existing Zen Green design language (`ui-spec
 - **Category**, **RelatedSystem**, **Priority**, **Attachment** remain as in Lab 2; no existing Ticket/Attachment data is discarded.
 
 ### Enum Change
-- `Status` expands from `NEW`/`IN_PROGRESS`/`RESOLVED` to the eight required statuses; existing rows are mapped (`IN_PROGRESS` → `IN_PROGRESS`, `RESOLVED` → `RESOLVED`, `NEW` → `NEW`).
+- Lab 2 already normalized the original default `SUBMITTED` to `NEW` (migration `20260905141000_ticket_status_new`, merged in PR #34), so the current database only holds `NEW`, `IN_PROGRESS`, or `RESOLVED`.
+- `Status` now expands from those three values to the eight required statuses; existing rows are mapped (`NEW` → `NEW`, `IN_PROGRESS` → `IN_PROGRESS`, `RESOLVED` → `RESOLVED`). The migration defensively maps any residual `SUBMITTED` value to `NEW` before expanding the enum, so no existing row can land in an invalid state.
 
 ### Migration Strategy
 - Migrate every `DevelopmentRequester` row into a `User` with `role = REQUESTER`, `requiresPasswordChange = true`, and an initial password generated locally (documented, local-only — never committed).
