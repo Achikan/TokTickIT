@@ -1,5 +1,101 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+// Lab 3 — every request carries the session cookie, and mutating requests must
+// include the CSRF marker header (api-spec.md §0). Centralising this keeps the
+// individual API functions free of auth plumbing.
+const CSRF_HEADER = "X-CSRF-Protected";
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase();
+  const headers = new Headers(init.headers);
+  if (MUTATING_METHODS.has(method)) headers.set(CSRF_HEADER, "1");
+  return fetch(`${API_URL}${path}`, { ...init, headers, credentials: "include" });
+}
+
+// Error surfaced by the API (api-spec.md §0): status + optional machine code and
+// per-field validation messages.
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  fields?: Record<string, string>;
+
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    fields?: Record<string, string>
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.fields = fields;
+  }
+}
+
+async function toApiError(res: Response, fallback: string): Promise<ApiError> {
+  const body = await res.json().catch(() => ({}));
+  const error = (body as { error?: { code?: string; message?: string; fields?: Record<string, string> } })
+    .error;
+  return new ApiError(error?.message ?? fallback, res.status, error?.code, error?.fields);
+}
+
+// Lab 3 — authenticated user (api-spec.md §1). `requiresPasswordChange` gates the
+// mandatory change-password screen (AC-02).
+export type Role = "REQUESTER" | "IT_STAFF" | "ADMIN";
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  requiresPasswordChange: boolean;
+}
+
+// POST /api/auth/login (AC-01, AC-05, AC-06).
+export async function login(email: string, password: string): Promise<AuthUser> {
+  const res = await apiFetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to sign in.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
+// POST /api/auth/logout (AC-08). A missing/expired session is already logged out.
+export async function logout(): Promise<void> {
+  const res = await apiFetch("/api/auth/logout", { method: "POST" });
+  if (!res.ok && res.status !== 401) throw await toApiError(res, "Unable to sign out.");
+}
+
+// GET /api/auth/me (FR-03). Returns null when there is no valid session.
+export async function fetchCurrentUser(): Promise<AuthUser | null> {
+  const res = await apiFetch("/api/auth/me");
+  if (res.status === 401) return null;
+  if (!res.ok) throw await toApiError(res, "Unable to load your account.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
+// POST /api/auth/change-password (AC-02, AC-07, BR-03).
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+): Promise<AuthUser> {
+  const res = await apiFetch("/api/auth/change-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to change password.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -86,9 +182,9 @@ export interface MyTicketsResponse {
 //        return { online: true, categories }.
 // Throwing on failure lets the UI show a single Offline/error state.
 export async function checkSystem(): Promise<SystemStatus> {
-  const healthRes = await fetch(`${API_URL}/api/health`);
+  const healthRes = await apiFetch("/api/health");
   if (!healthRes.ok) throw new Error("TokTickIT API is unreachable");
-  const categoriesRes = await fetch(`${API_URL}/api/categories`);
+  const categoriesRes = await apiFetch("/api/categories");
   if (!categoriesRes.ok) throw new Error("Unable to load categories");
   const categories: Category[] = await categoriesRes.json();
   return { online: true, categories };
@@ -96,7 +192,7 @@ export async function checkSystem(): Promise<SystemStatus> {
 
 // Issue 7 — Development Requester context (testing-only "login").
 export async function fetchDevelopmentRequesters(): Promise<DevelopmentRequester[]> {
-  const res = await fetch(`${API_URL}/api/development-requesters`);
+  const res = await apiFetch("/api/development-requesters");
   if (!res.ok) throw new Error("Unable to load development requesters");
   const body: { items: DevelopmentRequester[] } = await res.json();
   return body.items;
@@ -104,13 +200,13 @@ export async function fetchDevelopmentRequesters(): Promise<DevelopmentRequester
 
 // Issue 8 — reference data for the Create Ticket form.
 export async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch(`${API_URL}/api/categories`);
+  const res = await apiFetch("/api/categories");
   if (!res.ok) throw new Error("Unable to load categories");
   return (await res.json()) as Category[];
 }
 
 export async function fetchRelatedSystems(): Promise<RelatedSystem[]> {
-  const res = await fetch(`${API_URL}/api/related-systems`);
+  const res = await apiFetch("/api/related-systems");
   if (!res.ok) throw new Error("Unable to load related systems");
   const body: { items: RelatedSystem[] } = await res.json();
   return body.items;
@@ -120,7 +216,7 @@ export async function fetchRelatedSystems(): Promise<RelatedSystem[]> {
 export async function createTicket(
   input: CreateTicketInput
 ): Promise<Ticket> {
-  const res = await fetch(`${API_URL}/api/tickets`, {
+  const res = await apiFetch("/api/tickets", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -181,7 +277,7 @@ export async function fetchMyTickets(
   if (query.pageSize) params.set("pageSize", String(query.pageSize));
   const qs = params.toString();
 
-  const res = await fetch(`${API_URL}/api/tickets${qs ? `?${qs}` : ""}`, {
+  const res = await apiFetch(`/api/tickets${qs ? `?${qs}` : ""}`, {
     headers: { "X-Requester-Id": String(requesterId) },
   });
   if (!res.ok) throw new Error("Unable to load tickets");
@@ -204,7 +300,7 @@ export async function fetchTicketDetail(
   requesterId: number,
   ticketId: number
 ): Promise<TicketDetail> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
+  const res = await apiFetch(`/api/tickets/${ticketId}`, {
     headers: { "X-Requester-Id": String(requesterId) },
   });
   if (!res.ok) throw new Error("Unable to load ticket");
@@ -225,7 +321,7 @@ export async function uploadAttachment(
 ): Promise<AttachmentInfo> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`, {
     method: "POST",
     headers: { "X-Requester-Id": String(requesterId) },
     body: form,
@@ -246,7 +342,7 @@ export async function fetchTicketAttachments(
   requesterId: number,
   ticketId: number
 ): Promise<AttachmentInfo[]> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`, {
     headers: { "X-Requester-Id": String(requesterId) },
   });
   if (!res.ok) throw new Error("Unable to load attachments");
@@ -259,7 +355,7 @@ export async function downloadAttachment(
   requesterId: number,
   attachment: AttachmentInfo
 ): Promise<{ blob: Blob; filename: string; mimeType: string }> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachment.id}/download`, {
+  const res = await apiFetch(`/api/attachments/${attachment.id}/download`, {
     headers: { "X-Requester-Id": String(requesterId) },
   });
   if (!res.ok) {
@@ -282,7 +378,7 @@ export async function removeAttachment(
   attachmentId: number,
   removedReason: string
 ): Promise<AttachmentInfo> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachmentId}`, {
+  const res = await apiFetch(`/api/attachments/${attachmentId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

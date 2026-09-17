@@ -114,6 +114,21 @@ input[type="file"]:focus-visible {
   color: #fff;
 }
 
+/* Role badges (ui-spec §2): one distinct tint per role, always labelled with the
+   role text so colour is never the only signal. */
+.badge-role-requester {
+  background-color: #d7ecdf;
+  color: #0b4028;
+}
+.badge-role-staff {
+  background-color: #cfe2ff;
+  color: #00366b;
+}
+.badge-role-admin {
+  background-color: #f3d9a4;
+  color: #5a3d00;
+}
+
 /* Disabled controls are visually distinct and not activatable. */
 .btn:disabled,
 .btn[disabled] {
