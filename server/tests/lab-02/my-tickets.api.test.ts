@@ -48,21 +48,22 @@ describe("GET /api/tickets (My Tickets)", () => {
 
   beforeEach(async () => {
     const prisma = getPrisma();
+    await prisma.attachment.deleteMany();
     await prisma.ticket.deleteMany();
     await seedCategories(prisma);
     await seedRelatedSystems(prisma);
     await seedRequesters(prisma);
 
-    alice = (await prisma.developmentRequester.findFirst({
-      where: { email: "alice.anderson@example.com" },
+    alice = (await prisma.user.findFirst({
+      where: { email: "alice.anderson@example.com", role: "REQUESTER" },
       select: { id: true },
     }))!;
-    bob = (await prisma.developmentRequester.findFirst({
-      where: { email: "bob.brown@example.com" },
+    bob = (await prisma.user.findFirst({
+      where: { email: "bob.brown@example.com", role: "REQUESTER" },
       select: { id: true },
     }))!;
-    evan = (await prisma.developmentRequester.findFirst({
-      where: { email: "evan.ellis@example.com" },
+    evan = (await prisma.user.findFirst({
+      where: { email: "evan.ellis@example.com", role: "REQUESTER" },
       select: { id: true },
     }))!;
     hardware = (await prisma.category.findFirstOrThrow({ where: { name: "Hardware" } }));
@@ -72,6 +73,7 @@ describe("GET /api/tickets (My Tickets)", () => {
 
   afterAll(async () => {
     const prisma = getPrisma();
+    await prisma.attachment.deleteMany();
     await prisma.ticket.deleteMany();
     await seedCategories(prisma);
     await seedRelatedSystems(prisma);

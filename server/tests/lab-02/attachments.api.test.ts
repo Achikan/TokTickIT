@@ -21,11 +21,11 @@ beforeAll(async () => {
   await seedRelatedSystems(prisma);
   await seedRequesters(prisma);
 
-  const alice = await prisma.developmentRequester.findFirst({
-    where: { email: "alice.anderson@example.com" },
+  const alice = await prisma.user.findFirst({
+    where: { email: "alice.anderson@example.com", role: "REQUESTER" },
   });
-  const bob = await prisma.developmentRequester.findFirst({
-    where: { email: "bob.brown@example.com" },
+  const bob = await prisma.user.findFirst({
+    where: { email: "bob.brown@example.com", role: "REQUESTER" },
   });
   aliceId = alice!.id;
   bobId = bob!.id;

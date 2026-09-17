@@ -86,28 +86,11 @@ app.get("/api/related-systems", async (_req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
-// Issue 7 — Development Requester context (testing-only "login")
-// GET /api/development-requesters -> only ACTIVE requesters, in id order.
-// The inactive requester must never appear in the selection dropdown.
-// ---------------------------------------------------------------------------
-app.get("/api/development-requesters", async (_req: Request, res: Response) => {
-  try {
-    const requesters = await getPrisma().developmentRequester.findMany({
-      where: { active: true },
-      orderBy: { id: "asc" },
-    });
-    res.status(200).json({
-      items: requesters.map(({ id, name, email }) => ({ id, name, email })),
-    });
-  } catch {
-    res.status(500).json({ error: "Unable to load development requesters" });
-  }
-});
-
-// ---------------------------------------------------------------------------
 // Issue 8 — Create a Ticket
 // POST /api/tickets -> validate input, persist, return 201 with the official
-// Ticket Number and backend-generated values (api-spec.md §4).
+// Ticket Number and backend-generated values (api-spec.md §3).
+// The requester identity comes from the X-Requester-Id header until Lab 3 auth
+// (Issue 18) replaces it with the authenticated session (Issue 20).
 // ---------------------------------------------------------------------------
 const VALID_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 
@@ -165,8 +148,8 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
   try {
     const prisma = getPrisma();
 
-    const requester = await prisma.developmentRequester.findUnique({
-      where: { id: requesterId },
+    const requester = await prisma.user.findFirst({
+      where: { id: requesterId, role: "REQUESTER" },
     });
     const category = await prisma.category.findUnique({ where: { id: categoryId } });
     const system = await prisma.relatedSystem.findUnique({ where: { id: relatedSystemId } });
@@ -225,7 +208,16 @@ app.post("/api/tickets", async (req: Request, res: Response) => {
 //   -> only Tickets owned by X-Requester-Id (BR-04); search/filter/sort/pagination per api-spec.md §5.
 //   Invalid page/size/sort/filter values are rejected with 400 (BR-10), never silently ignored.
 // ---------------------------------------------------------------------------
-const VALID_STATUSES = ["NEW", "IN_PROGRESS", "RESOLVED"] as const;
+const VALID_STATUSES = [
+  "NEW",
+  "OPEN",
+  "IN_PROGRESS",
+  "WAITING_FOR_REQUESTER",
+  "RESOLVED",
+  "CLOSED",
+  "REOPENED",
+  "CANCELLED",
+] as const;
 const VALID_SORT_COLUMNS = [
   "ticketNumber",
   "summary",
@@ -337,8 +329,8 @@ app.get("/api/tickets", async (req: Request, res: Response) => {
 
   try {
     const prisma = getPrisma();
-    const requester = await prisma.developmentRequester.findUnique({
-      where: { id: Number(headerRequesterId) },
+    const requester = await prisma.user.findFirst({
+      where: { id: Number(headerRequesterId), role: "REQUESTER" },
     });
     if (!requester || !requester.active) {
       return res.status(404).json({ error: { code: "NOT_FOUND", message: "Requester not found." } });
