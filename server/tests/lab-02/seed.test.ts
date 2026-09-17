@@ -14,6 +14,7 @@ describe("seed functions", () => {
     await prisma.internalNote.deleteMany();
     await prisma.publicComment.deleteMany();
     await prisma.ticket.deleteMany();
+    await prisma.session.deleteMany();
     await prisma.user.deleteMany();
     await prisma.relatedSystem.deleteMany();
     await prisma.category.deleteMany();

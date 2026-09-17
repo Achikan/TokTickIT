@@ -62,7 +62,7 @@ Request:
 ```json
 { "currentPassword": "initial-or-current", "newPassword": "NewPass123!", "confirmPassword": "NewPass123!" }
 ```
-Rules: min 8 chars, at least one letter and one digit; `newPassword === confirmPassword`; new password must differ from the current password.
+Rules: min 8 chars with at least one lowercase letter, one uppercase letter, one digit and one special character; `newPassword === confirmPassword`; new password must differ from the current password.
 Success `200`:
 ```json
 { "user": { "id": 1, "name": "Alice Smith", "email": "alice@example.com", "role": "REQUESTER", "requiresPasswordChange": false } }
