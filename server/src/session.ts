@@ -67,15 +67,20 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
   return bcrypt.compare(plain, hash);
 }
 
-// Password policy (api-spec.md §1.4): min 8 chars, at least one letter and one
-// digit. Returns a field message, or null when the password is acceptable.
+// Password policy (api-spec.md §1.4): min 8 chars with at least one lowercase
+// letter, one uppercase letter, one digit and one special character. Returns a
+// field message, or null when the password is acceptable.
 export function passwordPolicyError(password: unknown): string | null {
   if (typeof password !== "string" || password.length === 0) {
     return "Password is required.";
   }
   if (password.length < 8) return "Password must be at least 8 characters.";
-  if (!/[A-Za-z]/.test(password)) return "Password must contain at least one letter.";
+  if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
+  if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
   if (!/[0-9]/.test(password)) return "Password must contain at least one digit.";
+  if (!/[^A-Za-z0-9]/.test(password)) {
+    return "Password must contain at least one special character.";
+  }
   return null;
 }
 

@@ -186,22 +186,22 @@ describe("API-05: weak / mismatched new password", () => {
     expect(res.body.error.fields.newPassword).toBeTruthy();
   });
 
-  it("rejects a password without a digit or without a letter", async () => {
-    const noDigit = await change({
-      currentPassword: REQUESTER_PASSWORD,
-      newPassword: "onlyletters",
-      confirmPassword: "onlyletters",
-    });
-    expect(noDigit.status).toBe(400);
-    expect(noDigit.body.error.fields.newPassword).toBeTruthy();
-
-    const noLetter = await change({
-      currentPassword: REQUESTER_PASSWORD,
-      newPassword: "12345678",
-      confirmPassword: "12345678",
-    });
-    expect(noLetter.status).toBe(400);
-    expect(noLetter.body.error.fields.newPassword).toBeTruthy();
+  it("rejects a password missing any required character class", async () => {
+    const cases = [
+      "lowercase1!", // no uppercase
+      "UPPERCASE1!", // no lowercase
+      "NoDigits!!", // no digit
+      "NoSpecial1a", // no special character
+    ];
+    for (const candidate of cases) {
+      const res = await change({
+        currentPassword: REQUESTER_PASSWORD,
+        newPassword: candidate,
+        confirmPassword: candidate,
+      });
+      expect(res.status, candidate).toBe(400);
+      expect(res.body.error.fields.newPassword, candidate).toBeTruthy();
+    }
   });
 
   it("rejects mismatched confirmation and a password equal to the current one", async () => {

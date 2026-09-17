@@ -230,7 +230,7 @@ Auth mechanism: password hashing + server-side opaque session token in an HttpOn
 
 - **Authentication approach**: bcrypt password hashing + a server-side opaque session token stored in a `Session` table, delivered in an HttpOnly, SameSite=Strict cookie. Sessions expire after 12 hours of inactivity and are deleted on logout. Chosen over stateless JWTs so logout invalidation is real and enforced server-side, matching the course stack and Lab 2's simple Express/Prisma architecture.
 - **CSRF**: mitigated with SameSite=Strict cookies plus a required custom header on mutating requests (documented in `api-spec.md`).
-- **Password policy**: minimum 8 characters with at least one letter and one digit (documented in `ui-spec.md`); initial passwords are user-specific and local-only.
+- **Password policy**: minimum 8 characters with at least one lowercase letter, one uppercase letter, one digit and one special character (documented in `ui-spec.md`); initial passwords are user-specific and local-only.
 - **Migration identity**: Development Requester rows become Users with `role = REQUESTER` and `requiresPasswordChange = true`; initial passwords are generated for local use only and documented in the README.
 - **"Problem Appears Resolved"** is stored as `requesterIndicatedResolvedAt` on the Ticket; it informs IT Staff but does not itself change status (BR-11).
 - **Primary owner eligibility**: only active IT Staff or Administrator users can own a Ticket; ownership is not required for a Ticket to exist.

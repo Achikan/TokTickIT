@@ -37,7 +37,7 @@ Token | Value | Intended Use
 
 ### 3.2 Mandatory Change Password
 - Shown only when `requiresPasswordChange` is true (AC-02); no normal app screen is reachable otherwise.
-- New Password + Confirm New Password with the policy summary (min 8 chars, at least one letter and one digit).
+- New Password + Confirm New Password with the policy summary (min 8 chars, at least one lowercase letter, one uppercase letter, one digit and one special character).
 - Near-field validation: strength failures, mismatch, and "same as current" message.
 - On success: "Password updated" then the role home screen opens.
 
