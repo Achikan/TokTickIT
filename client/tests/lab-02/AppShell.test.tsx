@@ -4,7 +4,13 @@ import userEvent from "@testing-library/user-event";
 import App from "../../src/App.js";
 import * as api from "../../src/api.js";
 
-const ALICE = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com" };
+const ALICE: api.AuthUser = {
+  id: 1,
+  name: "Alice Anderson",
+  email: "alice.anderson@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
+};
 
 const MY_TICKET: api.MyTicket = {
   ticketNumber: "TK-000007",
@@ -50,7 +56,7 @@ const CREATED_TICKET = {
 
 describe("App shell navigation", () => {
   beforeEach(() => {
-    vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue([ALICE]);
+    vi.spyOn(api, "fetchCurrentUser").mockResolvedValue(ALICE);
     vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
       items: [MY_TICKET],
       pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
@@ -63,31 +69,28 @@ describe("App shell navigation", () => {
     ]);
   });
 
-  async function login(user: ReturnType<typeof userEvent.setup>) {
-    const combobox = await screen.findByRole("combobox", {
-      name: /Development Requester/i,
-    });
-    await user.selectOptions(combobox, "1");
-    await user.click(screen.getByRole("button", { name: /Continue/i }));
+  async function login() {
+    // Lab 3: the authenticated session now provides the requester identity.
+    await screen.findByRole("heading", { name: /My Tickets/i });
   }
 
   it("shell shows My Tickets and Create Ticket navigation with a clear active page (ui-spec §8)", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await login(user);
+    await login();
 
     expect(await screen.findByRole("heading", { name: /My Tickets/i })).toBeInTheDocument();
     const myTicketsNav = screen.getByRole("button", { name: "My Tickets" });
     const createNav = screen.getByRole("button", { name: "Create Ticket" });
     expect(myTicketsNav).toHaveAttribute("aria-current", "page");
     expect(createNav).not.toHaveAttribute("aria-current");
-    expect(screen.getByText(/Selected Requester/i)).toBeInTheDocument();
+    expect(screen.getByText(/Signed in/i)).toBeInTheDocument();
   });
 
   it("opens a ticket from My Tickets and returns via Back to My Tickets", async () => {
     const user = userEvent.setup();
     render(<App />);
-    await login(user);
+    await login();
 
     const openButtons = await screen.findAllByRole("button", {
       name: /Open ticket TK-000007/i,
@@ -109,7 +112,7 @@ describe("App shell navigation", () => {
     vi.spyOn(api, "createTicket").mockResolvedValue(CREATED_TICKET);
     const user = userEvent.setup();
     render(<App />);
-    await login(user);
+    await login();
 
     await user.click(screen.getByRole("button", { name: "Create Ticket" }));
     expect(
