@@ -5,17 +5,25 @@ import {
   type AuthUser,
   type MyTicket,
   type Role,
+  type StaffTicket,
 } from "./api.js";
 import ChangePassword from "./ChangePassword.js";
 import CreateTicket from "./CreateTicket.js";
 import Login from "./Login.js";
 import MyTickets from "./MyTickets.js";
+import StaffTicketDetail from "./StaffTicketDetail.js";
 import StaffTicketQueue from "./StaffTicketQueue.js";
 import TicketDetail from "./TicketDetail.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
 // -> role-specific home with role badge + Logout (ui-spec.md §3.3).
-type View = "my-tickets" | "create-ticket" | "ticket-detail" | "staff-queue" | "user-management";
+type View =
+  | "my-tickets"
+  | "create-ticket"
+  | "ticket-detail"
+  | "staff-queue"
+  | "staff-detail"
+  | "user-management";
 
 type AuthState =
   | { status: "loading" }
@@ -62,6 +70,7 @@ export default function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [view, setView] = useState<View>("my-tickets");
   const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
+  const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,6 +118,7 @@ export default function App() {
       // Even if the call fails, drop local access and show the login screen.
     }
     setSelectedTicket(null);
+    setSelectedStaffTicket(null);
     setNotice(null);
     setAuth({ status: "anonymous" });
   }
@@ -135,7 +145,7 @@ export default function App() {
   const currentPageFor = (active: boolean) => (active ? "page" : undefined);
   const myTicketsActive = view === "my-tickets" || view === "ticket-detail";
   const createTicketActive = view === "create-ticket";
-  const staffQueueActive = view === "staff-queue";
+  const staffQueueActive = view === "staff-queue" || view === "staff-detail";
   const userManagementActive = view === "user-management";
 
   return (
@@ -233,7 +243,22 @@ export default function App() {
             />
           )
         ) : user.role === "IT_STAFF" ? (
-          <StaffTicketQueue user={user} onOpenTicket={() => setNotice("Staff Ticket Detail arrives in a later Lab 3 increment.")} />
+          view === "staff-detail" && selectedStaffTicket ? (
+            <StaffTicketDetail
+              user={user}
+              ticket={selectedStaffTicket}
+              onBack={() => setView("staff-queue")}
+            />
+          ) : (
+            <StaffTicketQueue
+              user={user}
+              onOpenTicket={(t) => {
+                setSelectedStaffTicket(t);
+                setNotice(null);
+                setView("staff-detail");
+              }}
+            />
+          )
         ) : (
           <UserManagementHome />
         )}

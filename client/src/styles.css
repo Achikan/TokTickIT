@@ -56,6 +56,26 @@ input[type="file"]:focus-visible {
   color: var(--tok-success);
 }
 
+/* Success callout: pale green surface + left accent (Requester resolution
+   indication surfaced to staff). */
+.callout-success {
+  background-color: #e6f4ec;
+  border-left: 0.25rem solid var(--tok-success);
+  color: #0b4028;
+}
+
+/* Internal Notes must be visually distinct from Public Comments (AC-17):
+   a pale amber surface plus an explicit "Internal" text marker, so private
+   notes are never mistaken for public comments (never colour alone). */
+.internal-note-panel {
+  background-color: #fdf3dc;
+  border-left: 0.25rem solid var(--tok-warning);
+}
+.internal-note-marker {
+  color: #5a4a00;
+  font-weight: 600;
+}
+
 /* Error message text (dark red, readable). */
 .text-tok-error {
   color: var(--tok-error);

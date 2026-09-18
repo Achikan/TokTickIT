@@ -404,6 +404,36 @@ export async function postTicketComment(ticketId: number, content: string): Prom
   return body.comment as TicketComment;
 }
 
+// Internal Notes are the same append-only shape as comments, but are visible to
+// IT Staff/Administrators only (FR-18, BR-10).
+export type TicketNote = TicketComment;
+
+// GET /api/tickets/:id/notes — IT Staff/Admin only (FR-18, AC-17).
+export async function fetchTicketNotes(ticketId: number): Promise<TicketNote[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/notes`);
+  if (!res.ok) throw new Error("Unable to load notes");
+  const body: { items: TicketNote[] } = await res.json();
+  return body.items;
+}
+
+// POST /api/tickets/:id/notes — create an Internal Note (FR-18, BR-12).
+export async function postTicketNote(ticketId: number, content: string): Promise<TicketNote> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to save note") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.note as TicketNote;
+}
+
 export interface ResolvedIndication {
   id: number;
   ticketNumber: string;
@@ -469,6 +499,77 @@ export async function fetchStaffQueue(query: StaffQueueQuery = {}): Promise<Staf
   const res = await apiFetch(`/api/staff/tickets${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw await toApiError(res, "Unable to load the ticket queue.");
   return (await res.json()) as StaffQueueResponse;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 22 — IT Staff Ticket Detail (api-spec.md §6.2..§6.5).
+// Retrieve one Ticket for operations, then claim/assign/reassign ownership,
+// update IT Priority, and apply permitted status transitions. Only IT Staff and
+// Administrators may use these; identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface StaffTicketDetailData extends StaffTicket {
+  description: string;
+  relatedSystem: { id: number; name: string; type: string };
+  requesterIndicatedResolvedAt: string | null;
+  attachments: AttachmentInfo[];
+  comments: TicketComment[];
+  notes: TicketNote[];
+  // Active IT Staff/Administrators eligible to own the Ticket (BR-07).
+  availableOwners: { id: number; name: string }[];
+}
+
+// GET /api/staff/tickets/:id — full detail for staff operations (FR-13).
+export async function fetchStaffTicketDetail(ticketId: number): Promise<StaffTicketDetailData> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load the ticket.");
+  const body = await res.json();
+  return body.ticket as StaffTicketDetailData;
+}
+
+// PATCH /api/staff/tickets/:id/owner — claim / assign / reassign (FR-14, BR-07).
+export async function updateStaffTicketOwner(
+  ticketId: number,
+  ownerId: number
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/owner`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the ticket owner.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
+}
+
+// PATCH /api/staff/tickets/:id/priority — update IT Priority (FR-15, BR-08).
+export async function updateStaffTicketPriority(
+  ticketId: number,
+  itPriority: Priority
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/priority`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ itPriority }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update IT Priority.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
+}
+
+// PATCH /api/staff/tickets/:id/status — permitted transition only (FR-16, BR-09).
+export async function updateStaffTicketStatus(
+  ticketId: number,
+  newStatus: Status
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newStatus }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the ticket status.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
 }
 
 // POST /api/tickets/:id/resolved-indication — idempotent; does not change the
