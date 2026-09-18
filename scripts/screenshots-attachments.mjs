@@ -14,13 +14,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "artifacts", "lab-02", "screenshots");
+const OUT = path.join(ROOT, "artifacts", "lab-02", "report-evidence", "ticket-detail-attachments");
 const CLIENT_URL = process.env.CLIENT_URL ?? "http://localhost:5173";
 
-const shot = async (page, dir, file) => {
-  const target = path.join(OUT, dir, file);
+const shot = async (page, file) => {
+  const target = path.join(OUT, file);
   await mkdir(path.dirname(target), { recursive: true });
-  await page.screenshot({ path: target, fullPage: false });
+  await page.screenshot({ path: target, fullPage: true });
   console.log("saved", path.relative(ROOT, target));
 };
 
@@ -51,9 +51,10 @@ try {
   }
   await openBtn.click();
   await page.getByRole("heading", { name: "Attachments" }).waitFor();
+  await page.waitForTimeout(200);
 
   // 01 — initial Attachments section (may show "No attachments yet." or an existing list).
-  await shot(page, "ticket-detail-attachments", "01-initial.png");
+  await shot(page, "01-initial.png");
 
   // 02 — valid upload: a real PNG becomes an Active attachment with metadata.
   await page.getByTestId("attachment-file-input").setInputFiles({
@@ -62,9 +63,9 @@ try {
     buffer: PNG_1PX,
   });
   await page.getByRole("button", { name: "Upload Attachment" }).click();
-  await page.getByText("diagram.png").waitFor();
+  await page.getByRole("cell", { name: "diagram.png" }).first().waitFor();
   await page.getByText("Active", { exact: true }).first().waitFor();
-  await shot(page, "ticket-detail-attachments", "02-valid-uploaded.png");
+  await shot(page, "02-valid-uploaded.png");
 
   // 03 — invalid attachment: a .txt is rejected; an inline error is shown.
   await page.getByTestId("attachment-file-input").setInputFiles({
@@ -74,13 +75,16 @@ try {
   });
   await page.getByRole("button", { name: "Upload Attachment" }).click();
   await page.getByText("This file type is not supported.").waitFor();
-  await shot(page, "ticket-detail-attachments", "03-invalid-attach.png");
+  await shot(page, "03-invalid-attach.png");
 
-  // 04 — soft-removal: accept the prompt with a reason -> metadata retained + Blocked.
-  page.once("dialog", (d) => d.accept("Uploaded the wrong file"));
-  await page.getByRole("button", { name: "Remove" }).click();
+  // 04 — soft-removal: inline reason panel -> metadata retained + Blocked.
+  await page.getByRole("button", { name: "Remove" }).first().click();
+  await page.getByTestId("removal-reason-panel").waitFor();
+  await page.getByLabel(/Removal reason for/i).fill("Uploaded the wrong file");
+  await page.getByRole("button", { name: "Confirm Removal" }).click();
   await page.getByText(/Removed — Uploaded the wrong file/).waitFor();
-  await shot(page, "ticket-detail-attachments", "04-soft-removed.png");
+  await page.waitForTimeout(250);
+  await shot(page, "04-soft-removed.png");
 } finally {
   await browser.close();
 }

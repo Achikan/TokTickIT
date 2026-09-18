@@ -4,7 +4,15 @@ import userEvent from "@testing-library/user-event";
 import CreateTicket from "../../src/CreateTicket.js";
 import * as api from "../../src/api.js";
 
-const REQUIRE = { requester: { id: 1, name: "Alice Anderson", email: "alice@example.com" } } as const;
+const REQUIRE = {
+  requester: {
+    id: 1,
+    name: "Alice Anderson",
+    email: "alice@example.com",
+    role: "REQUESTER",
+    requiresPasswordChange: false,
+  } as api.AuthUser,
+} as const;
 
 const CATEGORIES = [
   { id: 1, name: "Hardware" },
@@ -68,8 +76,10 @@ describe("CreateTicket", () => {
 
     expect(await screen.findByText(/TK-000001/i)).toBeInTheDocument();
     expect(createSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ requesterId: 1, summary: "Laptop battery drains quickly" })
+      expect.objectContaining({ summary: "Laptop battery drains quickly" })
     );
+    // Issue 20 — identity is the session; no requesterId is sent (BR-06).
+    expect(createSpy.mock.calls[0][0]).not.toHaveProperty("requesterId");
   });
 
   it("disables the submit button and shows a busy state while submitting (UI-04)", async () => {

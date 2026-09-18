@@ -23,6 +23,7 @@ API-12 | API | FR-17, AC-08 | Download an active Attachment | 200 and file conte
 API-13 | API | FR-18, AC-09 | Soft-remove an Attachment with reason | Removal accepted; metadata retained; download blocked | server/tests/lab-02/attachments.api.test.ts | Pass
 API-14 | API | FR-14, AC-10 | Upload/download/remove Attachment of a non-owned Ticket | Non-disclosing rejection | server/tests/lab-02/attachments.api.test.ts | Pass
 API-15 | API | FR-02, BR-02 | Retrieve active Development Requesters | Only active returned; inactive excluded | server/tests/lab-02/dev-requester.api.test.ts | Pass
+API-16 | API | AC-16, BR-12 | Upload a 6th active Attachment when 5 already active | 400 with safe field error; no row created | server/tests/lab-02/attachments.api.test.ts | Pass
 UNIT-01 | Unit | BR-03 | Ticket Number generator produces required format | Format matches documented format; unique | server/tests/lab-02/ticket-number.test.ts | Pass
 UNIT-02 | Unit | BR-06 | Requested Priority default applied when absent | Default (MEDIUM) used | server/tests/lab-02/create-ticket.api.test.ts | Pass
 UI-01 | UI | AC-04 | Create Ticket submit with empty Summary | Field message shown; API not called | client/tests/lab-02/CreateTicket.test.tsx | Pass
@@ -59,6 +60,7 @@ AC-12 | UI-03
 AC-13 | STYLE-01, RESP-01, E2E-01
 AC-14 (empty vs no-results) | UI-08
 AC-15 (attachment states) | UI-10, API-11..14
+AC-16 (max 5 active attachments) | API-16
 
 ## 4. Responsive and Visual Checklist
 

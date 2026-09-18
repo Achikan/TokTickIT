@@ -107,12 +107,6 @@ export interface RelatedSystem {
   type: string;
 }
 
-export interface DevelopmentRequester {
-  id: number;
-  name: string;
-  email: string;
-}
-
 export interface SystemStatus {
   online: boolean;
   categories: Category[];
@@ -120,7 +114,17 @@ export interface SystemStatus {
 
 export type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type Status = "NEW" | "IN_PROGRESS" | "RESOLVED";
+// Lab 3 — statuses expand from the Lab 2 set to the eight workflow statuses
+// (specification.md §5.2). The readonly Requester detail must badge them all.
+export type Status =
+  | "NEW"
+  | "OPEN"
+  | "IN_PROGRESS"
+  | "WAITING_FOR_REQUESTER"
+  | "RESOLVED"
+  | "CLOSED"
+  | "REOPENED"
+  | "CANCELLED";
 
 export interface Ticket {
   ticketNumber: string;
@@ -138,7 +142,6 @@ export interface Ticket {
 }
 
 export interface CreateTicketInput {
-  requesterId: number;
   summary: string;
   description: string;
   categoryId: number;
@@ -190,14 +193,6 @@ export async function checkSystem(): Promise<SystemStatus> {
   return { online: true, categories };
 }
 
-// Issue 7 — Development Requester context (testing-only "login").
-export async function fetchDevelopmentRequesters(): Promise<DevelopmentRequester[]> {
-  const res = await apiFetch("/api/development-requesters");
-  if (!res.ok) throw new Error("Unable to load development requesters");
-  const body: { items: DevelopmentRequester[] } = await res.json();
-  return body.items;
-}
-
 // Issue 8 — reference data for the Create Ticket form.
 export async function fetchCategories(): Promise<Category[]> {
   const res = await apiFetch("/api/categories");
@@ -212,7 +207,8 @@ export async function fetchRelatedSystems(): Promise<RelatedSystem[]> {
   return body.items;
 }
 
-// Issue 8 — create a validated Ticket.
+// Issue 8 — create a validated Ticket. Identity comes from the authenticated
+// session; the client no longer supplies any requesterId (BR-06, AC-03).
 export async function createTicket(
   input: CreateTicketInput
 ): Promise<Ticket> {
@@ -220,7 +216,6 @@ export async function createTicket(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Requester-Id": String(input.requesterId),
     },
     body: JSON.stringify(input),
   });
@@ -233,16 +228,6 @@ export async function createTicket(
     throw err;
   }
   return body.ticket as Ticket;
-}
-
-export interface AttachmentInfo {
-  id: number;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  uploadedAt: string;
-  removedAt: string | null;
-  removedReason: string | null;
 }
 
 export interface TicketDetail {
@@ -258,12 +243,12 @@ export interface TicketDetail {
   currentStatus: Status;
   createdAt: string;
   updatedAt: string;
+  requesterIndicatedResolvedAt: string | null;
   attachments: AttachmentInfo[];
 }
 
-// Issue 9 — list the selected requester's tickets (requester-scoped identity header).
+// Issue 9 — list the session requester's tickets (identity from the session).
 export async function fetchMyTickets(
-  requesterId: number,
   query: TicketQuery = {}
 ): Promise<MyTicketsResponse> {
   const params = new URLSearchParams();
@@ -277,9 +262,7 @@ export async function fetchMyTickets(
   if (query.pageSize) params.set("pageSize", String(query.pageSize));
   const qs = params.toString();
 
-  const res = await apiFetch(`/api/tickets${qs ? `?${qs}` : ""}`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+  const res = await apiFetch(`/api/tickets${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Unable to load tickets");
   return (await res.json()) as MyTicketsResponse;
 }
@@ -295,14 +278,9 @@ export interface AttachmentInfo {
   removedReason: string | null;
 }
 
-// Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §6).
-export async function fetchTicketDetail(
-  requesterId: number,
-  ticketId: number
-): Promise<TicketDetail> {
-  const res = await apiFetch(`/api/tickets/${ticketId}`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+// Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §3).
+export async function fetchTicketDetail(ticketId: number): Promise<TicketDetail> {
+  const res = await apiFetch(`/api/tickets/${ticketId}`);
   if (!res.ok) throw new Error("Unable to load ticket");
   const body = await res.json();
   return body.ticket as TicketDetail;
@@ -311,11 +289,11 @@ export async function fetchTicketDetail(
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment lifecycle (FR-15..FR-18).
 // Upload, list metadata, download (active only), and soft-remove with reason.
+// Ownership is enforced from the session; no requesterId is sent (BR-06).
 // ---------------------------------------------------------------------------
 
 // Upload a file to an owned Ticket (multipart, field `file`).
 export async function uploadAttachment(
-  requesterId: number,
   ticketId: number,
   file: File
 ): Promise<AttachmentInfo> {
@@ -323,7 +301,6 @@ export async function uploadAttachment(
   form.append("file", file);
   const res = await apiFetch(`/api/tickets/${ticketId}/attachments`, {
     method: "POST",
-    headers: { "X-Requester-Id": String(requesterId) },
     body: form,
   });
   const body = await res.json().catch(() => ({}));
@@ -338,13 +315,8 @@ export async function uploadAttachment(
 }
 
 // List metadata for an owned Ticket's attachments (removed are included).
-export async function fetchTicketAttachments(
-  requesterId: number,
-  ticketId: number
-): Promise<AttachmentInfo[]> {
-  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+export async function fetchTicketAttachments(ticketId: number): Promise<AttachmentInfo[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`);
   if (!res.ok) throw new Error("Unable to load attachments");
   const body: { items: AttachmentInfo[] } = await res.json();
   return body.items;
@@ -352,12 +324,9 @@ export async function fetchTicketAttachments(
 
 // Download an active attachment. Returns the file data + suggested filename.
 export async function downloadAttachment(
-  requesterId: number,
   attachment: AttachmentInfo
 ): Promise<{ blob: Blob; filename: string; mimeType: string }> {
-  const res = await apiFetch(`/api/attachments/${attachment.id}/download`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+  const res = await apiFetch(`/api/attachments/${attachment.id}/download`);
   if (!res.ok) {
     const err = new Error("Unable to download attachment") as Error & {
       code?: string;
@@ -374,7 +343,6 @@ export async function downloadAttachment(
 
 // Soft-remove an attachment with a reason (BR-08).
 export async function removeAttachment(
-  requesterId: number,
   attachmentId: number,
   removedReason: string
 ): Promise<AttachmentInfo> {
@@ -382,7 +350,6 @@ export async function removeAttachment(
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "X-Requester-Id": String(requesterId),
     },
     body: JSON.stringify({ removedReason }),
   });
@@ -395,4 +362,70 @@ export async function removeAttachment(
     throw err;
   }
   return body.attachment as AttachmentInfo;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 20 — Requester communication (api-spec.md §4).
+// Public Comments (all three roles) and the Requester-only "Problem Appears
+// Resolved" indication. Identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface TicketComment {
+  id: number;
+  ticketId: number;
+  content: string;
+  author: { id: number; name: string };
+  createdAt: string;
+}
+
+// GET /api/tickets/:id/comments — newest first (FR-10, AC-17).
+export async function fetchTicketComments(ticketId: number): Promise<TicketComment[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`);
+  if (!res.ok) throw new Error("Unable to load comments");
+  const body: { items: TicketComment[] } = await res.json();
+  return body.items;
+}
+
+// POST /api/tickets/:id/comments — append-only public comment (FR-10, BR-12).
+export async function postTicketComment(ticketId: number, content: string): Promise<TicketComment> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to post comment") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.comment as TicketComment;
+}
+
+export interface ResolvedIndication {
+  id: number;
+  ticketNumber: string;
+  currentStatus: Status;
+  requesterIndicatedResolvedAt: string | null;
+}
+
+// POST /api/tickets/:id/resolved-indication — idempotent; does not change the
+// status (FR-11, BR-11).
+export async function indicateProblemResolved(
+  ticketId: number
+): Promise<ResolvedIndication> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/resolved-indication`, {
+    method: "POST",
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to record your indication") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.ticket as ResolvedIndication;
 }
