@@ -10,6 +10,7 @@ import { getPrisma } from "./prisma.js";
 import { formatTicketNumber } from "./ticketNumber.js";
 import { authRouter } from "./auth.js";
 import { ticketCommunicationRouter } from "./communication.js";
+import { staffQueueRouter } from "./staffQueue.js";
 import {
   blockPendingPasswordChange,
   csrfProtection,
@@ -38,6 +39,9 @@ app.use("/api/auth", authRouter);
 // Lab 3 (Issue 20) — Ticket communication: Public Comments, Internal Notes,
 // and the Requester "Problem Appears Resolved" indication (api-spec.md §4, §5).
 app.use("/api/tickets", ticketCommunicationRouter);
+
+// Lab 3 (Issue 21) — IT Staff Ticket Queue (api-spec.md §6.1, FR-12/AC-13).
+app.use("/api/staff", staffQueueRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment upload configuration (BR-07).

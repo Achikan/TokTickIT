@@ -56,11 +56,11 @@ API-24 | API | FR-11, BR-11 | Requester indicates Problem Appears Resolved | 200
 
 ### Server — Staff Ticket Queue (server/tests/lab-03/staff-queue.api.test.ts)
 
-Test ID | Type | Requirement / AC | What It Tests | Expected Result
----|---|---|---|---
-API-25 | API | AC-13, FR-12 | Queue search / filter / sort / pagination | 200 correct items + pagination metadata + filtersApplied
-API-26 | API | AC-13, BR-10 | Invalid search/filter/sort/page values | 400 specific error; not silently ignored
-API-27 | API | AC-10, FR-06 | Queue requested by Requester | 403 without data
+Test ID | Type | Requirement / AC | What It Tests | Expected Result | Final
+---|---|---|---|---|---
+API-25 | API | AC-13, FR-12 | Queue search / filter / sort / pagination | 200 correct items + pagination metadata + filtersApplied | Pass
+API-26 | API | AC-13, BR-10 | Invalid search/filter/sort/page values | 400 specific error; not silently ignored | Pass
+API-27 | API | AC-10, FR-06 | Queue requested by Requester | 403 without data | Pass
 
 ### Server — Staff Ticket Detail (server/tests/lab-03/staff-ticket-detail.api.test.ts)
 
@@ -188,3 +188,7 @@ Populated by the corresponding implementation issues (18–25) as each suite tur
 | Server (unit + API) — Lab 3 | `cd server && npm test` | Planned |
 | Client (UI + style) — Lab 3 | `cd client && npm test` | Planned |
 | E2E + Responsive — Lab 3 | `npm run test:e2e` | Planned |
+
+Issue-by-issue pass status (updated as each implementation lands):
+
+- **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (`cd server && npm test`, 27/27 queue tests, 128 total). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass** (client suite 70/70).

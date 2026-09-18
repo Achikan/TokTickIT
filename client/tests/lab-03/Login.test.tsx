@@ -43,6 +43,11 @@ describe("Login screen (UI-01..04, UI-07, UI-08)", () => {
       pagination: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
       filtersApplied: {},
     });
+    vi.spyOn(api, "fetchStaffQueue").mockResolvedValue({
+      items: [],
+      pagination: { page: 1, pageSize: 10, total: 0, totalPages: 1 },
+      filtersApplied: {},
+    });
     vi.spyOn(api, "fetchCategories").mockResolvedValue([]);
     vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue([]);
   });
