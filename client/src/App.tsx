@@ -10,6 +10,7 @@ import ChangePassword from "./ChangePassword.js";
 import CreateTicket from "./CreateTicket.js";
 import Login from "./Login.js";
 import MyTickets from "./MyTickets.js";
+import StaffTicketQueue from "./StaffTicketQueue.js";
 import TicketDetail from "./TicketDetail.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
@@ -42,17 +43,6 @@ function defaultViewFor(role: Role): View {
 
 function RoleBadge({ role }: { role: Role }) {
   return <span className={`badge ${ROLE_BADGE_CLASS[role]}`}>{ROLE_LABELS[role]}</span>;
-}
-
-function StaffQueueHome() {
-  return (
-    <section className="app-card p-4" aria-labelledby="staff-queue-heading">
-      <h2 id="staff-queue-heading" className="h5 mb-1">
-        Ticket Queue
-      </h2>
-      <p className="text-muted mb-0">The staff ticket queue arrives in a later Lab 3 increment.</p>
-    </section>
-  );
 }
 
 function UserManagementHome() {
@@ -243,7 +233,7 @@ export default function App() {
             />
           )
         ) : user.role === "IT_STAFF" ? (
-          <StaffQueueHome />
+          <StaffTicketQueue user={user} onOpenTicket={() => setNotice("Staff Ticket Detail arrives in a later Lab 3 increment.")} />
         ) : (
           <UserManagementHome />
         )}

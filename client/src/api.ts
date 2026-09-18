@@ -411,6 +411,66 @@ export interface ResolvedIndication {
   requesterIndicatedResolvedAt: string | null;
 }
 
+// ---------------------------------------------------------------------------
+// Issue 21 — IT Staff Ticket Queue (api-spec.md §6.1).
+// Search, suitable filters, sorting, pagination + metadata. Only IT Staff and
+// Administrators may load the queue; identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface StaffTicket {
+  ticketNumber: string;
+  id: number;
+  summary: string;
+  category: { id: number; name: string };
+  requester: { id: number; name: string };
+  owner: { id: number; name: string } | null;
+  requestedPriority: Priority;
+  itPriority: Priority;
+  currentStatus: Status;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StaffQueueQuery {
+  search?: string;
+  status?: Status;
+  requestedPriority?: Priority;
+  itPriority?: Priority;
+  ownerId?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface StaffQueueResponse {
+  items: StaffTicket[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+  filtersApplied: Record<string, unknown>;
+}
+
+// GET /api/staff/tickets (FR-12, AC-13). `ownerId` accepts an id or the
+// markers "unassigned"/"null" for tickets without a primary owner.
+export async function fetchStaffQueue(query: StaffQueueQuery = {}): Promise<StaffQueueResponse> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.status) params.set("status", query.status);
+  if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
+  if (query.itPriority) params.set("itPriority", query.itPriority);
+  if (query.ownerId) params.set("ownerId", query.ownerId);
+  if (query.categoryId) params.set("categoryId", String(query.categoryId));
+  if (query.relatedSystemId) params.set("relatedSystemId", String(query.relatedSystemId));
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page) params.set("page", String(query.page));
+  if (query.pageSize) params.set("pageSize", String(query.pageSize));
+  const qs = params.toString();
+
+  const res = await apiFetch(`/api/staff/tickets${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load the ticket queue.");
+  return (await res.json()) as StaffQueueResponse;
+}
+
 // POST /api/tickets/:id/resolved-indication — idempotent; does not change the
 // status (FR-11, BR-11).
 export async function indicateProblemResolved(
