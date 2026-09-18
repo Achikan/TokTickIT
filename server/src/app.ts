@@ -11,6 +11,7 @@ import { formatTicketNumber } from "./ticketNumber.js";
 import { authRouter } from "./auth.js";
 import { ticketCommunicationRouter } from "./communication.js";
 import { staffQueueRouter } from "./staffQueue.js";
+import { staffTicketDetailRouter } from "./staffTicketDetail.js";
 import {
   blockPendingPasswordChange,
   csrfProtection,
@@ -42,6 +43,10 @@ app.use("/api/tickets", ticketCommunicationRouter);
 
 // Lab 3 (Issue 21) — IT Staff Ticket Queue (api-spec.md §6.1, FR-12/AC-13).
 app.use("/api/staff", staffQueueRouter);
+
+// Lab 3 (Issue 22) — IT Staff Ticket Detail: retrieve, ownership, IT Priority
+// and permitted status transitions (api-spec.md §6.2..§6.5, FR-13..FR-16).
+app.use("/api/staff", staffTicketDetailRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment upload configuration (BR-07).

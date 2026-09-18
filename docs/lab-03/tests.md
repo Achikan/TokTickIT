@@ -64,15 +64,15 @@ API-27 | API | AC-10, FR-06 | Queue requested by Requester | 403 without data | 
 
 ### Server — Staff Ticket Detail (server/tests/lab-03/staff-ticket-detail.api.test.ts)
 
-Test ID | Type | Requirement / AC | What It Tests | Expected Result
----|---|---|---|---
-API-28 | API | FR-13 | Staff retrieve one Ticket | 200 full detail incl. comments/notes/attachments
-API-29 | API | AC-14, FR-14 | Claim / assign / reassign owner | 200; owner updated
-API-30 | API | AC-14, BR-07 | Owner eligibility (role/inactive) and Requester claim | Invalid target → 400; Requester → 403
-API-31 | API | AC-15, FR-15 | IT Priority updated by Staff/Admin | 200
-API-32 | API | AC-15, BR-08 | IT Priority change by Requester | 403
-API-33 | API | AC-16, FR-16 | Permitted status transition (matrix) | 200; new status persisted
-API-34 | API | AC-16, BR-09 | Forbidden status transition | 409 specific conflict message
+Test ID | Type | Requirement / AC | What It Tests | Expected Result | Final
+---|---|---|---|---|---
+API-28 | API | FR-13 | Staff retrieve one Ticket | 200 full detail incl. comments/notes/attachments | Pass
+API-29 | API | AC-14, FR-14 | Claim / assign / reassign owner | 200; owner updated | Pass
+API-30 | API | AC-14, BR-07 | Owner eligibility (role/inactive) and Requester claim | Invalid target → 400; Requester → 403 | Pass
+API-31 | API | AC-15, FR-15 | IT Priority updated by Staff/Admin | 200 | Pass
+API-32 | API | AC-15, BR-08 | IT Priority change by Requester | 403 | Pass
+API-33 | API | AC-16, FR-16 | Permitted status transition (matrix) | 200; new status persisted | Pass
+API-34 | API | AC-16, BR-09 | Forbidden status transition | 409 specific conflict message | Pass
 
 ### Server — Administrator User Management (server/tests/lab-03/users-admin.api.test.ts)
 
