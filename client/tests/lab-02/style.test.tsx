@@ -11,7 +11,13 @@ import * as api from "../../src/api.js";
 // STYLE-01 — automated assertions for required CSS classes, field states,
 // labels, asterisks, messages, and button busy/disabled (ui-spec AC-13).
 
-const ALICE = { id: 1, name: "Alice Anderson", email: "alice@example.com" };
+const ALICE: api.AuthUser = {
+  id: 1,
+  name: "Alice Anderson",
+  email: "alice@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
+};
 
 const CATEGORIES = [{ id: 1, name: "Hardware" }];
 const SYSTEMS = [{ id: 1, name: "ERP System", type: "Application" }];
@@ -40,6 +46,7 @@ const FULL_DETAIL: api.TicketDetail = {
   currentStatus: "IN_PROGRESS",
   createdAt: "2026-09-01T08:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
+  requesterIndicatedResolvedAt: null,
   attachments: [],
 };
 
@@ -136,6 +143,7 @@ describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
 
   it("applies badge classes for Requested Priority, IT Priority, and Current Status (ui-spec §10)", async () => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
+    vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);
     render(
       <TicketDetail requester={ALICE} ticket={MY_TICKET} onBack={() => {}} />
     );

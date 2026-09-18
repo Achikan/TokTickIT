@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  AuthUser,
   AttachmentInfo,
-  DevelopmentRequester,
   MyTicket,
   Priority,
   Status,
+  TicketComment,
   TicketDetail as TicketDetailType,
   downloadAttachment,
+  fetchTicketComments,
   fetchTicketDetail,
+  indicateProblemResolved,
+  postTicketComment,
   removeAttachment,
   uploadAttachment,
 } from "./api.js";
@@ -21,12 +25,17 @@ const PRIORITY_BADGES: Record<Priority, string> = {
 
 const STATUS_BADGES: Record<Status, string> = {
   NEW: "badge-status-new",
+  OPEN: "badge-status-open",
   IN_PROGRESS: "badge-status-in-progress",
+  WAITING_FOR_REQUESTER: "badge-status-waiting",
   RESOLVED: "badge-status-resolved",
+  CLOSED: "badge-status-closed",
+  REOPENED: "badge-status-reopened",
+  CANCELLED: "badge-status-cancelled",
 };
 
 interface Props {
-  requester: DevelopmentRequester;
+  requester: AuthUser;
   ticket: MyTicket;
   onBack: () => void;
 }
@@ -38,13 +47,11 @@ function formatDateTime(v: string) {
 type UploadPhase = "idle" | "busy";
 
 function AttachmentSection({
-  requesterId,
   ticketId,
   attachments,
   onUploaded,
   onUpdated,
 }: {
-  requesterId: number;
   ticketId: number;
   attachments: AttachmentInfo[];
   onUploaded: (a: AttachmentInfo) => void;
@@ -66,7 +73,7 @@ function AttachmentSection({
     setUploadPhase("busy");
     setUploadError(null);
     try {
-      const created = await uploadAttachment(requesterId, ticketId, selectedFile);
+      const created = await uploadAttachment(ticketId, selectedFile);
       onUploaded(created);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -82,7 +89,7 @@ function AttachmentSection({
     setDownloadingId(a.id);
     setUnavailableError(null);
     try {
-      const { blob, filename } = await downloadAttachment(requesterId, a);
+      const { blob, filename } = await downloadAttachment(a);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
@@ -120,7 +127,7 @@ function AttachmentSection({
     setRemovingId(a.id);
     setRemoveError(null);
     try {
-      const updated = await removeAttachment(requesterId, a.id, removalReason.trim());
+      const updated = await removeAttachment(a.id, removalReason.trim());
       onUpdated(updated);
       cancelRemove();
     } catch (e) {
@@ -275,17 +282,111 @@ function AttachmentSection({
   );
 }
 
+// Issue 20 — Public Comments + "Problem Appears Resolved" (Lab 3 sheet §8.2).
+// The Requester communicates on their Ticket but never formally Resolves/Closes.
+function CommunicationSection({
+  ticketId,
+  comments,
+  onPosted,
+  requesterName,
+}: {
+  ticketId: number;
+  comments: TicketComment[];
+  onPosted: (c: TicketComment) => void;
+  requesterName: string;
+}) {
+  const [content, setContent] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (content.trim() === "") {
+      setError("Comment is required.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const created = await postTicketComment(ticketId, content.trim());
+      onPosted(created);
+      setContent("");
+    } catch (e) {
+      const err = e as Error & { fields?: Record<string, string> };
+      setError(err.fields?.content ?? err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="card mb-4" aria-labelledby="public-comments-heading">
+      <div className="card-body">
+        <h3 id="public-comments-heading" className="h5 mb-3">
+          Public Comments
+        </h3>
+
+        {comments.length === 0 ? (
+          <p className="text-muted mb-3">No comments yet.</p>
+        ) : (
+          <ul className="list-unstyled mb-3" data-testid="public-comments-list">
+            {comments.map((c) => (
+              <li key={c.id} className="border rounded p-2 mb-2">
+                <div className="d-flex justify-content-between small text-muted mb-1">
+                  <span className="fw-semibold text-body">{c.author.name}</span>
+                  <span>{formatDateTime(c.createdAt)}</span>
+                </div>
+                <div>{c.content}</div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form onSubmit={handleSubmit} aria-label="Post a public comment">
+          <label htmlFor="comment-content" className="form-label">
+            Add a comment
+          </label>
+          <textarea
+            id="comment-content"
+            className={`form-control ${error ? "is-invalid" : ""}`}
+            rows={3}
+            maxLength={2000}
+            value={content}
+            onChange={(e) => {
+              setContent(e.target.value);
+              if (error) setError(null);
+            }}
+            placeholder={`Comment as ${requesterName}`}
+          />
+          {error && <small className="text-danger d-block mt-1">{error}</small>}
+          <button
+            type="submit"
+            className="btn btn-tok-primary mt-2"
+            disabled={busy}
+          >
+            {busy ? "Posting…" : "Post Comment"}
+          </button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
 export default function TicketDetail({ requester, ticket, onBack }: Props) {
   const [status, setStatus] = useState<"loading" | "ready" | "failure">("loading");
   const [detail, setDetail] = useState<TicketDetailType | null>(null);
+  const [comments, setComments] = useState<TicketComment[]>([]);
+  const [indicateBusy, setIndicateBusy] = useState(false);
+  const [indicateError, setIndicateError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setStatus("loading");
-    fetchTicketDetail(requester.id, ticket.id)
-      .then((data) => {
+    Promise.all([fetchTicketDetail(ticket.id), fetchTicketComments(ticket.id)])
+      .then(([data, items]) => {
         if (!cancelled) {
           setDetail(data);
+          setComments(items);
           setStatus("ready");
         }
       })
@@ -295,7 +396,29 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [requester.id, ticket.id]);
+  }, [ticket.id]);
+
+  async function handleIndicateResolved() {
+    setIndicateBusy(true);
+    setIndicateError(null);
+    try {
+      const updated = await indicateProblemResolved(detail!.id);
+      setDetail((d) =>
+        d
+          ? {
+              ...d,
+              currentStatus: updated.currentStatus,
+              requesterIndicatedResolvedAt: updated.requesterIndicatedResolvedAt,
+            }
+          : d
+      );
+    } catch (e) {
+      const err = e as Error & { fields?: Record<string, string> };
+      setIndicateError(err.fields?.content ?? err.message);
+    } finally {
+      setIndicateBusy(false);
+    }
+  }
 
   if (status === "loading") {
     return <p className="text-secondary">Loading ticket…</p>;
@@ -331,6 +454,8 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
     );
   };
 
+  const alreadyIndicated = detail.requesterIndicatedResolvedAt !== null;
+
   return (
     <div>
       {/* Header: ticket number + back navigation */}
@@ -365,7 +490,7 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
             <dt className="col-md-3">Last Updated</dt>
             <dd className="col-md-9">{formatDateTime(detail.updatedAt)}</dd>
 
-            <dt className="col-md-3">Development Requester</dt>
+            <dt className="col-md-3">Requester</dt>
             <dd className="col-md-9 readonly-field px-2 rounded">{requester.name}</dd>
 
             {/* Classification fields */}
@@ -410,9 +535,49 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
         </div>
       </section>
 
+      {/* Issue 20 — "Problem Appears Resolved" (FR-11, BR-11). Records the
+          Requester's indication only; the status badge remains unchanged. */}
+      <section className="card mb-4">
+        <div className="card-body">
+          <h3 className="h5 mb-2">Resolution Feedback</h3>
+          {alreadyIndicated ? (
+            <div className="callout-success px-3 py-2 rounded" role="status" data-testid="resolved-indicated">
+              <span className="fw-semibold">You indicated this problem appears resolved.</span>
+              <span className="text-muted d-block small">
+                Recorded {formatDateTime(detail.requesterIndicatedResolvedAt!)}. The ticket status is
+                unchanged; IT Staff can still act on the ticket.
+              </span>
+            </div>
+          ) : (
+            <>
+              <p className="text-muted small mb-2">
+                If the problem appears resolved from your side, record that here. It does not
+                formally mark the ticket Resolved/Closed.
+              </p>
+              {indicateError && <p className="text-danger small">{indicateError}</p>}
+              <button
+                type="button"
+                className="btn btn-tok-primary"
+                onClick={handleIndicateResolved}
+                disabled={indicateBusy}
+              >
+                {indicateBusy ? "Recording…" : "Mark as appears resolved"}
+              </button>
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* Issue 20 — Public Comments (FR-10, AC-17): visible to all three roles. */}
+      <CommunicationSection
+        ticketId={detail.id}
+        comments={comments}
+        requesterName={requester.name}
+        onPosted={(c) => setComments((prev) => [c, ...prev])}
+      />
+
       {/* Attachments — upload / download / soft-remove (FR-15..18, ui-spec §6) */}
       <AttachmentSection
-        requesterId={requester.id}
         ticketId={detail.id}
         attachments={detail.attachments}
         onUploaded={handleUploaded}

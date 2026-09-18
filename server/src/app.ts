@@ -9,6 +9,7 @@ import type { Prisma } from "@prisma/client";
 import { getPrisma } from "./prisma.js";
 import { formatTicketNumber } from "./ticketNumber.js";
 import { authRouter } from "./auth.js";
+import { ticketCommunicationRouter } from "./communication.js";
 import {
   blockPendingPasswordChange,
   csrfProtection,
@@ -33,6 +34,10 @@ app.use(csrfProtection);
 
 // Lab 3 (Issue 18) — authentication routes (login/logout/me/change-password).
 app.use("/api/auth", authRouter);
+
+// Lab 3 (Issue 20) — Ticket communication: Public Comments, Internal Notes,
+// and the Requester "Problem Appears Resolved" indication (api-spec.md §4, §5).
+app.use("/api/tickets", ticketCommunicationRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment upload configuration (BR-07).
@@ -424,6 +429,7 @@ app.get(
           currentStatus: ticket.currentStatus,
           createdAt: ticket.createdAt,
           updatedAt: ticket.updatedAt,
+          requesterIndicatedResolvedAt: ticket.requesterIndicatedResolvedAt,
           attachments: ticket.attachments.map((a) => ({
             id: a.id,
             originalName: a.originalName,

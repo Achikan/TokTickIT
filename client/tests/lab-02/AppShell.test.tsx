@@ -36,6 +36,7 @@ const FULL_DETAIL: api.TicketDetail = {
   currentStatus: "IN_PROGRESS",
   createdAt: "2026-09-01T08:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
+  requesterIndicatedResolvedAt: null,
   attachments: [],
 };
 
@@ -63,6 +64,7 @@ describe("App shell navigation", () => {
       filtersApplied: {},
     });
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
+    vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);
     vi.spyOn(api, "fetchCategories").mockResolvedValue([{ id: 1, name: "Hardware" }]);
     vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue([
       { id: 1, name: "ERP System", type: "Application" },

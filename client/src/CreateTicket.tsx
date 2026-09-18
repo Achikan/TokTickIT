@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  AuthUser,
   Category,
   RelatedSystem,
-  DevelopmentRequester,
   Priority,
   Ticket,
   AttachmentInfo,
@@ -17,7 +17,7 @@ const ACCEPTED_TYPES = "image/jpeg,image/png,image/webp,application/pdf";
 const MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024; // 5 MB (BR-07)
 
 interface Props {
-  requester: DevelopmentRequester;
+  requester: AuthUser;
   onViewTickets?: () => void;
 }
 
@@ -103,7 +103,6 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
     setAttachmentsError("");
     try {
       const ticket = await createTicket({
-        requesterId: requester.id,
         summary: summary.trim(),
         description: description.trim(),
         categoryId: Number(categoryId),
@@ -114,7 +113,7 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
       const uploadedItems: AttachmentInfo[] = [];
       for (const file of attachments) {
         try {
-          const created = await uploadAttachment(requester.id, ticket.id, file);
+          const created = await uploadAttachment(ticket.id, file);
           uploadedItems.push(created);
         } catch (err) {
           const e = err as Error & { fields?: Record<string, string> };
@@ -199,10 +198,10 @@ export default function CreateTicket({ requester, onViewTickets }: Props) {
             </div>
           </div>
 
-          {/* Requester (read-only, from selection) */}
+          {/* Requester (read-only, from the authenticated session) */}
           <div className="mb-3">
             <label htmlFor="requester-readonly" className="form-label">
-              Development Requester
+              Requester
             </label>
             <input
               id="requester-readonly"

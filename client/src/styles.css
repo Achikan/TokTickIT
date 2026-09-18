@@ -159,11 +159,31 @@ input[type="file"]:focus-visible {
   background-color: #6c757d;
   color: #fff;
 }
+.badge-status-open {
+  background-color: #495057;
+  color: #fff;
+}
 .badge-status-in-progress {
   background-color: #0d6efd;
+  color: #fff;
+}
+.badge-status-waiting {
+  background-color: #e6a700;
   color: #fff;
 }
 .badge-status-resolved {
   background-color: #198754;
   color: #fff;
+}
+.badge-status-closed {
+  background-color: #575757;
+  color: #fff;
+}
+.badge-status-reopened {
+  background-color: #7b2d8b;
+  color: #fff;
+}
+.badge-status-cancelled {
+  background-color: #adb5bd;
+  color: #1c2b22;
 }

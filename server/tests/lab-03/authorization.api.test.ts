@@ -72,6 +72,8 @@ describe("API-09: unauthenticated protected endpoint returns 401", () => {
       ["GET /api/tickets/1", request(app).get("/api/tickets/1")],
       ["GET /api/tickets/1/attachments", request(app).get("/api/tickets/1/attachments")],
       ["GET /api/attachments/1/download", request(app).get("/api/attachments/1/download")],
+      ["GET /api/tickets/1/comments", request(app).get("/api/tickets/1/comments")],
+      ["GET /api/tickets/1/notes", request(app).get("/api/tickets/1/notes")],
       ["GET /api/auth/me", request(app).get("/api/auth/me")],
     ];
 
@@ -97,6 +99,23 @@ describe("API-09: unauthenticated protected endpoint returns 401", () => {
       .set(CSRF_HEADER, "1")
       .send({ removedReason: "x" });
     expect(remove.status).toBe(401);
+
+    const comment = await request(app)
+      .post("/api/tickets/1/comments")
+      .set(CSRF_HEADER, "1")
+      .send({ content: "x" });
+    expect(comment.status).toBe(401);
+
+    const note = await request(app)
+      .post("/api/tickets/1/notes")
+      .set(CSRF_HEADER, "1")
+      .send({ content: "x" });
+    expect(note.status).toBe(401);
+
+    const resolved = await request(app)
+      .post("/api/tickets/1/resolved-indication")
+      .set(CSRF_HEADER, "1");
+    expect(resolved.status).toBe(401);
 
     const changePassword = await request(app)
       .post("/api/auth/change-password")
@@ -222,11 +241,29 @@ describe("API-15: role-protected operations are enforced server-side (AC-11, FR-
   });
 });
 
+describe("API-13: a Requester cannot reach Internal Notes (AC-04, BR-10)", () => {
+  it("returns 403 for list and create without exposing note content", async () => {
+    const ticket = await seedOwnedTicket(aliceId, 1);
+    await getPrisma().internalNote.create({
+      data: { ticketId: ticket.id, authorId: aliceId, content: "Confidential staff note" },
+    });
+
+    const list = await alice.get(`/api/tickets/${ticket.id}/notes`);
+    expect(list.status).toBe(403);
+    expect(list.body.error.code).toBe("FORBIDDEN");
+    expect(JSON.stringify(list.body)).not.toContain("Confidential staff note");
+
+    const create = await alice
+      .post(`/api/tickets/${ticket.id}/notes`)
+      .send({ content: "not allowed" });
+    expect(create.status).toBe(403);
+  });
+});
+
 // The following destinations are introduced by later issues; until then there
 // is no route to guard. They are tracked here so the authorization plan stays
 // visible and must be enabled with the owning issue.
-describe("API-10/11/13: staff queue, user management and internal notes", () => {
+describe("API-10/11: staff queue and user management", () => {
   it.todo("API-10: Requester requesting the staff queue is rejected with 403 (Issue 21)");
   it.todo("API-11: non-Admin requesting user management is rejected with 403 (Issue 23)");
-  it.todo("API-13: Requester requesting an Internal Note endpoint gets 403 without note data (Issue 22)");
 });
