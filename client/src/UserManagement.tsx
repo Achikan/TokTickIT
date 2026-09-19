@@ -222,7 +222,8 @@ export default function UserManagement({ user, onSelfUpdated }: Props) {
         `A new initial password was set for "${result.name}". It must be changed at next login.`
       );
     } catch (err) {
-      setPwError(describeError(err, "Unable to set the initial password.").message);
+      const described = describeError(err, "Unable to set the initial password.");
+      setPwError(described.fields?.newInitialPassword ?? described.message);
     } finally {
       setPwSubmitting(false);
     }
@@ -537,11 +538,6 @@ export default function UserManagement({ user, onSelfUpdated }: Props) {
                     <p className="text-muted small mb-2">
                       Ends the current password and requires a change at the next login.
                     </p>
-                    {pwError && (
-                      <div className="alert alert-danger py-2" role="alert">
-                        {pwError}
-                      </div>
-                    )}
                     <div className="row g-2 align-items-end">
                       <div className="col-md-6">
                         <label htmlFor="user-new-initial-password" className="form-label">
@@ -550,10 +546,16 @@ export default function UserManagement({ user, onSelfUpdated }: Props) {
                         <input
                           id="user-new-initial-password"
                           type="password"
-                          className="form-control"
+                          className={`form-control ${pwError ? "is-invalid" : ""}`}
+                          aria-invalid={pwError ? true : undefined}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                         />
+                        {pwError && (
+                          <div className="invalid-feedback d-block" role="alert">
+                            {pwError}
+                          </div>
+                        )}
                         <div className="form-text">
                           At least 8 characters with upper case, lower case and a digit.
                         </div>

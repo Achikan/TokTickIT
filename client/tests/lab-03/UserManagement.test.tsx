@@ -211,6 +211,31 @@ describe("UserManagement", () => {
       expect(pwSpy).toHaveBeenCalledWith(2, "ResetPass!23");
       expect(await screen.findByText(/new initial password was set/i)).toBeInTheDocument();
     });
+
+    it("surfaces the specific field error when the new initial password breaks policy", async () => {
+      vi.spyOn(api, "setAdminInitialPassword").mockRejectedValue(
+        new api.ApiError("Invalid input.", 400, "VALIDATION_ERROR", {
+          newInitialPassword: "Password must be at least 8 characters.",
+        })
+      );
+      const user = userEvent.setup();
+      render(<UserManagement user={ADMIN} />);
+      await screen.findByRole("table");
+
+      await user.click(
+        screen.getAllByRole("button", { name: "Edit user Alice Anderson" })[0]
+      );
+      const panel = screen.getByRole("region", { name: "Edit user" });
+      await user.type(within(panel).getByLabelText(/New initial password/i), "weak");
+      await user.click(
+        within(panel).getByRole("button", { name: /Set new initial password/i })
+      );
+
+      expect(
+        await within(panel).findByText(/Password must be at least 8 characters/i)
+      ).toBeInTheDocument();
+      expect(within(panel).queryByText(/^Invalid input\.$/)).not.toBeInTheDocument();
+    });
   });
 
   describe("UI-17: self / last-Administrator safety feedback (AC-21)", () => {
