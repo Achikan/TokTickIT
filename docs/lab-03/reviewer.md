@@ -22,7 +22,7 @@
 | [#56](https://github.com/Achikan/TokTickIT/pull/56) | 22 — IT Staff Ticket Detail (supersedes [#55](https://github.com/Achikan/TokTickIT/pull/55)) | `feature/22-staff-ticket-detail` | Approved (after 1 revision) |
 | [#57](https://github.com/Achikan/TokTickIT/pull/57) | 23 — Administrator User Management | `feature/23-admin-user-management` | Approved (after 1 revision) |
 | [#58](https://github.com/Achikan/TokTickIT/pull/58) | 24 — E2E testing, responsive & accessibility | `feature/24-e2e-responsive-accessibility` | Approved (after 2 revisions) |
-| [#TBD](https://github.com/Achikan/TokTickIT) | 25 — Final review, screenshots & release | `feature/25-final-review-screenshots-release` | Issues 16–24 merged; awaiting this release review |
+| [#59](https://github.com/Achikan/TokTickIT/pull/59) | 25 — Final review, screenshots & release | `feature/25-final-review-screenshots-release` | Open for review (Issues 16–24 already merged) |
 
 ### Representative review comments I received and how I responded
 
