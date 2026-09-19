@@ -187,11 +187,11 @@ Populated by the corresponding implementation issues (18–25) as each suite tur
 |---|---|---|
 | Server (unit + API) — Lab 3 | `cd server && npm test` | **Pass — 176 passed (16 files)** + 2 todo |
 | Client (UI + style) — Lab 3 | `cd client && npm test` | **Pass — 93/93** |
-| E2E + Responsive — Lab 3 | `npm run test:e2e` | **Pass — 25/25** (E2E-01..06, RESP-01, A11Y-01) |
+| E2E + Responsive — Lab 3 | `npm run test:e2e` | **Pass — 25/25** (E2E-01..05, RESP-01, A11Y-01) |
 
 Issue-by-issue pass status (updated as each implementation lands):
 
 - **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (`cd server && npm test`, 27/27 queue tests). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass**.
 - **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27 admin tests). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass**.
-- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`login.spec.ts`, `requester-flow.spec.ts`, `staff-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npx playwright test`**; client suite dropped to **93/93** after `<main>` landmark + a11y fixes.
+- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npx playwright test`**; client suite dropped to **93/93** after `<main>` landmark + a11y fixes.
 - **Issue 25 (Final review, screenshots, release)** — final re-run: server **176 passed | 2 todo**, client **93/93**, E2E **25/25**; 27 visual screenshots captured by `npm run screenshots:lab3` into `artifacts/lab-03/screenshots/` (see `visual-inspection.md`).

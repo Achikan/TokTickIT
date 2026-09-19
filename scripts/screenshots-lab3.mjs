@@ -160,6 +160,9 @@ const openFirstFromQueue = async (page) => {
   await page.locator("#queue-search").fill("1001");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByRole("heading", { name: "Ticket Queue" }).waitFor();
+  // The queue re-renders once its search response resolves; give it a beat to
+  // settle so the row we click is not swapped mid-click.
+  await page.waitForTimeout(500);
   const btn = page.locator('[aria-label^="Open ticket "]:visible').first();
   await btn.click();
   await page.getByRole("heading", { name: /TK-/ }).waitFor();
@@ -175,9 +178,15 @@ for (const [vp, size] of Object.entries(VIEWPORTS)) {
   const requester = await createRequesterActive();
   const { ticketNumber } = await createTicket(requester);
 
-  // 1) authentication — login form.
+  // 1) authentication — login form shown in a safe-failure state (ui-spec §3.1):
+  // after an invalid submit the form keeps the values and surfaces a generic
+  // "Invalid email or password." alert without revealing account details.
   await page.goto(CLIENT_URL);
   await page.getByRole("button", { name: "Sign In" }).waitFor();
+  await page.locator("#login-email").fill(STAFF.email);
+  await page.locator("#login-password").fill("WrongPass!999");
+  await page.getByRole("button", { name: "Sign In" }).click();
+  await page.getByText("Invalid email or password.").waitFor();
   await screenshot(page, "authentication", `login-${vp}.png`);
 
   // 2) authentication — mandatory first-login Change Password screen.
@@ -211,6 +220,7 @@ for (const [vp, size] of Object.entries(VIEWPORTS)) {
   await page.getByRole("button", { name: "Back to Queue" }).click();
   await page.locator("#queue-search").fill(ticketNumber);
   await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.waitForTimeout(500);
   await page.locator(`[aria-label="Open ticket ${ticketNumber}"]:visible`).first().click();
   await page.getByRole("heading", { name: ticketNumber }).waitFor();
 
