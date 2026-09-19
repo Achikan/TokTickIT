@@ -7,8 +7,10 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "screenshots": "node scripts/screenshots.mjs",
-    "screenshots:lab3": "node scripts/screenshots-lab3.mjs"
+"screenshots": "node scripts/screenshots.mjs",
+ "screenshots:lab3": "node scripts/screenshots-lab3.mjs",
+ "report:evidence:lab3": "node scripts/evidence-lab3.mjs",
+ "pdf:lab3": "node scripts/make-lab3-pdf.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1"

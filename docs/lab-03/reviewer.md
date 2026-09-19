@@ -77,6 +77,7 @@ The pairing is a two-way peer review: my partner @il0lk3 reviewed all my Lab 3 P
 
 All Lab 3 Issues (16–25) are implemented on `feature/<n>-<slug>` branches and merged into
 `lab3-staging` after peer-review approval from @il0lk3. Issues 17–24 (implementation) and this
-final review/screenshots Issue 25 form the deliverable set for Lab 3 **Parts 1–9** of the report,
-with the release from `lab3-staging` to `main` as the last step (§14 — the repository `main`
-branch remains the source of truth).
+final review/screenshots Issue 25 form the deliverable set for Lab 3 **Parts 1–9** of the report
+([report.md](report.md), with evidence in `artifacts/lab-03/report-evidence/`), with the release
+from `lab3-staging` to `main` as the last step (§14 — the repository `main` branch remains the
+source of truth).
