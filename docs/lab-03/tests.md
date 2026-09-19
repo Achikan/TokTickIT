@@ -76,17 +76,17 @@ API-34 | API | AC-16, BR-09 | Forbidden status transition | 409 specific conflic
 
 ### Server — Administrator User Management (server/tests/lab-03/users-admin.api.test.ts)
 
-Test ID | Type | Requirement / AC | What It Tests | Expected Result
----|---|---|---|---
-API-35 | API | AC-18, FR-19 | List users with name/email search + role filter | 200 correct subset + filtersApplied
-API-36 | API | AC-19, FR-20 | Create user with one role + initial password | 201; requiresPasswordChange true
-API-37 | API | AC-19, BR-14 | Duplicate email (case-insensitive) | 409
-API-38 | API | AC-19, BR-16 | Invalid role value | 400
-API-39 | API | AC-20, FR-21 | Edit name/email/role/activation | 200; changes persisted
-API-40 | API | AC-20, FR-22 | Set new initial password | 200; requiresPasswordChange true; next login gated
-API-41 | API | AC-21, BR-18 | Administrator self-deactivation | 409
-API-42 | API | AC-21, BR-19 | Deactivating the last active Administrator | 409
-API-43 | API | AC-22, BR-20 | Non-Admin user management; no delete endpoint | 403; only deactivation exists
+Test ID | Type | Requirement / AC | What It Tests | Expected Result | Final
+---|---|---|---|---|---
+API-35 | API | AC-18, FR-19 | List users with name/email search + role filter | 200 correct subset + filtersApplied | Pass
+API-36 | API | AC-19, FR-20 | Create user with one role + initial password | 201; requiresPasswordChange true | Pass
+API-37 | API | AC-19, BR-14 | Duplicate email (case-insensitive) | 409 | Pass
+API-38 | API | AC-19, BR-16 | Invalid role value | 400 | Pass
+API-39 | API | AC-20, FR-21 | Edit name/email/role/activation | 200; changes persisted | Pass
+API-40 | API | AC-20, FR-22 | Set new initial password | 200; requiresPasswordChange true; next login gated | Pass
+API-41 | API | AC-21, BR-18 | Administrator self-deactivation | 409 | Pass
+API-42 | API | AC-21, BR-19 | Deactivating the last active Administrator | 409 | Pass
+API-43 | API | AC-22, BR-20 | Non-Admin user management; no delete endpoint | 403; only deactivation exists | Pass
 
 ### Server — Unit (server/tests/lab-03/*.unit.test.ts)
 
@@ -118,7 +118,7 @@ UI-14 | UI | AC-17 | Comments vs Notes visually distinct | Distinct sections/mar
 UI-15 | UI | AC-18 | UserManagement list/search/role filter | Correct users shown | UserManagement.test.tsx
 UI-16 | UI | AC-19..20 | UserManagement create/edit validation | Duplicate email/invalid input messages | UserManagement.test.tsx
 UI-17 | UI | AC-21 | Self/last-admin protection feedback | Conflict message shown | UserManagement.test.tsx
-UI-18 | UI | AC-24 | Forbidden/failure feedback rendering | Safe messages on all screens | shared
+UI-18 | UI | AC-24 | Forbidden/failure feedback rendering | Safe messages on all screens | StaffTicketQueue/UserManagement.test.tsx
 
 ### Client — UI Style (client/tests/lab-03/style.test.tsx)
 
@@ -192,3 +192,4 @@ Populated by the corresponding implementation issues (18–25) as each suite tur
 Issue-by-issue pass status (updated as each implementation lands):
 
 - **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (`cd server && npm test`, 27/27 queue tests, 128 total). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass** (client suite 70/70).
+- **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27 admin tests; server suite 176 passed + 2 todo). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass** (12/12 admin UI tests; client suite 92/92).

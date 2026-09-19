@@ -207,3 +207,13 @@ input[type="file"]:focus-visible {
   background-color: #adb5bd;
   color: #1c2b22;
 }
+/* Account status badges (ui-spec §7): Active/Inactive always appear as text,
+   so the state is never communicated by colour alone. */
+.badge-account-active {
+  background-color: #e6f4ec;
+  color: #0b4028;
+}
+.badge-account-inactive {
+  background-color: #f1f3f5;
+  color: #495057;
+}

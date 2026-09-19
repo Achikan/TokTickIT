@@ -590,3 +590,105 @@ export async function indicateProblemResolved(
   }
   return body.ticket as ResolvedIndication;
 }
+// ---------------------------------------------------------------------------
+// Issue 23 — Administrator User Management (api-spec.md §7, FR-19..FR-22).
+// List/search/filter users, create a user with one role, edit name/email/role/
+// activation, and set a new initial password. Administrator only (AC-22).
+// ---------------------------------------------------------------------------
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  active: boolean;
+  requiresPasswordChange: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserListResponse {
+  items: AdminUser[];
+  filtersApplied: Record<string, unknown>;
+}
+
+export interface AdminUserQuery {
+  search?: string;
+  role?: Role;
+}
+
+// GET /api/admin/users?search=&role= (FR-19, AC-18).
+export async function fetchAdminUsers(
+  query: AdminUserQuery = {}
+): Promise<AdminUserListResponse> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.role) params.set("role", query.role);
+  const qs = params.toString();
+  const res = await apiFetch(`/api/admin/users${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load users.");
+  return (await res.json()) as AdminUserListResponse;
+}
+
+export interface CreateAdminUserInput {
+  name: string;
+  email: string;
+  role: Role;
+  active: boolean;
+  initialPassword: string;
+}
+
+// POST /api/admin/users — create a user with one role + initial password (FR-20).
+export async function createAdminUser(input: CreateAdminUserInput): Promise<AdminUser> {
+  const res = await apiFetch("/api/admin/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to create the user.");
+  const body = (await res.json()) as { user: AdminUser };
+  return body.user;
+}
+
+export interface UpdateAdminUserInput {
+  name?: string;
+  email?: string;
+  role?: Role;
+  active?: boolean;
+}
+
+// PATCH /api/admin/users/:id — edit name/email/role/activation (FR-21).
+export async function updateAdminUser(
+  id: number,
+  input: UpdateAdminUserInput
+): Promise<AdminUser> {
+  const res = await apiFetch(`/api/admin/users/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the user.");
+  const body = (await res.json()) as { user: AdminUser };
+  return body.user;
+}
+
+export interface InitialPasswordResult {
+  id: number;
+  name: string;
+  requiresPasswordChange: boolean;
+}
+
+// POST /api/admin/users/:id/initial-password — force a change at next login (FR-22).
+export async function setAdminInitialPassword(
+  id: number,
+  newInitialPassword: string
+): Promise<InitialPasswordResult> {
+  const res = await apiFetch(`/api/admin/users/${id}/initial-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newInitialPassword }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to set the initial password.");
+  const body = (await res.json()) as { user: InitialPasswordResult };
+  return body.user;
+}
