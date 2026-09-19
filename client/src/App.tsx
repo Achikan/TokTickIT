@@ -14,6 +14,7 @@ import MyTickets from "./MyTickets.js";
 import StaffTicketDetail from "./StaffTicketDetail.js";
 import StaffTicketQueue from "./StaffTicketQueue.js";
 import TicketDetail from "./TicketDetail.js";
+import UserManagement from "./UserManagement.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
 // -> role-specific home with role badge + Logout (ui-spec.md §3.3).
@@ -51,19 +52,6 @@ function defaultViewFor(role: Role): View {
 
 function RoleBadge({ role }: { role: Role }) {
   return <span className={`badge ${ROLE_BADGE_CLASS[role]}`}>{ROLE_LABELS[role]}</span>;
-}
-
-function UserManagementHome() {
-  return (
-    <section className="app-card p-4" aria-labelledby="user-management-heading">
-      <h2 id="user-management-heading" className="h5 mb-1">
-        User Management
-      </h2>
-      <p className="text-muted mb-0">
-        Administrator user management arrives in a later Lab 3 increment.
-      </p>
-    </section>
-  );
 }
 
 export default function App() {
@@ -260,7 +248,10 @@ export default function App() {
             />
           )
         ) : (
-          <UserManagementHome />
+          <UserManagement
+            user={user}
+            onSelfUpdated={(updated) => setAuth({ status: "authenticated", user: updated })}
+          />
         )}
       </div>
     </div>
