@@ -203,7 +203,7 @@ export default function App() {
         </div>
       </header>
 
-      <div className="container" style={{ maxWidth: 960 }}>
+      <main className="container" style={{ maxWidth: 960 }}>
         {notice && (
           <div className="alert alert-success" role="status">
             {notice}
@@ -253,7 +253,7 @@ export default function App() {
             onSelfUpdated={(updated) => setAuth({ status: "authenticated", user: updated })}
           />
         )}
-      </div>
+      </main>
     </div>
   );
 }
