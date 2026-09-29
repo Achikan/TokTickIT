@@ -57,8 +57,8 @@ npm install
 npm run dev                 # Vite dev server
 ```
 
-Open the Vite URL (default http://localhost:5173). Select a Development Requester,
-then use the app (Lab 2):
+Open the Vite URL (default http://localhost:5173), sign in with a seeded account,
+then use the app (Lab 2 requester flows):
 
 - **Create Ticket** — pick a category / related system, enter subject + description,
   and upload attachments; validation errors appear next to the field; a `TK-######`
@@ -102,6 +102,6 @@ npm run screenshots         # regenerate desktop/tablet/mobile evidence PNGs int
 npm run screenshots:lab3     # regenerate the Lab 3 evidence PNGs into artifacts/lab-03/screenshots/
 ```
 
-Lab 3 test results: server 176 passed | 2 todo, client 93/93, E2E + responsive + accessibility
+Lab 3 test results: server 195/195 (unit + API), client 98/98 (UI + style), E2E + responsive + accessibility
 25/25 (see `docs/lab-03/tests.md`).
 ```

@@ -76,19 +76,19 @@ The system has outgrown the throwaway requester selector and needs real users. S
 ## 5. Business Rules
 
 - **BR-01** Only an active user with valid credentials may authenticate; failed login attempts return safe generic errors with no account detail.
-- **BR-02** Passwords are hashed (e.g. bcrypt) and are never stored, logged, or returned in plaintext.
-- **BR-03** A user marked as requiring a password change cannot enter the normal application until a valid new password is saved.
-- **BR-04** Logout invalidates the active session; subsequent authenticated access is rejected.
-- **BR-05** An inactive user cannot log in or perform operations; the response is safe and non-disclosing.
-- **BR-06** The authenticated user identity — never a client-supplied `requesterId` — determines Requester ownership of Tickets and Attachments.
-- **BR-07** Each Ticket has exactly one Requester owner and at most one primary Ticket Owner, who must be an active IT Staff or Administrator user; a Ticket may initially be unassigned.
-- **BR-08** IT Priority initially copies Requested Priority and may be changed only by IT Staff or Administrator.
-- **BR-09** Status changes are permitted only according to the approved transition matrix; permitted roles, required confirmations, and validation are enforced server-side.
-- **BR-10** Public Comments are visible to the Requester, IT Staff, and Administrator; Internal Notes are visible only to IT Staff and Administrator.
-- **BR-11** A Requester may indicate that the problem appears resolved but may not formally set the Ticket to Resolved or Closed.
+- **BR-06** Passwords are hashed (e.g. bcrypt) and are never stored, logged, or returned in plaintext.
+- **BR-02** A user marked as requiring a password change cannot enter the normal application until a valid new password is saved.
+- **BR-07** Logout invalidates the active session; subsequent authenticated access is rejected.
+- **BR-08** An inactive user cannot log in or perform operations; the response is safe and non-disclosing.
+- **BR-03** The authenticated user identity — never a client-supplied `requesterId` — determines Requester ownership of Tickets and Attachments.
+- **BR-10** Each Ticket has exactly one Requester owner and at most one primary Ticket Owner, who must be an active IT Staff or Administrator user; a Ticket may initially be unassigned.
+- **BR-11** IT Priority initially copies Requested Priority and may be changed only by IT Staff or Administrator.
+- **BR-13** Status changes are permitted only according to the approved transition matrix; permitted roles, required confirmations, and validation are enforced server-side.
+- **BR-04** Public Comments are visible to the Requester, IT Staff, and Administrator; Internal Notes are visible only to IT Staff and Administrator.
+- **BR-05** A Requester may indicate that the problem appears resolved but may not formally set the Ticket to Resolved or Closed.
 - **BR-12** Comments and Notes are append-only: editing and deletion are excluded; content must be non-empty after trimming and no longer than 2,000 characters; the backend records author and creation time.
-- **BR-13** Every User has exactly one role: Requester, IT Staff, or Administrator.
-- **BR-14** Email addresses are unique (case-insensitive, normalized); duplicate emails are rejected on create and update.
+- **BR-14** Every User has exactly one role: Requester, IT Staff, or Administrator.
+- **BR-09** Email addresses are unique (case-insensitive, normalized); duplicate emails are rejected on create and update.
 - **BR-15** Users authenticate with their email and password; there is no self-registration in Lab 3.
 - **BR-16** An Administrator creates users with one permitted role; invalid role values are rejected.
 - **BR-17** Newly created and reset accounts receive an initial password that must be changed at the next login.
@@ -130,8 +130,9 @@ CLOSED | — | — | — | — | — | Staff/Admin (Reopen) | —
 REOPENED | — | Staff/Admin | Staff/Admin | Staff/Admin | — | — | Staff/Admin
 
 Notes:
-- Only IT Staff or Administrator may perform any transition. Requesters may only use the separate "Problem Appears Resolved" indication (BR-11).
-- Transitions not listed are rejected with a safe `400` conflict error.
+- Only IT Staff or Administrator may perform any transition. Requesters may only use the separate "Problem Appears Resolved" indication (BR-05).
+- Transitions not listed are rejected with a safe `409` conflict error.
+- Confirmation behaviour: only IT Staff or Administrator may confirm a transition by submitting the update; Requesters are never offered transition controls and receive `403` if they attempt one (BR-04).
 - Lab 3 does not include Actions Taken, so the later rule blocking resolution while Actions Taken remain incomplete is deferred to Lab 4 (sheet §4.5).
 
 ## 6. UI Specification Summary
@@ -200,7 +201,7 @@ Auth mechanism: password hashing + server-side opaque session token in an HttpOn
 - **AC-08** Given an authenticated user, when they log out, then sessions are invalidated and subsequent direct navigation or API calls are blocked.
 - **AC-09** Given an unauthenticated request to any protected endpoint, then `401` is returned.
 - **AC-10** Given an authenticated user lacking a role, when they request a role-protected operation, then `403` is returned without data.
-- **AC-11** Given the application shell, then role navigation presents only permitted destinations; unauthorized direct paths are still rejected by the server.
+- **AC-11** Given the application shell, when the authenticated user's role determines permitted destinations, then role navigation presents only those destinations; unauthorized direct paths are still rejected by the server.
 - **AC-12** Given an authenticated Requester, when they use Lab 2 functions, then Create Ticket, My Tickets, Ticket Detail, and Attachments behave as in Lab 2 using the session identity.
 - **AC-13** Given the IT Staff Ticket Queue, when search, filters, sorting, or pagination are applied, then correct items and metadata are returned and invalid parameters are rejected safely.
 - **AC-14** Given an IT Staff or Administrator, when they claim, assign, or reassign a Ticket, then the owner updates and only eligible roles may do so.
@@ -212,8 +213,8 @@ Auth mechanism: password hashing + server-side opaque session token in an HttpOn
 - **AC-20** Given an existing user, when an Administrator edits name/email/role/activation or sets a new initial password, then changes apply and the next login requires the password change.
 - **AC-21** Given an Administrator, when they attempt to deactivate their own account or the last active Administrator, then the action is rejected.
 - **AC-22** Given a non-Administrator, when User Management is requested, then access is denied.
-- **AC-23** Given the application on desktop, tablet, and mobile, then every screen is responsive with no clipping, overlap, hidden buttons, or horizontal page scrolling.
-- **AC-24** Given the screens, then loading, empty, no-results, forbidden, and safe-failure feedback is meaningful on each major screen.
+- **AC-23** Given the application on desktop, tablet, and mobile, when each screen is rendered at its viewport, then the screen is responsive with no clipping, overlap, hidden buttons, or horizontal page scrolling.
+- **AC-24** Given the screens, when loading, empty, no-results, forbidden, and failure conditions occur, then feedback is meaningful on each major screen.
 
 ## 10. Definition of Done
 
@@ -232,9 +233,9 @@ Auth mechanism: password hashing + server-side opaque session token in an HttpOn
 - **CSRF**: mitigated with SameSite=Strict cookies plus a required custom header on mutating requests (documented in `api-spec.md`).
 - **Password policy**: minimum 8 characters with at least one lowercase letter, one uppercase letter, one digit and one special character (documented in `ui-spec.md`); initial passwords are user-specific and local-only.
 - **Migration identity**: Development Requester rows become Users with `role = REQUESTER` and `requiresPasswordChange = true`; initial passwords are generated for local use only and documented in the README.
-- **"Problem Appears Resolved"** is stored as `requesterIndicatedResolvedAt` on the Ticket; it informs IT Staff but does not itself change status (BR-11).
+- **"Problem Appears Resolved"** is stored as `requesterIndicatedResolvedAt` on the Ticket; it informs IT Staff but does not itself change status (BR-05).
 - **Primary owner eligibility**: only active IT Staff or Administrator users can own a Ticket; ownership is not required for a Ticket to exist.
-- **Queue default ordering** is newest `updatedAt` first; the final searchable/filterable/sortable fields are defined in `api-spec.md` §7.
+- **Queue default ordering** is newest `updatedAt` first; the final searchable/filterable/sortable fields are defined in `api-spec.md` §6.1.
 - **Emails** are normalized to lowercase before uniqueness checks and storage.
 - **Comment/Note length** is capped at 2,000 trimmed characters with empty/whitespace-only content rejected (BR-12).
 - **User list** intentionally has no pagination, multi-column sorting, or simultaneous filters (excluded by §4.2); search and a single optional role filter are the supported refinements.

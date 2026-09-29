@@ -1,6 +1,6 @@
 # Lab 3 REST API Contract
 
-> Base URL: `/api`. All request/response bodies are JSON unless noted. Authenticated sessions are delivered via an HttpOnly, SameSite=Strict cookie named `tok_session`. Client-supplied `requesterId` is never trusted (BR-06).
+> Base URL: `/api`. All request/response bodies are JSON unless noted. Authenticated sessions are delivered via an HttpOnly, SameSite=Strict cookie named `tok_session`. Client-supplied `requesterId` is never trusted (BR-03).
 
 ## 0. Authentication and Session Decisions
 
@@ -34,7 +34,7 @@ Success `200` (sets `tok_session` cookie):
 ```json
 { "user": { "id": 1, "name": "Alice Smith", "email": "alice@example.com", "role": "REQUESTER", "requiresPasswordChange": true } }
 ```
-- Inactive account or wrong credentials → `401` with a generic safe message (BR-01, BR-05); no account enumeration.
+- Inactive account or wrong credentials → `401` with a generic safe message (BR-01, BR-08); no account enumeration.
 - `requiresPasswordChange: true` signals the client to force the Change Password screen (AC-02).
 
 ### 1.2 Logout
@@ -68,7 +68,7 @@ Success `200`:
 { "user": { "id": 1, "name": "Alice Smith", "email": "alice@example.com", "role": "REQUESTER", "requiresPasswordChange": false } }
 ```
 - Sets `requiresPasswordChange = false`.
-- Errors: `400` validation/strength/mismatch; `401` wrong current password. Users with `requiresPasswordChange: true` may call only this endpoint and the auth endpoints until the change succeeds (BR-03).
+- Errors: `400` validation/strength/mismatch; `401` wrong current password. Users with `requiresPasswordChange: true` may call only this endpoint and the auth endpoints until the change succeeds (BR-02).
 
 ## 2. Reference Data (authenticated, any role)
 
@@ -82,12 +82,12 @@ Success `200`:
 
 ## 3. Requester (regression) — ownership from session identity
 
-All endpoints below use the authenticated identity as the requester; `X-Requester-Id` and any body `requesterId` are ignored (BR-06, AC-03). Ownership protection identical to Lab 2.
+All endpoints below use the authenticated identity as the requester; `X-Requester-Id` and any body `requesterId` are ignored (BR-03, AC-03). Ownership protection identical to Lab 2.
 
 - `POST /api/tickets` — create Ticket for the authenticated Requester. Request: `{ summary, description, categoryId, relatedSystemId, requestedPriority? }`. Validation: summary/description non-empty after trim (max 2,000 chars each), category/related-system must be active, requestedPriority valid enum defaulting to `MEDIUM`. Success `201` with the generated Ticket (official `TK-######` ticketNumber, `itPriority` copied = requested priority, `currentStatus: "NEW"`).
-- `GET /api/tickets?search=&categoryId=&status=&requestedPriority=&page=&pageSize=&sort=` — the authenticated Requester's Tickets with search/filter/sort/pagination (same contract and BR-10 invalid-parameter handling as Lab 2). Success `200 { items, pagination, filtersApplied }`.
+- `GET /api/tickets?search=&categoryId=&status=&requestedPriority=&page=&pageSize=&sort=` — the authenticated Requester's Tickets with search/filter/sort/pagination (same contract and BR-04 invalid-parameter handling as Lab 2). Success `200 { items, pagination, filtersApplied }`.
 - `GET /api/tickets/:id` — one owned Ticket (Requester detail view). Foreign/missing → `404 NOT_FOUND`.
-- `POST /api/tickets/:id/attachments` — multipart upload to an owned Ticket (page includes the upload section); validations and responses identical to Lab 2 (BR-07/BR-12 from Lab 2 spec still apply: max 5 active attachments). Foreign/missing → `404`.
+- `POST /api/tickets/:id/attachments` — multipart upload to an owned Ticket (page includes the upload section); validations and responses identical to Lab 2 (BR-10/BR-12 from Lab 2 spec still apply: max 5 active attachments). Foreign/missing → `404`.
 - `GET /api/tickets/:id/attachments` — attachment metadata of an owned Ticket.
 - `GET /api/attachments/:id/download` — download an active attachment of an owned Ticket.
 - `DELETE /api/attachments/:id` — soft-remove (body `{ "removedReason": "..." }`, required non-empty) of an owned Ticket's attachment.
@@ -122,7 +122,7 @@ Success `200`:
 
 `POST /api/tickets/:id/resolved-indication` (Requester, own ticket)
 
-- Idempotent record of the Requester's indication; sets `requesterIndicatedResolvedAt` if not already set. Does not change status (BR-11).
+- Idempotent record of the Requester's indication; sets `requesterIndicatedResolvedAt` if not already set. Does not change status (BR-05).
 Success `200`:
 ```json
 { "ticket": { "id": 42, "ticketNumber": "TK-000042", "requesterIndicatedResolvedAt": "2026-09-17T11:00:00.000Z", "currentStatus": "IN_PROGRESS" } }
@@ -202,7 +202,7 @@ Request:
 ```json
 { "ownerId": 7 }
 ```
-- Assigns/reattaches the primary owner; `ownerId` must be an active User with role IT Staff or Administrator (BR-07). Success `200` with the updated Ticket summary. Errors: `400` invalid owner target (role/inactive), `403` role, `404` missing ticket.
+- Assigns/reattaches the primary owner; `ownerId` must be an active User with role IT Staff or Administrator (BR-10). Success `200` with the updated Ticket summary. Errors: `400` invalid owner target (role/inactive), `403` role, `404` missing ticket.
 
 ### 6.4 Update IT Priority
 
@@ -222,7 +222,7 @@ Request:
 ```json
 { "newStatus": "IN_PROGRESS" }
 ```
-- Only transitions permitted by `specification.md` §5.2 are accepted. Disallowed transitions → `409` with a specific message (BR-09). Success `200` with the updated Ticket. Errors: `400` invalid enum, `403` role, `409` forbidden transition, `404`.
+- Only transitions permitted by `specification.md` §5.2 are accepted. Disallowed transitions → `409` with a specific message (BR-13). Success `200` with the updated Ticket. Errors: `400` invalid enum, `403` role, `409` forbidden transition, `404`.
 
 ## 7. Administrator User Management
 
@@ -251,7 +251,7 @@ Request:
 ```json
 { "name": "New User", "email": "new.user@example.com", "role": "IT_STAFF", "active": true, "initialPassword": "TempPass!23" }
 ```
-Validation (400): name non-empty; email valid + unique (case-insensitive, BR-14); `role` one of `REQUESTER`/`IT_STAFF`/`ADMIN` (BR-16); `active` boolean; `initialPassword` meets the password policy (BR-17).
+Validation (400): name non-empty; email valid + unique (case-insensitive, BR-09); `role` one of `REQUESTER`/`IT_STAFF`/`ADMIN` (BR-16); `active` boolean; `initialPassword` meets the password policy (BR-17).
 Success `201`: user object (never the password/hash). Errors: `409` duplicate email; `403` non-Admin; `400` validation.
 
 ### 7.3 Update User
@@ -264,7 +264,7 @@ Request:
 ```
 - Prevents **self-deactivation** (`active=false` on own account) → `409` (BR-18).
 - Prevents deactivating or changing-role of the **last active Administrator** if it would leave no active Admin → `409` (BR-19).
-- Prevents duplicate email → `409` (BR-14).
+- Prevents duplicate email → `409` (BR-09).
 Success `200`: updated user object. Errors: `401`, `403`, `404`, `409`, `400`.
 
 ### 7.4 Set New Initial Password
