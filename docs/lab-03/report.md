@@ -173,80 +173,131 @@ implement and close the gaps I identified.
 
 ## Answer Part 5: Working Login and Password Change UI
 
-Evidence below demonstrates (in order): the login form pre-filled, client-side validation,
-safe failure with invalid credentials, inactive-account handling, the busy state, the mandatory
-first-login password change, weak-password policy rejection, the authenticated shell showing
-the signed-in user/role, logout, and direct API access blocked after logout (401).
+Evidence below demonstrates (in order): the login form pre-filled, client-side validation
+(required fields + invalid email format), safe failure (invalid credentials and network
+error), inactive-account handling, the busy state, the mandatory first-login password change,
+mismatch rejection, the authenticated shell for each role showing the signed-in user/role,
+logout, and direct API access blocked after logout (401).
 
-![Login — valid form (pre-filled)](../../artifacts/lab-03/report-evidence/part-5-auth/05-login-valid-form.png)
+![Login — valid form (pre-filled)](../../artifacts/lab-03/screenshots/authentication/auth-01-login-form-desktop.png)
 
-![Login — client-side validation (empty submit)](../../artifacts/lab-03/report-evidence/part-5-auth/05-login-field-errors.png)
+![Login — client-side validation (empty submit)](../../artifacts/lab-03/screenshots/authentication/auth-02-required-validation-desktop.png)
 
-![Login — safe failure (invalid credentials)](../../artifacts/lab-03/report-evidence/part-5-auth/05-login-invalid.png)
+![Login — invalid email format rejected](../../artifacts/lab-03/screenshots/authentication/auth-03-invalid-email-format-desktop.png)
 
-![Login — inactive account handling](../../artifacts/lab-03/report-evidence/part-5-auth/05-login-inactive.png)
+![Login — safe failure (invalid credentials)](../../artifacts/lab-03/screenshots/authentication/auth-04-invalid-credentials-desktop.png)
 
-![Login — busy state ("Signing in…")](../../artifacts/lab-03/report-evidence/part-5-auth/05-login-busy.png)
+![Login — inactive account handling](../../artifacts/lab-03/screenshots/authentication/auth-05-inactive-account-desktop.png)
 
-![Mandatory first-login password change](../../artifacts/lab-03/report-evidence/part-5-auth/05-change-password-mandatory.png)
+![Login — busy state ("Signing in…")](../../artifacts/lab-03/screenshots/authentication/auth-06-submit-busy-desktop.png)
 
-![Password policy — weak new password rejected](../../artifacts/lab-03/report-evidence/part-5-auth/05-change-password-weak.png)
+![Login — safe failure on network error (AC-05)](../../artifacts/lab-03/screenshots/authentication/auth-07-safe-failure-desktop.png)
 
-![Authenticated shell — user + role + role navigation](../../artifacts/lab-03/report-evidence/part-5-auth/05-shell-authenticated.png)
+![Mandatory first-login password change](../../artifacts/lab-03/screenshots/authentication/auth-08-mandatory-change-password-desktop.png)
 
-![After logout — login only](../../artifacts/lab-03/report-evidence/part-5-auth/05-post-logout-login.png)
+![Password policy — mismatch rejected](../../artifacts/lab-03/screenshots/authentication/auth-09-change-password-mismatch-desktop.png)
 
-![API after logout — 401 (no session cookie)](../../artifacts/lab-03/report-evidence/part-5-auth/05-api-401-after-logout.png)
+![Password updated — authenticated shell](../../artifacts/lab-03/screenshots/authentication/auth-10-password-updated-shell-desktop.png)
+
+![Authenticated shell — Requester role navigation](../../artifacts/lab-03/screenshots/authentication/auth-11-requester-shell-desktop.png)
+
+![Authenticated shell — IT Staff role navigation](../../artifacts/lab-03/screenshots/authentication/auth-12-staff-shell-desktop.png)
+
+![Authenticated shell — Administrator role navigation](../../artifacts/lab-03/screenshots/authentication/auth-13-admin-shell-desktop.png)
+
+![After logout — login only](../../artifacts/lab-03/screenshots/authentication/auth-14-post-logout-login-desktop.png)
+
+![API after logout — 401 (no session cookie)](../../artifacts/lab-03/api-evidence/part-5-auth/05-api-401-after-logout.png)
 
 ---
 
 ## Answer Part 6: Working IT Staff Ticket Queue UI
 
 Evidence below demonstrates realistic queue data, search, status filter, IT-Priority sorting,
-pagination (>10 rows), the open-detail action, and empty / no-results / failure feedback.
+owner filter (unassigned), pagination (>10 rows), loading / empty / no-results / failure
+feedback, and the open-detail action. Requester access to the staff queue is forbidden (403).
 
-![Queue — realistic data, ownership + status/priority badges](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-full.png)
+![Queue — realistic data, ownership + status/priority badges](../../artifacts/lab-03/screenshots/staff-queue/queue-01-queue-full-data-desktop.png)
 
-![Queue — search by ticket content](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-search.png)
+![Queue — search by ticket content](../../artifacts/lab-03/screenshots/staff-queue/queue-02-search-desktop.png)
 
-![Queue — status filter (RESOLVED)](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-filter-status.png)
+![Queue — status filter (RESOLVED)](../../artifacts/lab-03/screenshots/staff-queue/queue-03-filters-applied-desktop.png)
 
-![Queue — sort by IT Priority](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-sort.png)
+![Queue — sort by IT Priority](../../artifacts/lab-03/screenshots/staff-queue/queue-04-sort-desktop.png)
 
-![Queue — no-results state](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-empty-no-results.png)
+![Queue — pagination (multi-page results)](../../artifacts/lab-03/screenshots/staff-queue/queue-05-pagination-page-2-desktop.png)
 
-![Queue — pagination (multi-page results)](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-pagination.png)
+![Queue — owner filter (unassigned)](../../artifacts/lab-03/screenshots/staff-queue/queue-06-owner-unassigned-desktop.png)
 
-![Queue — failure feedback (network error)](../../artifacts/lab-03/report-evidence/part-6-queue/06-queue-failure.png)
+![Queue — loading state](../../artifacts/lab-03/screenshots/staff-queue/queue-07-loading-desktop.png)
+
+![Queue — empty state (no tickets yet)](../../artifacts/lab-03/screenshots/staff-queue/queue-08-empty-desktop.png)
+
+![Queue — no-results state](../../artifacts/lab-03/screenshots/staff-queue/queue-09-no-results-desktop.png)
+
+![Queue — failure feedback (network error)](../../artifacts/lab-03/screenshots/staff-queue/queue-10-failure-desktop.png)
+
+![Req-03-style API authorization — requester forbidden from staff queue (403)](../../artifacts/lab-03/api-evidence/part-6-queue/api-403-requester-queue.png)
 
 ---
 
 ## Answer Part 7: Working IT Staff Ticket Detail UI
 
-Evidence below demonstrates seeded detail with Public Comment + Internal Note, claim,
-reassign, IT Priority, permitted status transitions (NEW → OPEN → IN_PROGRESS), Public
-Comments vs Internal Notes, requester resolution indication + Attachment continuity,
-Attachment presentation, and direct API authorization evidence (a total of 10 captures).
+Evidence below demonstrates (a total of 15 detail + 11 requester captures + API evidence):
+seeded detail with Public Comment + Internal Note, claim (FR-14), reassign owner, IT Priority
+(FR-15), permitted status transitions (NEW → OPEN → IN_PROGRESS) and a forbidden transition
+rejected, Public Comments vs Internal Notes with required-field validation, requester
+resolution indication, attachment continuity (Lab 2 attachments carried over), failure
+feedback, the full Requester flow (My Tickets → create → comment → resolution indication,
+foreign-ticket safe failure, role navigation), and direct API authorization evidence.
 
-![Detail — seeded ticket (NEW, unassigned, comment + note)](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-seeded.png)
+![Detail — overview of a seeded NEW unassigned ticket](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-01-overview-desktop.png)
 
-![Detail — reading a fresh ticket](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-reading.png)
+![Detail — claim (FR-14)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-02-claim-desktop.png)
 
-![Detail — claim (FR-14)](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-claim.png)
+![Detail — reassign owner](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-03-reassign-desktop.png)
 
-![Detail — reassign owner](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-reassign.png)
+![Detail — IT Priority HIGH (FR-15)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-04-it-priority-desktop.png)
 
-![Detail — IT Priority HIGH (FR-15)](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-priority.png)
+![Detail — permitted status NEW → OPEN → IN_PROGRESS (FR-16)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-05-status-in-progress-desktop.png)
 
-![Detail — permitted status NEW → OPEN → IN_PROGRESS (FR-16)](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-status-in-progress.png)
+![Detail — forbidden transition rejected (409)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-06-status-transition-rejected-desktop.png)
 
-![Detail — Public Comment + Internal Note appended](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-comments-notes.png)
+![Detail — Public Comment posted](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-07-public-comment-posted-desktop.png)
 
-![Detail — requester resolution indication](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-requester-resolved.png)
+![Detail — Public Comment required-field validation](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-08-public-comment-required-desktop.png)
 
-![Detail — Attachment continuity (Lab 2 attachments carried over)](../../artifacts/lab-03/report-evidence/part-7-detail/07-detail-attachments.png)
+![Detail — Internal Note posted](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-09-internal-note-posted-desktop.png)
+
+![Detail — Internal Note required-field validation](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-10-internal-note-required-desktop.png)
+
+![Detail — attachment continuity (Lab 2 attachments carried over)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-11-attachments-desktop.png)
+
+![Detail — requester resolution indication](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-12-requester-resolved-indication-desktop.png)
+
+![Detail — failure feedback (network error)](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-13-safe-failure-desktop.png)
+
+![Requester — My Tickets list](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-01-my-tickets-list-desktop.png)
+
+![Requester — create ticket form](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-02-create-ticket-form-desktop.png)
+
+![Requester — ticket detail](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-03-ticket-detail-desktop.png)
+
+![Requester — Public Comment posted](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-04-public-comment-posted-desktop.png)
+
+![Requester — resolution indication](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-05-resolved-indication-desktop.png)
+
+![Requester — foreign-ticket safe failure (404)](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-06-foreign-ticket-safe-failure-desktop.png)
+
+![Requester — role navigation restricted from staff views](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-07-requester-nav-role-restriction-desktop.png)
 
 ![API authorization — Administrator-only endpoint rejected for IT_STAFF (403)](../../artifacts/lab-03/report-evidence/part-7-detail/07-staff-api-403-admin.png)
+
+![API authorization — requester forbidden from internal notes (403)](../../artifacts/lab-03/api-evidence/part-7-detail/api-403-requester-notes.png)
+
+![API authorization — requester cannot read a foreign ticket (404)](../../artifacts/lab-03/api-evidence/part-7-detail/api-404-foreign-ticket.png)
+
+![API authorization — forbidden status transition (409)](../../artifacts/lab-03/api-evidence/part-7-detail/api-409-forbidden-transition.png)
 
 ---
 
@@ -254,41 +305,46 @@ Attachment presentation, and direct API authorization evidence (a total of 10 ca
 
 Evidence below demonstrates the minimalist User Management screen: the list (Name, Email, Role,
 Status, Edit), search by name, optional role filtering, create user with a permitted role and
-initial password, duplicate-email and weak-password validation, editing, setting a new initial
-password + required change at next login, the two Administrator safety rules, forbidden access
-for non-Administrators (shell nav + API 403), and responsive Zen Green presentation.
+initial password, required-field / duplicate-email validation, editing, setting a new initial
+password + required change at next login, no-results and failure feedback, the two
+Administrator safety rules, forbidden access for non-Administrators (shell nav + API 403), and
+responsive Zen Green presentation.
 
-![User list](../../artifacts/lab-03/report-evidence/part-8-users/08-users-list.png)
+![User list](../../artifacts/lab-03/screenshots/user-management/users-01-list-desktop.png)
 
-![Search by name](../../artifacts/lab-03/report-evidence/part-8-users/08-users-search.png)
+![Search by name](../../artifacts/lab-03/screenshots/user-management/users-02-name-search-desktop.png)
 
-![Role filter](../../artifacts/lab-03/report-evidence/part-8-users/08-users-role-filter.png)
+![Role filter — shows "(filtered)" count](../../artifacts/lab-03/screenshots/user-management/users-03-role-filter-desktop.png)
 
-![Create user — form](../../artifacts/lab-03/report-evidence/part-8-users/08-users-create-form.png)
+![Create user — form](../../artifacts/lab-03/screenshots/user-management/users-04-create-form-desktop.png)
 
-![Create user — success + initial password notice](../../artifacts/lab-03/report-evidence/part-8-users/08-users-create-success.png)
+![Create user — required-field validation](../../artifacts/lab-03/screenshots/user-management/users-05-create-required-validation-desktop.png)
 
-![Create user — duplicate email rejected](../../artifacts/lab-03/report-evidence/part-8-users/08-users-create-duplicate-email.png)
+![Create user — duplicate email rejected](../../artifacts/lab-03/screenshots/user-management/users-06-create-duplicate-email-desktop.png)
 
-![Create user — weak initial password rejected](../../artifacts/lab-03/report-evidence/part-8-users/08-users-create-weak-password.png)
+![Create user — success + initial password notice](../../artifacts/lab-03/screenshots/user-management/users-07-create-success-desktop.png)
 
-![Edit user — updated](../../artifacts/lab-03/report-evidence/part-8-users/08-users-edit-updated.png)
+![Edit user — form](../../artifacts/lab-03/screenshots/user-management/users-08-edit-form-desktop.png)
 
-![Set new initial password — form](../../artifacts/lab-03/report-evidence/part-8-users/08-users-set-initial-password-form.png)
+![Edit user — saved (role + name updated)](../../artifacts/lab-03/screenshots/user-management/users-09-edit-save-success-desktop.png)
 
-![Set new initial password — invalid value rejected](../../artifacts/lab-03/report-evidence/part-8-users/08-users-set-password-invalid.png)
+![Set new initial password — form](../../artifacts/lab-03/screenshots/user-management/users-10-set-new-initial-password-desktop.png)
 
-![Set new initial password — success](../../artifacts/lab-03/report-evidence/part-8-users/08-users-set-initial-password-success.png)
+![Set new initial password — invalid value rejected](../../artifacts/lab-03/screenshots/user-management/users-11-set-initial-password-invalid-desktop.png)
 
-![Required password change at next login](../../artifacts/lab-03/report-evidence/part-8-users/08-users-required-change-next-login.png)
+![Required password change at next login](../../artifacts/lab-03/screenshots/user-management/users-12-required-change-next-login-desktop.png)
 
-![Safety rule — last active Administrator cannot be deactivated](../../artifacts/lab-03/report-evidence/part-8-users/08-users-last-admin-blocked.png)
+![User list — no results](../../artifacts/lab-03/screenshots/user-management/users-13-list-no-results-desktop.png)
 
-![Safety rule — self-deactivation prevented](../../artifacts/lab-03/report-evidence/part-8-users/08-users-self-deactivation-blocked.png)
+![User list — failure feedback](../../artifacts/lab-03/screenshots/user-management/users-14-safe-failure-desktop.png)
 
-![Non-Administrator shell — no User Management navigation](../../artifacts/lab-03/report-evidence/part-8-users/08-staff-shell-role-nav.png)
+![Safety rule — last active Administrator cannot be deactivated](../../artifacts/lab-03/screenshots/user-management/users-15-last-admin-blocked-desktop.png)
 
-![API authorization — User Management forbidden for IT_STAFF (403)](../../artifacts/lab-03/report-evidence/part-8-users/08-users-api-403-for-staff.png)
+![Safety rule — self-deactivation prevented](../../artifacts/lab-03/screenshots/user-management/users-16-self-deactivation-blocked-desktop.png)
+
+![Non-Administrator shell — no User Management navigation](../../artifacts/lab-03/screenshots/user-management/users-17-staff-no-management-nav-desktop.png)
+
+![API authorization — User Management forbidden for IT_STAFF (403)](../../artifacts/lab-03/api-evidence/part-8-users/08-users-api-403-for-staff.png)
 
 ---
 
@@ -301,49 +357,42 @@ The completed **visual checklist** is [docs/lab-03/visual-inspection.md](visual-
 fields, validation placement, role navigation, Comments vs Notes distinction, badges,
 busy/disabled states) and the RESP-01 Playwright spec, with every item ✅.
 
-The 27 committed screenshots below cover all major Lab 3 screens at **desktop 1280×900,
-tablet 820×900, and mobile 390×844** and are readable without zoom:
+The 14 committed responsive captures below cover the major Lab 3 screens at **tablet 820×900
+and mobile 390×844** and are readable without zoom (desktop 1280×900 captures are embedded
+throughout Parts 5–8 above):
 
-### Authentication
+### Authentication — login and password change
 
-![Login — desktop](../../artifacts/lab-03/screenshots/authentication/login-desktop.png)
-![Login — tablet](../../artifacts/lab-03/screenshots/authentication/login-tablet.png)
-![Login — mobile](../../artifacts/lab-03/screenshots/authentication/login-mobile.png)
+![Login — tablet](../../artifacts/lab-03/screenshots/authentication/auth-15-login-form-tablet.png)
 
-![Change password — desktop](../../artifacts/lab-03/screenshots/authentication/change-password-desktop.png)
-![Change password — tablet](../../artifacts/lab-03/screenshots/authentication/change-password-tablet.png)
-![Change password — mobile](../../artifacts/lab-03/screenshots/authentication/change-password-mobile.png)
+![Login — mobile](../../artifacts/lab-03/screenshots/authentication/auth-16-login-form-mobile.png)
 
-![Shell — desktop](../../artifacts/lab-03/screenshots/authentication/shell-desktop.png)
-![Shell — tablet](../../artifacts/lab-03/screenshots/authentication/shell-tablet.png)
-![Shell — mobile](../../artifacts/lab-03/screenshots/authentication/shell-mobile.png)
+![Change password — tablet](../../artifacts/lab-03/screenshots/authentication/auth-17-change-password-tablet.png)
+
+![Change password — mobile](../../artifacts/lab-03/screenshots/authentication/auth-18-change-password-mobile.png)
 
 ### IT Staff Ticket Queue
 
-![Queue — desktop](../../artifacts/lab-03/screenshots/staff-queue/queue-desktop.png)
-![Queue — tablet](../../artifacts/lab-03/screenshots/staff-queue/queue-tablet.png)
-![Queue — mobile](../../artifacts/lab-03/screenshots/staff-queue/queue-mobile.png)
+![Queue — tablet](../../artifacts/lab-03/screenshots/staff-queue/queue-11-list-tablet.png)
+
+![Queue — mobile](../../artifacts/lab-03/screenshots/staff-queue/queue-12-list-mobile.png)
 
 ### IT Staff Ticket Detail
 
-![Ticket detail (seeded) — desktop](../../artifacts/lab-03/screenshots/staff-ticket-detail/seeded-details-desktop.png)
-![Ticket detail (seeded) — tablet](../../artifacts/lab-03/screenshots/staff-ticket-detail/seeded-details-tablet.png)
-![Ticket detail (seeded) — mobile](../../artifacts/lab-03/screenshots/staff-ticket-detail/seeded-details-mobile.png)
+![Requester My Tickets — tablet](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-08-my-tickets-list-tablet.png)
 
-![Ticket detail (operations) — desktop](../../artifacts/lab-03/screenshots/staff-ticket-detail/operations-desktop.png)
-![Ticket detail (operations) — tablet](../../artifacts/lab-03/screenshots/staff-ticket-detail/operations-tablet.png)
-![Ticket detail (operations) — mobile](../../artifacts/lab-03/screenshots/staff-ticket-detail/operations-mobile.png)
+![Requester My Tickets — mobile](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-09-my-tickets-list-mobile.png)
+
+![Requester Ticket Detail — tablet](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-10-ticket-detail-tablet.png)
+
+![Requester Ticket Detail — mobile](../../artifacts/lab-03/screenshots/staff-ticket-detail/requester-11-ticket-detail-mobile.png)
+
+![Staff Ticket Detail — tablet](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-14-detail-tablet.png)
+
+![Staff Ticket Detail — mobile](../../artifacts/lab-03/screenshots/staff-ticket-detail/detail-15-detail-mobile.png)
 
 ### User Management
 
-![User list — desktop](../../artifacts/lab-03/screenshots/user-management/list-desktop.png)
-![User list — tablet](../../artifacts/lab-03/screenshots/user-management/list-tablet.png)
-![User list — mobile](../../artifacts/lab-03/screenshots/user-management/list-mobile.png)
+![User list — tablet](../../artifacts/lab-03/screenshots/user-management/users-18-list-tablet.png)
 
-![Create user — desktop](../../artifacts/lab-03/screenshots/user-management/create-desktop.png)
-![Create user — tablet](../../artifacts/lab-03/screenshots/user-management/create-tablet.png)
-![Create user — mobile](../../artifacts/lab-03/screenshots/user-management/create-mobile.png)
-
-![Set initial password — desktop](../../artifacts/lab-03/screenshots/user-management/edit-set-initial-password-desktop.png)
-![Set initial password — tablet](../../artifacts/lab-03/screenshots/user-management/edit-set-initial-password-tablet.png)
-![Set initial password — mobile](../../artifacts/lab-03/screenshots/user-management/edit-set-initial-password-mobile.png)
+![User list — mobile](../../artifacts/lab-03/screenshots/user-management/users-19-list-mobile.png)

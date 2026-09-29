@@ -27,6 +27,13 @@ playwright-report/
 # local-only report evidence (referenced by report.md/PDF but not committed)
 artifacts/lab-02/report-evidence/
 
+# legacy root-owned captures superseded by api-evidence/ + screenshots/ (left on disk only)
+artifacts/lab-03/report-evidence/part-5-auth/
+artifacts/lab-03/report-evidence/part-6-queue/
+artifacts/lab-03/report-evidence/part-8-users/
+artifacts/lab-03/report-evidence/part-7-detail/*
+!artifacts/lab-03/report-evidence/part-7-detail/07-staff-api-403-admin.png
+
 # built report PDF (rebuilt from report.md when needed; not committed)
 docs/lab-02/report_lab02_67070505229.pdf
 docs/report_lab03_67070505229.pdf

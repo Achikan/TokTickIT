@@ -177,7 +177,7 @@ AC-24 | UI-12, UI-18
 - Server API/unit: `cd server && npm test`
 - Client UI/style: `cd client && npm test`
 - E2E + responsive: `npm run test:e2e` (root; starts the client on `:5173`; API must be running on `:3000`)
-- Visual screenshots: `npm run screenshots` → `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/`
+- Visual screenshots: `npm run screenshots:lab3` (root; API on `:3000`, client on `:5173`) → 75 PNGs into `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` + 6 API/non-UI evidence captures into `artifacts/lab-03/api-evidence/`
 
 ## 6. Final Status
 
@@ -194,4 +194,4 @@ Issue-by-issue pass status (updated as each implementation lands):
 - **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (`cd server && npm test`, 27/27 queue tests). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass**.
 - **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27 admin tests). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass**.
 - **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npx playwright test`**; client suite dropped to **93/93** after `<main>` landmark + a11y fixes.
-- **Issue 25 (Final review, screenshots, release)** — final re-run: server **176 passed | 2 todo**, client **93/93**, E2E **25/25**; 27 visual screenshots captured by `npm run screenshots:lab3` into `artifacts/lab-03/screenshots/` (see `visual-inspection.md`).
+- **Issue 25 (Final review, screenshots, release)** — final re-run: server **176 passed | 2 todo**, client **93/93**, E2E **25/25**; 75 visual screenshots captured by `npm run screenshots:lab3` into `artifacts/lab-03/screenshots/` plus 6 API/non-UI evidence captures into `artifacts/lab-03/api-evidence/` (see `visual-inspection.md`).

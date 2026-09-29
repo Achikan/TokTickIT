@@ -114,8 +114,9 @@ All sizes | No clipped labels, overlapping messages, hidden buttons, or unreadab
 
 ## 11. Visual Inspection Checklist and Screenshots
 
-> **Status: COMPLETED** — see `docs/lab-03/visual-inspection.md` (Part 9 evidence) with all 27
-> screenshots committed under `artifacts/lab-03/screenshots/`.
+> **Status: COMPLETED** — see `docs/lab-03/visual-inspection.md` (Part 9 evidence) with all 75
+> screenshots committed under `artifacts/lab-03/screenshots/` (+ 6 API/non-UI evidence captures
+> under `artifacts/lab-03/api-evidence/`).
 
 - Colors/tokens match this document; badges consistent for status, Requested Priority, IT Priority, role.
 - Editable vs read-only distinct; validation near field; busy/disabled correct.
