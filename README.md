@@ -72,6 +72,8 @@ A **Health Check** of the API is available at http://localhost:3000/api/health.
 Lab 3 replaces the Development Requester flow with **session authentication** — sign in to
 `http://localhost:5173` with a seeded account:
 
+> The credentials below are local development / seed data only (`npx prisma db seed`, see `prisma/seed.ts`) and are never used in production.
+
 | Role | Email | Password |
 |---|---|---|
 | Administrator | `henri.ito@example.com` | `DevPass!23` |

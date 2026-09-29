@@ -2,6 +2,8 @@
 
 Lab 3 reuses the Lab 2 "Zen Green" design language: the same color tokens, typography, control states, button hierarchy, validation placement, badge rules, responsive behavior, and accessibility expectations. New screens must look like part of the same application. This document extends `docs/lab-02/ui-spec.md`; anything not overridden here remains in force.
 
+**Reusable components from Lab 2** (built in Lab 2 and reused without redesign): the application shell/header with role-independent chrome, form field + near-field validation pattern, primary/secondary button set with busy/disabled states, badge components (roles, statuses, priorities), table + card representations, pagination/search/filter/sort controls, attachment upload/list/download/soft-remove component, and category/related-system pickers. New Lab 3 screens compose these components; none are re-implemented from scratch.
+
 ## 1. Color Tokens (unchanged from Lab 2)
 
 Token | Value | Intended Use
@@ -48,6 +50,7 @@ Token | Value | Intended Use
 
 ## 4. Requester Screens (Regression)
 
+- **Modes**: Create Ticket (create), My Tickets (list), Requester Ticket Detail (view + actions).
 - The **Development Requester Selection** screen and **Change Requester** action are removed.
 - Create Ticket, My Tickets, and Requester Ticket Detail keep the Lab 2 layout, states, and validation; identity no longer comes from a selector.
 - **Requester Ticket Detail additions**:
@@ -57,13 +60,18 @@ Token | Value | Intended Use
 
 ## 5. IT Staff Ticket Queue
 
+- **Mode**: read-only list view (search/filter/sort/pagination; no inline edit).
 - Header: title, search box, filter controls (Status, Requested Priority, IT Priority, Owner incl. "Unassigned", Category), sort control, and pagination.
 - Desktop table columns (justified set, avoid a mega-grid): Ticket Number, Summary, Category, Requested Priority, IT Priority, Current Status, Ticket Owner, Created, Last Updated, Open action.
+  - **Why these columns**: each maps to a primary work-staff decision or filter in the queue — identity (`Ticket Number`, `Summary`), routing (`Category`, `Ticket Owner`), triage priority (`Requested Priority` / `IT Priority`), state (`Current Status`), and recency (`Created`, `Last Updated`). The Open action satisfies the primary staff task. Fields intentionally not columns (requester name, full description, attachments count, comment/note counters) are either visible in the row tooltip or reachable in one click from the Detail screen; they would only add noise to a scanning list.
+  - **Why not a mega-grid**: Lab 2's requester table is a narrow, requester-owned list. A staff queue with every field as a column would exceed comfortable horizontal scan width, force visual truncation, and hurt readability — especially with 10 columns on a hinged tablet. The justified 10-column set above plus the exact same responsive card/table representation keeps every screen readable and usable per Section 9 without a horizontal scroll or a "frozen-panel tech-demo" layout.
 - Tablet/mobile: responsive representation (card or horizontal-scroll-free table) with the same information and an Open action.
 - Badges for status and both priorities; owner shown or "Unassigned".
 - States: loading, empty ("No tickets yet"), no-results (search/filters matched nothing) distinct, forbidden (non-staff), and safe failure.
 
 ## 6. IT Staff Ticket Detail
+
+- **Modes**: view; edit actions (claim/assign/reassign, IT Priority, Status transition) are only present when permitted by the transition matrix and the viewer's role (AC-13..AC-17).
 
 - Reuses the Lab 2 Ticket screen grouping: fields clearly grouped, only permitted operational fields editable.
 - **Editable vs read-only**: summary/description/category read-only for staff; editable per-role fields are Ticket Owner (claim/assign/reassign), IT Priority, and Status (via permitted transitions only).
@@ -74,6 +82,7 @@ Token | Value | Intended Use
 
 ## 7. Administrator User Management
 
+- **Modes**: user list (view/search/role filter) and create/edit panels (create + edit with validation and set-initial-password action).
 - One screen: user list and create/edit panel.
 - **List**: Name, Email, Role badge, Status (Active/Inactive), Edit action.
 - **Search** by name or email; **optional role filter** dropdown (no pagination, one filter only — excluded scope).
