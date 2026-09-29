@@ -239,3 +239,4 @@ Auth mechanism: password hashing + server-side opaque session token in an HttpOn
 - **Comment/Note length** is capped at 2,000 trimmed characters with empty/whitespace-only content rejected (BR-12).
 - **User list** intentionally has no pagination, multi-column sorting, or simultaneous filters (excluded by §4.2); search and a single optional role filter are the supported refinements.
 - Cross-role access that would disclose existence returns the same non-disclosing error as a missing resource (BR-21).
+- **Document path naming**: the assignment sheet uses the Lab 3 deliverable path with inconsistent separators (`docs/lab03/...` in some places and `docs/lab-03/...` in others). All Lab 3 documents, tests, and evidence in this repository use the single convention `lab-03` (i.e. `docs/lab-03/`, `server/tests/lab-03/`, `client/tests/lab-03/`, `e2e/lab-03/`, `artifacts/lab-03/`).
