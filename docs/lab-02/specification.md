@@ -63,6 +63,7 @@ The IT Service Desk needs a self-service portal. Before IT Staff workflows exist
 - **BR-09** A removed Attachment's metadata remains visible, but its file downloads are blocked.
 - **BR-10** Search, filter, and page parameters that are invalid must be rejected safely (specific error), not silently ignored.
 - **BR-11** A requester with no selected context may not access My Tickets or Ticket Detail; the requester selection screen is shown instead.
+- **BR-12** A Ticket may hold at most five (5) *active* attachments at a time; an upload that would exceed this limit is rejected with a safe, field-related error and no attachment row is created.
 
 ## 6. UI Specification Summary
 
@@ -120,6 +121,7 @@ All requester-scoped endpoints enforce ownership: a requester may only reach (an
 - **AC-13** Given a requester navigates the app on desktop, tablet, and mobile viewports, then the layout is responsive with no clipping, overlap, hidden buttons, or horizontal page scrolling.
 - **AC-14** Given a requester opens My Tickets, when their Ticket list is empty, then an "empty" state is shown; and when search or filters are applied with no matches, then a distinct "no-results" state is shown.
 - **AC-15** Given a requester opens an owned Ticket's attachments, when an Attachment is uploading, invalid, active, soft-removed, or unavailable, then each state is presented distinctly and behaves correctly.
+- **AC-16** Given a Ticket that already has five active attachments, when the requester uploads a sixth, then the upload is rejected with a safe field-level error and no Attachment is created.
 
 ## 10. Definition of Done
 

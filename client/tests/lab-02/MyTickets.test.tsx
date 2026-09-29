@@ -4,10 +4,12 @@ import userEvent from "@testing-library/user-event";
 import MyTickets from "../../src/MyTickets.js";
 import * as api from "../../src/api.js";
 
-const ALICE = {
+const ALICE: api.AuthUser = {
   id: 1,
   name: "Alice Anderson",
   email: "alice.anderson@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
 };
 
 const TICKETS: api.MyTicket[] = [
@@ -130,7 +132,6 @@ describe("MyTickets", () => {
     await user.type(screen.getByRole("textbox", { name: /Search/i }), "printer");
     await user.click(screen.getByRole("button", { name: /Search/i }));
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      ALICE.id,
       expect.objectContaining({ search: "printer", page: 1 })
     );
 
@@ -140,45 +141,39 @@ describe("MyTickets", () => {
       "NEW"
     );
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      ALICE.id,
       expect.objectContaining({ status: "NEW", page: 1 })
     );
 
     // Priority filter.
     await user.selectOptions(screen.getByLabelText(/Priority/i), "HIGH");
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      ALICE.id,
       expect.objectContaining({ requestedPriority: "HIGH" })
     );
 
     // Sort.
     await user.selectOptions(screen.getByLabelText(/Sort/i), "summary");
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      ALICE.id,
       expect.objectContaining({ sort: "summary" })
     );
 
     // Pagination.
     await user.click(screen.getByRole("button", { name: /Next/i }));
     expect(fetchSpy).toHaveBeenLastCalledWith(
-      ALICE.id,
       expect.objectContaining({ page: 2 })
     );
   });
 
-  it("reloads data when the selected requester changes (UI-07, AC-06)", async () => {
+  it("scopes the query to the authenticated session only (no requesterId) (UI-07, AC-03, AC-06)", async () => {
     const fetchSpy = vi
       .spyOn(api, "fetchMyTickets")
       .mockResolvedValue(listResponse(TICKETS));
-    const { rerender } = render(<MyTickets requester={ALICE} onCreate={() => {}} />);
+    render(<MyTickets requester={ALICE} onCreate={() => {}} />);
     await screen.findByRole("table");
-    expect(fetchSpy).toHaveBeenCalledWith(ALICE.id, expect.anything());
 
-    const BOB = { id: 2, name: "Bob Brown", email: "bob.brown@example.com" };
-    rerender(<MyTickets requester={BOB} onCreate={() => {}} />);
-    await new Promise((r) => setTimeout(r, 0));
-
-    expect(fetchSpy).toHaveBeenLastCalledWith(BOB.id, expect.anything());
+    // Issue 20 — identity comes from the session cookie, so no requester id is
+    // ever passed to the API (BR-06, FR-08).
+    expect(fetchSpy).toHaveBeenCalledWith(expect.anything());
+    expect(fetchSpy.mock.calls[0]).toHaveLength(1);
   });
 
   it("lets the requester open a ticket via the ticket number (find and open)", async () => {
@@ -210,12 +205,14 @@ describe("MyTickets", () => {
     expect(cards.length).toBeGreaterThan(0);
   });
 
-  it("uses the correct requester-scoped identity header via fetchMyTickets", async () => {
+  it("does not send a client-supplied requester identity to the API (FR-08, AC-03)", async () => {
     const fetchSpy = vi
       .spyOn(api, "fetchMyTickets")
       .mockResolvedValue(listResponse([]));
     render(<MyTickets requester={ALICE} onCreate={() => {}} />);
     await screen.findByText(/You don't have any tickets yet/i);
-    expect(fetchSpy).toHaveBeenCalledWith(1, expect.anything());
+    // Only the query object is forwarded; identity is the session.
+    expect(fetchSpy).toHaveBeenCalledWith(expect.any(Object));
+    expect(fetchSpy.mock.calls[0]).toHaveLength(1);
   });
 });

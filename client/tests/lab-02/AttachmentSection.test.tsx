@@ -4,7 +4,13 @@ import userEvent from "@testing-library/user-event";
 import TicketDetail from "../../src/TicketDetail.js";
 import * as api from "../../src/api.js";
 
-const ALICE = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com" };
+const ALICE: api.AuthUser = {
+  id: 1,
+  name: "Alice Anderson",
+  email: "alice.anderson@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
+};
 
 const MY_TICKET: api.MyTicket = {
   ticketNumber: "TK-000007",
@@ -30,6 +36,7 @@ const BASE_DETAIL: api.TicketDetail = {
   currentStatus: "IN_PROGRESS",
   createdAt: "2026-09-01T08:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
+  requesterIndicatedResolvedAt: null,
   attachments: [],
 };
 
@@ -66,6 +73,7 @@ function makeFile(name: string, type: string, size = 1000) {
 describe("TicketDetail attachments — Issue 11 (UI-10, AC-11, AC-15)", () => {
   beforeEach(() => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(BASE_DETAIL);
+    vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);
   });
 
   it("shows an upload control and 'No attachments yet' when empty (initial state)", async () => {
@@ -107,7 +115,7 @@ describe("TicketDetail attachments — Issue 11 (UI-10, AC-11, AC-15)", () => {
 
     await userEvent.setup().click(screen.getByRole("button", { name: /Upload Attachment/i }));
 
-    expect(uploadSpy).toHaveBeenCalledWith(1, 7, expect.any(File));
+    expect(uploadSpy).toHaveBeenCalledWith(7, expect.any(File));
     expect(await screen.findByText("new.png")).toBeInTheDocument();
   });
 
@@ -138,7 +146,7 @@ describe("TicketDetail attachments — Issue 11 (UI-10, AC-11, AC-15)", () => {
     const downloadBtn = await screen.findByRole("button", { name: /Download/i });
     await userEvent.setup().click(downloadBtn);
 
-    expect(downloadSpy).toHaveBeenCalledWith(1, ACTIVE);
+    expect(downloadSpy).toHaveBeenCalledWith(ACTIVE);
   });
 
   it("shows unavailable state when download returns 410 (AC-15, unavailable)", async () => {
@@ -176,7 +184,7 @@ describe("TicketDetail attachments — Issue 11 (UI-10, AC-11, AC-15)", () => {
     await user.type(reasonInput, "Uploaded the wrong file");
     await user.click(screen.getByRole("button", { name: /Confirm Removal/i }));
 
-    expect(removeSpy).toHaveBeenCalledWith(1, ACTIVE.id, "Uploaded the wrong file");
+    expect(removeSpy).toHaveBeenCalledWith(ACTIVE.id, "Uploaded the wrong file");
     expect(await screen.findByText(/Removed — Uploaded the wrong file/i)).toBeInTheDocument();
   });
 

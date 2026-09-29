@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import {
+  AuthUser,
   Category,
-  DevelopmentRequester,
   MyTicket,
   Priority,
   Status,
@@ -17,7 +17,16 @@ const PRIORITIES: ("LOW" | "MEDIUM" | "HIGH" | "URGENT")[] = [
   "URGENT",
 ];
 
-const STATUSES: Status[] = ["NEW", "IN_PROGRESS", "RESOLVED"];
+const STATUSES: Status[] = [
+  "NEW",
+  "OPEN",
+  "IN_PROGRESS",
+  "WAITING_FOR_REQUESTER",
+  "RESOLVED",
+  "CLOSED",
+  "REOPENED",
+  "CANCELLED",
+];
 
 const PRIORITY_BADGES: Record<Priority, string> = {
   LOW: "badge-priority-low",
@@ -28,23 +37,31 @@ const PRIORITY_BADGES: Record<Priority, string> = {
 
 const STATUS_BADGES: Record<Status, string> = {
   NEW: "badge-status-new",
+  OPEN: "badge-status-open",
   IN_PROGRESS: "badge-status-in-progress",
+  WAITING_FOR_REQUESTER: "badge-status-waiting",
   RESOLVED: "badge-status-resolved",
+  CLOSED: "badge-status-closed",
+  REOPENED: "badge-status-reopened",
+  CANCELLED: "badge-status-cancelled",
 };
 
 function formatUpdatedAt(value: string): string {
   return new Date(value).toLocaleString();
 }
 
+// Issue 20 — the Requester identity comes from the authenticated session;
+// My Tickets is no longer scoped to a selector (BR-06, FR-08). The `requester`
+// prop is kept only for display continuity in the header context.
 interface Props {
-  requester: DevelopmentRequester;
+  requester: AuthUser;
   onCreate: () => void;
   onViewTicket?: (t: MyTicket) => void;
 }
 
 type ListStatus = "loading" | "ready" | "failure";
 
-export default function MyTickets({ requester, onCreate, onViewTicket }: Props) {
+export default function MyTickets({ requester: _requester, onCreate, onViewTicket }: Props) {
   const [listStatus, setListStatus] = useState<ListStatus>("loading");
   const [items, setItems] = useState<MyTicket[]>([]);
   const [pagination, setPagination] = useState({
@@ -73,7 +90,7 @@ export default function MyTickets({ requester, onCreate, onViewTicket }: Props) 
   useEffect(() => {
     let cancelled = false;
     setListStatus("loading");
-    fetchMyTickets(requester.id, query)
+    fetchMyTickets(query)
       .then((res) => {
         if (cancelled) return;
         setItems(res.items);
@@ -87,7 +104,7 @@ export default function MyTickets({ requester, onCreate, onViewTicket }: Props) 
     return () => {
       cancelled = true;
     };
-  }, [requester.id, query]);
+  }, [query]);
 
   const hasFilters = Object.keys(filtersApplied).length > 0 || (query.search ?? "") !== "";
 

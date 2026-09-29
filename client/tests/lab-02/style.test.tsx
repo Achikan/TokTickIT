@@ -11,7 +11,13 @@ import * as api from "../../src/api.js";
 // STYLE-01 — automated assertions for required CSS classes, field states,
 // labels, asterisks, messages, and button busy/disabled (ui-spec AC-13).
 
-const ALICE = { id: 1, name: "Alice Anderson", email: "alice@example.com" };
+const ALICE: api.AuthUser = {
+  id: 1,
+  name: "Alice Anderson",
+  email: "alice@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
+};
 
 const CATEGORIES = [{ id: 1, name: "Hardware" }];
 const SYSTEMS = [{ id: 1, name: "ERP System", type: "Application" }];
@@ -40,6 +46,7 @@ const FULL_DETAIL: api.TicketDetail = {
   currentStatus: "IN_PROGRESS",
   createdAt: "2026-09-01T08:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
+  requesterIndicatedResolvedAt: null,
   attachments: [],
 };
 
@@ -136,6 +143,7 @@ describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
 
   it("applies badge classes for Requested Priority, IT Priority, and Current Status (ui-spec §10)", async () => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
+    vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);
     render(
       <TicketDetail requester={ALICE} ticket={MY_TICKET} onBack={() => {}} />
     );
@@ -146,37 +154,44 @@ describe("Zen Green UI style (STYLE-01, ui-spec)", () => {
     expect(screen.getByText("IN_PROGRESS").className).toContain("badge-status-in-progress");
   });
 
-  it("shows a disabled Continue button until a requester is chosen (ui-spec §3)", async () => {
-    vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue([ALICE]);
+  it("labels the signed-in role with a distinct text badge (ui-spec §2)", async () => {
+    vi.spyOn(api, "fetchCurrentUser").mockResolvedValue({
+      id: 1,
+      name: "Alice Anderson",
+      email: "alice@example.com",
+      role: "REQUESTER",
+      requiresPasswordChange: false,
+    });
     vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
       items: [MY_TICKET as api.MyTicket],
       pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
       filtersApplied: {},
     });
-    vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
     vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
-    vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
     render(<App />);
-    const continueBtn = await screen.findByRole("button", { name: /Continue/i });
-    expect(continueBtn).toBeDisabled();
+
+    const badge = await screen.findByText("Requester");
+    expect(badge.className).toContain("badge-role-requester");
   });
 
   it("indicates the active navigation page with aria-current (ui-spec §8)", async () => {
-    vi.spyOn(api, "fetchDevelopmentRequesters").mockResolvedValue([ALICE]);
+    vi.spyOn(api, "fetchCurrentUser").mockResolvedValue({
+      id: 1,
+      name: "Alice Anderson",
+      email: "alice@example.com",
+      role: "REQUESTER",
+      requiresPasswordChange: false,
+    });
     vi.spyOn(api, "fetchMyTickets").mockResolvedValue({
       items: [MY_TICKET as api.MyTicket],
       pagination: { page: 1, pageSize: 10, total: 1, totalPages: 1 },
       filtersApplied: {},
     });
-    vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
     vi.spyOn(api, "fetchCategories").mockResolvedValue(CATEGORIES);
-    vi.spyOn(api, "fetchRelatedSystems").mockResolvedValue(SYSTEMS);
 
     const user = userEvent.setup();
     render(<App />);
-    const combobox = await screen.findByRole("combobox", { name: /Development Requester/i });
-    await user.selectOptions(combobox, "1");
-    await user.click(screen.getByRole("button", { name: /Continue/i }));
+    await screen.findByRole("heading", { name: /My Tickets/i });
 
     expect(
       screen.getByRole("button", { name: "My Tickets" })

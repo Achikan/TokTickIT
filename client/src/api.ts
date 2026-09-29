@@ -1,5 +1,101 @@
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
+// Lab 3 — every request carries the session cookie, and mutating requests must
+// include the CSRF marker header (api-spec.md §0). Centralising this keeps the
+// individual API functions free of auth plumbing.
+const CSRF_HEADER = "X-CSRF-Protected";
+const MUTATING_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase();
+  const headers = new Headers(init.headers);
+  if (MUTATING_METHODS.has(method)) headers.set(CSRF_HEADER, "1");
+  return fetch(`${API_URL}${path}`, { ...init, headers, credentials: "include" });
+}
+
+// Error surfaced by the API (api-spec.md §0): status + optional machine code and
+// per-field validation messages.
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  fields?: Record<string, string>;
+
+  constructor(
+    message: string,
+    status: number,
+    code?: string,
+    fields?: Record<string, string>
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.fields = fields;
+  }
+}
+
+async function toApiError(res: Response, fallback: string): Promise<ApiError> {
+  const body = await res.json().catch(() => ({}));
+  const error = (body as { error?: { code?: string; message?: string; fields?: Record<string, string> } })
+    .error;
+  return new ApiError(error?.message ?? fallback, res.status, error?.code, error?.fields);
+}
+
+// Lab 3 — authenticated user (api-spec.md §1). `requiresPasswordChange` gates the
+// mandatory change-password screen (AC-02).
+export type Role = "REQUESTER" | "IT_STAFF" | "ADMIN";
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  requiresPasswordChange: boolean;
+}
+
+// POST /api/auth/login (AC-01, AC-05, AC-06).
+export async function login(email: string, password: string): Promise<AuthUser> {
+  const res = await apiFetch("/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to sign in.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
+// POST /api/auth/logout (AC-08). A missing/expired session is already logged out.
+export async function logout(): Promise<void> {
+  const res = await apiFetch("/api/auth/logout", { method: "POST" });
+  if (!res.ok && res.status !== 401) throw await toApiError(res, "Unable to sign out.");
+}
+
+// GET /api/auth/me (FR-03). Returns null when there is no valid session.
+export async function fetchCurrentUser(): Promise<AuthUser | null> {
+  const res = await apiFetch("/api/auth/me");
+  if (res.status === 401) return null;
+  if (!res.ok) throw await toApiError(res, "Unable to load your account.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
+// POST /api/auth/change-password (AC-02, AC-07, BR-03).
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+): Promise<AuthUser> {
+  const res = await apiFetch("/api/auth/change-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to change password.");
+  const body = (await res.json()) as { user: AuthUser };
+  return body.user;
+}
+
 export interface Category {
   id: number;
   name: string;
@@ -11,12 +107,6 @@ export interface RelatedSystem {
   type: string;
 }
 
-export interface DevelopmentRequester {
-  id: number;
-  name: string;
-  email: string;
-}
-
 export interface SystemStatus {
   online: boolean;
   categories: Category[];
@@ -24,7 +114,17 @@ export interface SystemStatus {
 
 export type Priority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
-export type Status = "NEW" | "IN_PROGRESS" | "RESOLVED";
+// Lab 3 — statuses expand from the Lab 2 set to the eight workflow statuses
+// (specification.md §5.2). The readonly Requester detail must badge them all.
+export type Status =
+  | "NEW"
+  | "OPEN"
+  | "IN_PROGRESS"
+  | "WAITING_FOR_REQUESTER"
+  | "RESOLVED"
+  | "CLOSED"
+  | "REOPENED"
+  | "CANCELLED";
 
 export interface Ticket {
   ticketNumber: string;
@@ -42,7 +142,6 @@ export interface Ticket {
 }
 
 export interface CreateTicketInput {
-  requesterId: number;
   summary: string;
   description: string;
   categoryId: number;
@@ -86,45 +185,37 @@ export interface MyTicketsResponse {
 //        return { online: true, categories }.
 // Throwing on failure lets the UI show a single Offline/error state.
 export async function checkSystem(): Promise<SystemStatus> {
-  const healthRes = await fetch(`${API_URL}/api/health`);
+  const healthRes = await apiFetch("/api/health");
   if (!healthRes.ok) throw new Error("TokTickIT API is unreachable");
-  const categoriesRes = await fetch(`${API_URL}/api/categories`);
+  const categoriesRes = await apiFetch("/api/categories");
   if (!categoriesRes.ok) throw new Error("Unable to load categories");
   const categories: Category[] = await categoriesRes.json();
   return { online: true, categories };
 }
 
-// Issue 7 — Development Requester context (testing-only "login").
-export async function fetchDevelopmentRequesters(): Promise<DevelopmentRequester[]> {
-  const res = await fetch(`${API_URL}/api/development-requesters`);
-  if (!res.ok) throw new Error("Unable to load development requesters");
-  const body: { items: DevelopmentRequester[] } = await res.json();
-  return body.items;
-}
-
 // Issue 8 — reference data for the Create Ticket form.
 export async function fetchCategories(): Promise<Category[]> {
-  const res = await fetch(`${API_URL}/api/categories`);
+  const res = await apiFetch("/api/categories");
   if (!res.ok) throw new Error("Unable to load categories");
   return (await res.json()) as Category[];
 }
 
 export async function fetchRelatedSystems(): Promise<RelatedSystem[]> {
-  const res = await fetch(`${API_URL}/api/related-systems`);
+  const res = await apiFetch("/api/related-systems");
   if (!res.ok) throw new Error("Unable to load related systems");
   const body: { items: RelatedSystem[] } = await res.json();
   return body.items;
 }
 
-// Issue 8 — create a validated Ticket.
+// Issue 8 — create a validated Ticket. Identity comes from the authenticated
+// session; the client no longer supplies any requesterId (BR-06, AC-03).
 export async function createTicket(
   input: CreateTicketInput
 ): Promise<Ticket> {
-  const res = await fetch(`${API_URL}/api/tickets`, {
+  const res = await apiFetch("/api/tickets", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Requester-Id": String(input.requesterId),
     },
     body: JSON.stringify(input),
   });
@@ -137,16 +228,6 @@ export async function createTicket(
     throw err;
   }
   return body.ticket as Ticket;
-}
-
-export interface AttachmentInfo {
-  id: number;
-  originalName: string;
-  mimeType: string;
-  size: number;
-  uploadedAt: string;
-  removedAt: string | null;
-  removedReason: string | null;
 }
 
 export interface TicketDetail {
@@ -162,12 +243,12 @@ export interface TicketDetail {
   currentStatus: Status;
   createdAt: string;
   updatedAt: string;
+  requesterIndicatedResolvedAt: string | null;
   attachments: AttachmentInfo[];
 }
 
-// Issue 9 — list the selected requester's tickets (requester-scoped identity header).
+// Issue 9 — list the session requester's tickets (identity from the session).
 export async function fetchMyTickets(
-  requesterId: number,
   query: TicketQuery = {}
 ): Promise<MyTicketsResponse> {
   const params = new URLSearchParams();
@@ -181,9 +262,7 @@ export async function fetchMyTickets(
   if (query.pageSize) params.set("pageSize", String(query.pageSize));
   const qs = params.toString();
 
-  const res = await fetch(`${API_URL}/api/tickets${qs ? `?${qs}` : ""}`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+  const res = await apiFetch(`/api/tickets${qs ? `?${qs}` : ""}`);
   if (!res.ok) throw new Error("Unable to load tickets");
   return (await res.json()) as MyTicketsResponse;
 }
@@ -199,14 +278,9 @@ export interface AttachmentInfo {
   removedReason: string | null;
 }
 
-// Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §6).
-export async function fetchTicketDetail(
-  requesterId: number,
-  ticketId: number
-): Promise<TicketDetail> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+// Issue 10 — retrieve one owned Ticket for the detail view (api-spec.md §3).
+export async function fetchTicketDetail(ticketId: number): Promise<TicketDetail> {
+  const res = await apiFetch(`/api/tickets/${ticketId}`);
   if (!res.ok) throw new Error("Unable to load ticket");
   const body = await res.json();
   return body.ticket as TicketDetail;
@@ -215,19 +289,18 @@ export async function fetchTicketDetail(
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment lifecycle (FR-15..FR-18).
 // Upload, list metadata, download (active only), and soft-remove with reason.
+// Ownership is enforced from the session; no requesterId is sent (BR-06).
 // ---------------------------------------------------------------------------
 
 // Upload a file to an owned Ticket (multipart, field `file`).
 export async function uploadAttachment(
-  requesterId: number,
   ticketId: number,
   file: File
 ): Promise<AttachmentInfo> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
+  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`, {
     method: "POST",
-    headers: { "X-Requester-Id": String(requesterId) },
     body: form,
   });
   const body = await res.json().catch(() => ({}));
@@ -242,13 +315,8 @@ export async function uploadAttachment(
 }
 
 // List metadata for an owned Ticket's attachments (removed are included).
-export async function fetchTicketAttachments(
-  requesterId: number,
-  ticketId: number
-): Promise<AttachmentInfo[]> {
-  const res = await fetch(`${API_URL}/api/tickets/${ticketId}/attachments`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+export async function fetchTicketAttachments(ticketId: number): Promise<AttachmentInfo[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/attachments`);
   if (!res.ok) throw new Error("Unable to load attachments");
   const body: { items: AttachmentInfo[] } = await res.json();
   return body.items;
@@ -256,12 +324,9 @@ export async function fetchTicketAttachments(
 
 // Download an active attachment. Returns the file data + suggested filename.
 export async function downloadAttachment(
-  requesterId: number,
   attachment: AttachmentInfo
 ): Promise<{ blob: Blob; filename: string; mimeType: string }> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachment.id}/download`, {
-    headers: { "X-Requester-Id": String(requesterId) },
-  });
+  const res = await apiFetch(`/api/attachments/${attachment.id}/download`);
   if (!res.ok) {
     const err = new Error("Unable to download attachment") as Error & {
       code?: string;
@@ -278,15 +343,13 @@ export async function downloadAttachment(
 
 // Soft-remove an attachment with a reason (BR-08).
 export async function removeAttachment(
-  requesterId: number,
   attachmentId: number,
   removedReason: string
 ): Promise<AttachmentInfo> {
-  const res = await fetch(`${API_URL}/api/attachments/${attachmentId}`, {
+  const res = await apiFetch(`/api/attachments/${attachmentId}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
-      "X-Requester-Id": String(requesterId),
     },
     body: JSON.stringify({ removedReason }),
   });
@@ -299,4 +362,333 @@ export async function removeAttachment(
     throw err;
   }
   return body.attachment as AttachmentInfo;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 20 — Requester communication (api-spec.md §4).
+// Public Comments (all three roles) and the Requester-only "Problem Appears
+// Resolved" indication. Identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface TicketComment {
+  id: number;
+  ticketId: number;
+  content: string;
+  author: { id: number; name: string };
+  createdAt: string;
+}
+
+// GET /api/tickets/:id/comments — newest first (FR-10, AC-17).
+export async function fetchTicketComments(ticketId: number): Promise<TicketComment[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`);
+  if (!res.ok) throw new Error("Unable to load comments");
+  const body: { items: TicketComment[] } = await res.json();
+  return body.items;
+}
+
+// POST /api/tickets/:id/comments — append-only public comment (FR-10, BR-12).
+export async function postTicketComment(ticketId: number, content: string): Promise<TicketComment> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to post comment") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.comment as TicketComment;
+}
+
+// Internal Notes are the same append-only shape as comments, but are visible to
+// IT Staff/Administrators only (FR-18, BR-10).
+export type TicketNote = TicketComment;
+
+// GET /api/tickets/:id/notes — IT Staff/Admin only (FR-18, AC-17).
+export async function fetchTicketNotes(ticketId: number): Promise<TicketNote[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/notes`);
+  if (!res.ok) throw new Error("Unable to load notes");
+  const body: { items: TicketNote[] } = await res.json();
+  return body.items;
+}
+
+// POST /api/tickets/:id/notes — create an Internal Note (FR-18, BR-12).
+export async function postTicketNote(ticketId: number, content: string): Promise<TicketNote> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to save note") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.note as TicketNote;
+}
+
+export interface ResolvedIndication {
+  id: number;
+  ticketNumber: string;
+  currentStatus: Status;
+  requesterIndicatedResolvedAt: string | null;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 21 — IT Staff Ticket Queue (api-spec.md §6.1).
+// Search, suitable filters, sorting, pagination + metadata. Only IT Staff and
+// Administrators may load the queue; identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface StaffTicket {
+  ticketNumber: string;
+  id: number;
+  summary: string;
+  category: { id: number; name: string };
+  requester: { id: number; name: string };
+  owner: { id: number; name: string } | null;
+  requestedPriority: Priority;
+  itPriority: Priority;
+  currentStatus: Status;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface StaffQueueQuery {
+  search?: string;
+  status?: Status;
+  requestedPriority?: Priority;
+  itPriority?: Priority;
+  ownerId?: string;
+  categoryId?: number;
+  relatedSystemId?: number;
+  sort?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface StaffQueueResponse {
+  items: StaffTicket[];
+  pagination: { page: number; pageSize: number; total: number; totalPages: number };
+  filtersApplied: Record<string, unknown>;
+}
+
+// GET /api/staff/tickets (FR-12, AC-13). `ownerId` accepts an id or the
+// markers "unassigned"/"null" for tickets without a primary owner.
+export async function fetchStaffQueue(query: StaffQueueQuery = {}): Promise<StaffQueueResponse> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.status) params.set("status", query.status);
+  if (query.requestedPriority) params.set("requestedPriority", query.requestedPriority);
+  if (query.itPriority) params.set("itPriority", query.itPriority);
+  if (query.ownerId) params.set("ownerId", query.ownerId);
+  if (query.categoryId) params.set("categoryId", String(query.categoryId));
+  if (query.relatedSystemId) params.set("relatedSystemId", String(query.relatedSystemId));
+  if (query.sort) params.set("sort", query.sort);
+  if (query.page) params.set("page", String(query.page));
+  if (query.pageSize) params.set("pageSize", String(query.pageSize));
+  const qs = params.toString();
+
+  const res = await apiFetch(`/api/staff/tickets${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load the ticket queue.");
+  return (await res.json()) as StaffQueueResponse;
+}
+
+// ---------------------------------------------------------------------------
+// Issue 22 — IT Staff Ticket Detail (api-spec.md §6.2..§6.5).
+// Retrieve one Ticket for operations, then claim/assign/reassign ownership,
+// update IT Priority, and apply permitted status transitions. Only IT Staff and
+// Administrators may use these; identity comes from the session.
+// ---------------------------------------------------------------------------
+
+export interface StaffTicketDetailData extends StaffTicket {
+  description: string;
+  relatedSystem: { id: number; name: string; type: string };
+  requesterIndicatedResolvedAt: string | null;
+  attachments: AttachmentInfo[];
+  comments: TicketComment[];
+  notes: TicketNote[];
+  // Active IT Staff/Administrators eligible to own the Ticket (BR-07).
+  availableOwners: { id: number; name: string }[];
+}
+
+// GET /api/staff/tickets/:id — full detail for staff operations (FR-13).
+export async function fetchStaffTicketDetail(ticketId: number): Promise<StaffTicketDetailData> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load the ticket.");
+  const body = await res.json();
+  return body.ticket as StaffTicketDetailData;
+}
+
+// PATCH /api/staff/tickets/:id/owner — claim / assign / reassign (FR-14, BR-07).
+export async function updateStaffTicketOwner(
+  ticketId: number,
+  ownerId: number
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/owner`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ownerId }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the ticket owner.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
+}
+
+// PATCH /api/staff/tickets/:id/priority — update IT Priority (FR-15, BR-08).
+export async function updateStaffTicketPriority(
+  ticketId: number,
+  itPriority: Priority
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/priority`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ itPriority }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update IT Priority.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
+}
+
+// PATCH /api/staff/tickets/:id/status — permitted transition only (FR-16, BR-09).
+export async function updateStaffTicketStatus(
+  ticketId: number,
+  newStatus: Status
+): Promise<StaffTicket> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newStatus }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the ticket status.");
+  const body = await res.json();
+  return body.ticket as StaffTicket;
+}
+
+// POST /api/tickets/:id/resolved-indication — idempotent; does not change the
+// status (FR-11, BR-11).
+export async function indicateProblemResolved(
+  ticketId: number
+): Promise<ResolvedIndication> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/resolved-indication`, {
+    method: "POST",
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error("Unable to record your indication") as Error & {
+      fields?: Record<string, string>;
+    };
+    if (body?.error?.fields) err.fields = body.error.fields;
+    throw err;
+  }
+  return body.ticket as ResolvedIndication;
+}
+// ---------------------------------------------------------------------------
+// Issue 23 — Administrator User Management (api-spec.md §7, FR-19..FR-22).
+// List/search/filter users, create a user with one role, edit name/email/role/
+// activation, and set a new initial password. Administrator only (AC-22).
+// ---------------------------------------------------------------------------
+
+export interface AdminUser {
+  id: number;
+  name: string;
+  email: string;
+  role: Role;
+  active: boolean;
+  requiresPasswordChange: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUserListResponse {
+  items: AdminUser[];
+  filtersApplied: Record<string, unknown>;
+}
+
+export interface AdminUserQuery {
+  search?: string;
+  role?: Role;
+}
+
+// GET /api/admin/users?search=&role= (FR-19, AC-18).
+export async function fetchAdminUsers(
+  query: AdminUserQuery = {}
+): Promise<AdminUserListResponse> {
+  const params = new URLSearchParams();
+  if (query.search) params.set("search", query.search);
+  if (query.role) params.set("role", query.role);
+  const qs = params.toString();
+  const res = await apiFetch(`/api/admin/users${qs ? `?${qs}` : ""}`);
+  if (!res.ok) throw await toApiError(res, "Unable to load users.");
+  return (await res.json()) as AdminUserListResponse;
+}
+
+export interface CreateAdminUserInput {
+  name: string;
+  email: string;
+  role: Role;
+  active: boolean;
+  initialPassword: string;
+}
+
+// POST /api/admin/users — create a user with one role + initial password (FR-20).
+export async function createAdminUser(input: CreateAdminUserInput): Promise<AdminUser> {
+  const res = await apiFetch("/api/admin/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to create the user.");
+  const body = (await res.json()) as { user: AdminUser };
+  return body.user;
+}
+
+export interface UpdateAdminUserInput {
+  name?: string;
+  email?: string;
+  role?: Role;
+  active?: boolean;
+}
+
+// PATCH /api/admin/users/:id — edit name/email/role/activation (FR-21).
+export async function updateAdminUser(
+  id: number,
+  input: UpdateAdminUserInput
+): Promise<AdminUser> {
+  const res = await apiFetch(`/api/admin/users/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the user.");
+  const body = (await res.json()) as { user: AdminUser };
+  return body.user;
+}
+
+export interface InitialPasswordResult {
+  id: number;
+  name: string;
+  requiresPasswordChange: boolean;
+}
+
+// POST /api/admin/users/:id/initial-password — force a change at next login (FR-22).
+export async function setAdminInitialPassword(
+  id: number,
+  newInitialPassword: string
+): Promise<InitialPasswordResult> {
+  const res = await apiFetch(`/api/admin/users/${id}/initial-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newInitialPassword }),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to set the initial password.");
+  const body = (await res.json()) as { user: InitialPasswordResult };
+  return body.user;
 }

@@ -4,7 +4,13 @@ import userEvent from "@testing-library/user-event";
 import TicketDetail from "../../src/TicketDetail.js";
 import * as api from "../../src/api.js";
 
-const ALICE = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com" };
+const ALICE: api.AuthUser = {
+  id: 1,
+  name: "Alice Anderson",
+  email: "alice.anderson@example.com",
+  role: "REQUESTER",
+  requiresPasswordChange: false,
+};
 
 const MY_TICKET: api.MyTicket = {
   ticketNumber: "TK-000007",
@@ -30,6 +36,7 @@ const FULL_DETAIL: api.TicketDetail = {
   currentStatus: "IN_PROGRESS",
   createdAt: "2026-09-01T08:00:00.000Z",
   updatedAt: "2026-09-01T10:00:00.000Z",
+  requesterIndicatedResolvedAt: null,
   attachments: [],
 };
 
@@ -56,6 +63,7 @@ const ACTIVE_ATTACHMENT: api.AttachmentInfo = {
 describe("TicketDetail", () => {
   beforeEach(() => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
+    vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);
   });
 
   it("shows a loading state while the ticket is being fetched", () => {
@@ -138,10 +146,10 @@ describe("TicketDetail", () => {
     expect(onBack).toHaveBeenCalledOnce();
   });
 
-  it("calls fetchTicketDetail with the correct requester and ticket ids", async () => {
+  it("calls fetchTicketDetail with the session ticket id (no requesterId) (AC-03)", async () => {
     const fetchSpy = vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(FULL_DETAIL);
     render(<TicketDetail requester={ALICE} ticket={MY_TICKET} onBack={() => {}} />);
     await screen.findByText("Laptop battery drains quickly");
-    expect(fetchSpy).toHaveBeenCalledWith(1, 7);
+    expect(fetchSpy).toHaveBeenCalledWith(7);
   });
 });

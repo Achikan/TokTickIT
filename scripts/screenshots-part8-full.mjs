@@ -14,8 +14,13 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "artifacts", "lab-02", "screenshots", "part-8-ticket-detail");
+const OUT = path.join(ROOT, "artifacts", "lab-02", "report-evidence", "part-8-ticket-detail");
 const BASE = "http://localhost:5173";
+
+const shot = async (page, file) => {
+  await page.screenshot({ path: path.join(OUT, file), fullPage: true });
+  console.log("saved", "part-8-ticket-detail/" + file);
+};
 
 const ALICE = 2341;
 const PNG_1PX = Buffer.from(
@@ -29,7 +34,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 
   await page.goto(BASE, { waitUntil: "networkidle" });
-  await page.selectOption("#development-requester", String(ALICE));
+  await page.getByLabel("Development Requester").selectOption({ label: "Alice Anderson" });
   await page.getByRole("button", { name: "Continue" }).click();
   await page.getByRole("button", { name: "My Tickets" }).click();
   await page.waitForSelector("text=My Tickets");
@@ -68,8 +73,7 @@ try {
 
   // 01-owned-detail (active attachment present)
   await page.waitForTimeout(300);
-  await page.screenshot({ path: path.join(OUT, "01-owned-detail.png") });
-  console.log("saved", "part-8-ticket-detail/01-owned-detail.png");
+  await shot(page, "01-owned-detail.png");
 
   // 02-add-attachment: select a second file (do NOT upload yet)
   await page.getByTestId("attachment-file-input").setInputFiles({
@@ -81,8 +85,7 @@ try {
   await page.waitForTimeout(200);
   await page.getByTestId("selected-file-name").scrollIntoViewIfNeeded();
   await page.waitForTimeout(150);
-  await page.screenshot({ path: path.join(OUT, "02-add-attachment.png") });
-  console.log("saved", "part-8-ticket-detail/02-add-attachment.png");
+  await shot(page, "02-add-attachment.png");
 
   // upload it -> active
   await page.getByRole("button", { name: "Upload Attachment" }).click();
@@ -96,31 +99,27 @@ try {
   await success.click();
   const download = await dl;
   await page.waitForTimeout(250);
-  await page.screenshot({ path: path.join(OUT, "03-download-active.png") });
-  console.log("saved", "part-8-ticket-detail/03-download-active.png");
+  await shot(page, "03-download-active.png");
 
   // 04-removal-reason-input (inline panel, not window.prompt)
   await page.getByRole("button", { name: "Remove" }).first().click();
   await page.waitForSelector("data-testid=removal-reason-panel");
   await page.getByTestId("removal-reason-panel").scrollIntoViewIfNeeded();
   await page.waitForTimeout(250);
-  await page.screenshot({ path: path.join(OUT, "04-removal-reason-input.png") });
-  console.log("saved", "part-8-ticket-detail/04-removal-reason-input.png");
+  await shot(page, "04-removal-reason-input.png");
 
   // 05-soft-removed: fill reason + Confirm
   await page.getByLabel(/Removal reason for/i).fill("Attached to the wrong ticket");
   await page.getByRole("button", { name: "Confirm Removal" }).click();
   await page.waitForSelector("text=/Removed — Attached to the wrong ticket/");
   await page.waitForTimeout(250);
-  await page.screenshot({ path: path.join(OUT, "05-soft-removed.png") });
-  console.log("saved", "part-8-ticket-detail/05-soft-removed.png");
+  await shot(page, "05-soft-removed.png");
 
   // 06-blocked-download: scroll so the table header + Blocked row are centered
   await page.getByText("Blocked", { exact: true }).first().scrollIntoViewIfNeeded();
   await page.evaluate(() => window.scrollBy(0, 120));
   await page.waitForTimeout(250);
-  await page.screenshot({ path: path.join(OUT, "06-blocked-download.png") });
-  console.log("saved", "part-8-ticket-detail/06-blocked-download.png");
+  await shot(page, "06-blocked-download.png");
 
   if (download) await download.failure().catch(() => null);
 } finally {

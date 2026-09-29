@@ -17,7 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT = path.join(ROOT, "artifacts", "lab-02", "screenshots");
+const OUT = path.join(ROOT, "artifacts", "lab-02", "report-evidence");
 const API = process.env.API_URL ?? "http://localhost:3000";
 
 // --- Fetch real rows -------------------------------------------------------
@@ -35,7 +35,8 @@ const ticketsRes = await fetch(`${API}/api/tickets?pageSize=50`, {
   headers: { "X-Requester-Id": String(alice.id) },
 });
 const { items: tickets } = await ticketsRes.json();
-const sample = tickets.find((t) => t.summary.includes("Laptop battery drains quickly"));
+const sample = tickets.find((t) => t.summary.includes("Laptop battery drains quickly"))
+  ?? tickets[0];
 const reqDetail = sample
   ? await (await fetch(`${API}/api/tickets/${sample.id}`, {
       headers: { "X-Requester-Id": String(alice.id) },

@@ -56,6 +56,26 @@ input[type="file"]:focus-visible {
   color: var(--tok-success);
 }
 
+/* Success callout: pale green surface + left accent (Requester resolution
+   indication surfaced to staff). */
+.callout-success {
+  background-color: #e6f4ec;
+  border-left: 0.25rem solid var(--tok-success);
+  color: #0b4028;
+}
+
+/* Internal Notes must be visually distinct from Public Comments (AC-17):
+   a pale amber surface plus an explicit "Internal" text marker, so private
+   notes are never mistaken for public comments (never colour alone). */
+.internal-note-panel {
+  background-color: #fdf3dc;
+  border-left: 0.25rem solid var(--tok-warning);
+}
+.internal-note-marker {
+  color: #5a4a00;
+  font-weight: 600;
+}
+
 /* Error message text (dark red, readable). */
 .text-tok-error {
   color: var(--tok-error);
@@ -114,6 +134,21 @@ input[type="file"]:focus-visible {
   color: #fff;
 }
 
+/* Role badges (ui-spec §2): one distinct tint per role, always labelled with the
+   role text so colour is never the only signal. */
+.badge-role-requester {
+  background-color: #d7ecdf;
+  color: #0b4028;
+}
+.badge-role-staff {
+  background-color: #cfe2ff;
+  color: #00366b;
+}
+.badge-role-admin {
+  background-color: #f3d9a4;
+  color: #5a3d00;
+}
+
 /* Disabled controls are visually distinct and not activatable. */
 .btn:disabled,
 .btn[disabled] {
@@ -144,11 +179,41 @@ input[type="file"]:focus-visible {
   background-color: #6c757d;
   color: #fff;
 }
+.badge-status-open {
+  background-color: #495057;
+  color: #fff;
+}
 .badge-status-in-progress {
   background-color: #0d6efd;
+  color: #fff;
+}
+.badge-status-waiting {
+  background-color: #e6a700;
   color: #fff;
 }
 .badge-status-resolved {
   background-color: #198754;
   color: #fff;
+}
+.badge-status-closed {
+  background-color: #575757;
+  color: #fff;
+}
+.badge-status-reopened {
+  background-color: #7b2d8b;
+  color: #fff;
+}
+.badge-status-cancelled {
+  background-color: #adb5bd;
+  color: #1c2b22;
+}
+/* Account status badges (ui-spec §7): Active/Inactive always appear as text,
+   so the state is never communicated by colour alone. */
+.badge-account-active {
+  background-color: #e6f4ec;
+  color: #0b4028;
+}
+.badge-account-inactive {
+  background-color: #f1f3f5;
+  color: #495057;
 }
