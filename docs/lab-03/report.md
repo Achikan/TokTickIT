@@ -1,12 +1,14 @@
 # Lab 3 — TokTickIT Users, Roles, IT Staff Ticketing, and Admin Screens
 
 **Project:** TokTickIT — IT service desk (CPE 334, Labs 1–4)
+**Section:** 1
 **Lab 3 scope:** User model & roles (Requester / IT Staff / Administrator), Authentication UI,
 IT Staff Ticket Queue + Ticket Detail operations, Administrator User Management, Zen Green
 responsive UI
 **Author:** อชิรญา อินตา (Achiraya Intha) — 67070505229 — GitHub: [@Achikan](https://github.com/Achikan)
 **Peer reviewer:** ธนากร พหุลรัตน์ (Thanakorn Phahulrat) — 67070505217 — GitHub: [@il0lk3](https://github.com/il0lk3)
 **Repository:** https://github.com/Achikan/TokTickIT
+**GitHub Project board:** https://github.com/users/Achikan/projects (Kanban — all Lab 3 Issues in Done, see `kanban-done.png`)
 
 All documentation lives in `docs/lab-03/` of the submitted repository (built on
 `lab3-staging`; the final release PR to `main` is merged after peer approval). Screenshots are
@@ -31,9 +33,9 @@ PRs in `il0lk3/TokTickIT` in return (two-way peer review).
 | Peer reviews I gave on my partner's Sprint 3 PRs | `artifacts/lab-03/report-evidence/part-1-git-evidence/05b-reviewed-partner-prs.png` |
 | GitHub Issues (all closed = Kanban Done) | `artifacts/lab-03/report-evidence/part-1-git-evidence/06-issues-done.png` |
 | GitHub Project board — all cards in Done | `artifacts/lab-03/report-evidence/part-1-git-evidence/kanban-done.png` |
-| Rendered reviewer.md | [docs/lab-03/reviewer.md](reviewer.md) |
-| README | [README.md](../../README.md) |
-| .gitignore | [.gitignore](../../.gitignore) |
+| Rendered reviewer.md | [docs/lab-03/reviewer.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/reviewer.md) |
+| README | [README.md](https://github.com/Achikan/TokTickIT/blob/main/README.md) |
+| .gitignore | [.gitignore](https://github.com/Achikan/TokTickIT/blob/main/.gitignore) |
 | Directory structure in the IDE | `artifacts/lab-03/report-evidence/part-1-git-evidence/02-directory-structure.png` |
 | README content | `artifacts/lab-03/report-evidence/part-1-git-evidence/03-readme.png` |
 | .gitignore content | `artifacts/lab-03/report-evidence/part-1-git-evidence/04-gitignore.png` |
@@ -51,10 +53,12 @@ PRs in `il0lk3/TokTickIT` in return (two-way peer review).
 | #56 | `feature/22-staff-ticket-detail` → `lab3-staging` | feat(Issue 22): IT Staff Ticket Detail — ownership, IT priority, status, comments & notes | APPROVED |
 | #57 | `feature/23-admin-user-management` → `lab3-staging` | feat(Issue 23): Administrator User Management | APPROVED |
 | #58 | `feature/24-e2e-responsive-accessibility` → `lab3-staging` | feat(Issue 24): E2E testing, responsive & accessibility | APPROVED |
-| #59 | `feature/25-final-review-screenshots-release` → `lab3-staging` | feat(Issue 25): Final review, screenshots & release integration | Under review (@il0lk3) |
+| #59 | `feature/25-final-review-screenshots-release` → `lab3-staging` | feat(Issue 25): Final review, screenshots & release integration | APPROVED |
+| #60 | `feature/25-final-review-screenshots-release` → `lab3-staging` | docs(Issue 25): Lab 3 sheet checklist gap fixes | APPROVED |
 
 (PR #55 was the first Issue 22 merge and was superseded on the same day by PR #56, which
-addressed the final review notes; the review record shows the approved PR #56.)
+addressed the final review notes; the review record shows the approved PR #56. PR #60 is the
+second Issue 25 staging merge carrying the sheet-driven doc/evidence fixes.)
 
 > Lab 3 GitHub Issues are **#16–#25** — all *Closed* (Done) as shown in
 > `part-1-git-evidence/06-issues-done.png` and `kanban-done.png`.
@@ -79,29 +83,29 @@ addressed the final review notes; the review record shows the approved PR #56.)
 
 ## Answer Part 2: Spec DD
 
-**Linked rendered copy:** [docs/lab-03/specification.md](specification.md)
+**Linked rendered copy:** [docs/lab-03/specification.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/specification.md)
 
 The Lab 3 specification is the engineering contract written **before** any implementation:
 PR **#49** (Issue 16: Sprint 3 Engineering Contract) merged on **2026-09-17 13:16 UTC**, and
 the first implementation PR **#50** (Issue 17: Database Migration & User Model) merged later on
 **2026-09-17 14:37 UTC**. The contract is split into three documents:
 
-- [specification.md](specification.md) — numbered requirements, business rules, the
+- [specification.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/specification.md) — numbered requirements, business rules, the
   authorization rule, acceptance criteria, migration decisions (incl. the explicit
   `SUBMITTED → NEW` status-migration rule from the Lab 2 review), and the Product Definition
   of Done;
-- [api-spec.md](api-spec.md) — endpoint contracts, authentication mechanism, request/response
+- [api-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/api-spec.md) — endpoint contracts, authentication mechanism, request/response
   shapes, statuses, authorization, and safe errors;
-- [ui-spec.md](ui-spec.md) — screen structure, modes, controls, feedback, role behavior,
+- [ui-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ui-spec.md) — screen structure, modes, controls, feedback, role behavior,
   responsive rules, and the visual checklist.
 
 The numbered engineering contract includes:
 
-- **Functional Requirements (FR-01 … FR-24)** covering the User model and roles, session
+- **Functional Requirements (FR-01 … FR-23)** covering the User model and roles, session
   authentication, password change, requester regression requirements (public comments and
   resolution indication), IT Staff queue and detail operations, and Administrator user
   management.
-- **Business Rules (BR-01 … BR-14)** including one role per User, ownership
+- **Business Rules (BR-01 … BR-21)** including one role per User, ownership
   (one primary Ticket Owner), the authorization matrix rule (Requester is forbidden from
   internal-note/ownership/status endpoints without exposing note content), and the permitted
   status-transition matrix.
@@ -117,7 +121,7 @@ The snapshot below records the exact file history and PR merge timestamps:
 
 ## Answer Part 3: Test DD and Traceability
 
-**Linked rendered copy:** [docs/lab-03/tests.md](tests.md)
+**Linked rendered copy:** [docs/lab-03/tests.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/tests.md)
 
 The planned-test table (Test DD) was written up front from `specification.md`; every Acceptance
 Criterion and Business Rule has a planned test whose name embeds the relevant tags (e.g.
@@ -130,15 +134,15 @@ Criterion and Business Rule has a planned test whose name embeds the relevant ta
 
 | Suite | Count | Result |
 |---|---|---|
-| Server (unit + API) — `cd server && npm test` | 176 (16 files) | ✅ 176 passed + 2 todo |
-| Client (UI + style) — `cd client && npm test` | 93 | ✅ 93/93 |
+| Server (unit + API) — `cd server && npm test` | 195 (20 files) | ✅ 195/195 |
+| Client (UI + style) — `cd client && npm test` | 98 | ✅ 98/98 |
 | E2E + responsive + accessibility — `npm run test:e2e` | 25 | ✅ 25/25 (E2E-01..05, RESP-01 ×5, A11Y-01 ×5) |
 
 Complete passing output, captured from the current implementation:
 
-![Server tests — 176 passed](../../artifacts/lab-03/report-evidence/part-3-test-evidence/01-server-tests-pass.png)
+![Server tests — 195 passed](../../artifacts/lab-03/report-evidence/part-3-test-evidence/01-server-tests-pass.png)
 
-![Client tests — 93/93](../../artifacts/lab-03/report-evidence/part-3-test-evidence/02-client-tests-pass.png)
+![Client tests — 98/98](../../artifacts/lab-03/report-evidence/part-3-test-evidence/02-client-tests-pass.png)
 
 ![E2E + responsive + accessibility — 25/25](../../artifacts/lab-03/report-evidence/part-3-test-evidence/03-e2e-tests-pass.png)
 
@@ -149,7 +153,7 @@ release PR merge — output above was generated from the Lab 3 release branch.)
 
 ## Answer Part 4: AI Use with Reflection
 
-**Linked rendered copy:** [docs/lab-03/ai-use.md](ai-use.md)
+**Linked rendered copy:** [docs/lab-03/ai-use.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ai-use.md)
 
 - **LLM/agent used:** Anthropic Claude (`claude-class`) accessed as a coding agent through
   [opencode](https://opencode.ai) — an agentic CLI that reads, edits, runs and verifies code in
@@ -350,9 +354,9 @@ responsive Zen Green presentation.
 
 ## Answer Part 9: Zen Green UI and Responsive Evidence
 
-**Linked rendered copy:** [docs/lab-03/ui-spec.md](ui-spec.md)
+**Linked rendered copy:** [docs/lab-03/ui-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ui-spec.md)
 
-The completed **visual checklist** is [docs/lab-03/visual-inspection.md](visual-inspection.md)
+The completed **visual checklist** is [docs/lab-03/visual-inspection.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/visual-inspection.md)
 — checked against the code, the ui-spec §14 checklist (tokens/colors, editable vs read-only
 fields, validation placement, role navigation, Comments vs Notes distinction, badges,
 busy/disabled states) and the RESP-01 Playwright spec, with every item ✅.

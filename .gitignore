@@ -38,3 +38,17 @@ artifacts/lab-03/report-evidence/part-7-detail/*
 docs/lab-02/report_lab02_67070505229.pdf
 docs/report_lab03_67070505229.pdf
 docs/lab-03/report_lab03_67070505229.pdf
+
+# professor-provided lab sheets (reference only; not part of the deliverable)
+docs/Lab_3_sheet.pdf
+docs/Lab_02_labsheet.pdf
+docs/lab-01/Lab1_Labsheet.pdf
+
+# lab-01 / lab-02 build outputs & converted artifacts (generated, not committed)
+docs/lab-01/*.html
+docs/lab-01/*.jpeg
+docs/lab-01/*.png
+docs/lab-01/*.docx
+docs/lab-01/*.pdf
+docs/lab-02/*.pdf
+docs/report_lab02_67070505229.pdf

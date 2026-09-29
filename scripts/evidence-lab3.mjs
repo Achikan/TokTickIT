@@ -12,6 +12,7 @@
 import { chromium, request as playwrightRequest } from "@playwright/test";
 import { execSync } from "node:child_process";
 import { mkdir } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -107,13 +108,6 @@ async function part1(browser) {
     title.slice(0, 70),
     verdict(num),
     merged && merged !== "" ? merged.slice(0, 10) : "open",
-  ]);
-  rows.push([
-    "#59",
-    "feature/25-final-review-screenshots-release → lab3-staging",
-    "feat(Issue 25): Final review, screenshots & release integration for Lab 3",
-    "under review",
-    "open",
   ]);
   await snapshot(
     browser,
@@ -609,7 +603,7 @@ async function part8(browser) {
   await page.getByRole("button", { name: "Cancel" }).click();
 
   // edit a user (rename) + success notice
-  await page.locator("#user-search").fill(created.name);
+  await page.locator("#user-search").fill(created.email);
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.waitForTimeout(400);
   await page.locator(`[aria-label="Edit user ${created.name}"]`).first().click();
@@ -619,6 +613,9 @@ async function part8(browser) {
   await shot(page, dir, "08-users-edit-updated.png", true);
 
   // set new initial password — form, invalid, then success
+  await page.locator("#user-search").fill(created.email);
+  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.waitForTimeout(400);
   await page.locator(`[aria-label="Edit user ${created.name} (edited)"]`).first().click();
   await page.locator("#user-new-initial-password").waitFor();
   await shot(page, dir, "08-users-set-initial-password-form.png", true);
@@ -634,9 +631,10 @@ async function part8(browser) {
 
   await page.close();
 
-  // required password change at next login — sign in as the user we created.
+  // required password change at next login — sign in as the user we created
+  // with the fresh initial password issued via the admin screen (FR-22/AC-20).
   const page2 = await browser.newPage({ viewport: VIEWPORT });
-  await login(page2, created.email, created.initialPassword);
+  await login(page2, created.email, "ResetMe!23");
   await page2.getByRole("heading", { name: "Change your password" }).waitFor();
   await shot(page2, dir, "08-users-required-change-next-login.png");
   await page2.close();
@@ -690,10 +688,11 @@ async function part8(browser) {
 // ---------------------------------------------------------------------------
 
 function readFileSafe(file) {
+  const target = path.isAbsolute(file) ? file : path.join(ROOT, file);
   try {
-    return readFileSync(file, "utf8");
-  } catch {
-    return `(unavailable: ${file})`;
+    return readFileSync(target, "utf8");
+  } catch (err) {
+    return `(unavailable: ${file}) [${(err && err.message) || err}]`;
   }
 }
 

@@ -260,10 +260,20 @@ describe("API-13: a Requester cannot reach Internal Notes (AC-04, BR-10)", () =>
   });
 });
 
-// The following destinations are introduced by later issues; until then there
-// is no route to guard. They are tracked here so the authorization plan stays
-// visible and must be enabled with the owning issue.
-describe("API-10/11: staff queue and user management", () => {
-  it.todo("API-10: Requester requesting the staff queue is rejected with 403 (Issue 21)");
-  it.todo("API-11: non-Admin requesting user management is rejected with 403 (Issue 23)");
+// Role gates for the staff queue and user management are asserted with the
+// owning feature suites (see API-27 in staff-queue.api.test.ts and API-43 in
+// users-admin.api.test.ts). They are cross-referenced here so the role matrix
+// (§5.1 of specification.md) stays verifiable from a single authorization file.
+describe("API-10/11: staff queue and user management 403 gates", () => {
+  it("API-10: a Requester requesting the staff queue is rejected with 403 (Issue 21)", async () => {
+    expect((await alice.get("/api/staff/tickets")).status).toBe(403);
+    expect(JSON.stringify((await alice.get("/api/staff/tickets")).body)).not.toContain("ticket");
+  });
+
+  it("API-11: a non-Admin requesting user management is rejected with 403 (Issue 23)", async () => {
+    const staff = await loginStaff(app);
+    expect((await alice.get("/api/admin/users")).status).toBe(403);
+    expect((await staff.get("/api/admin/users")).status).toBe(403);
+    expect(JSON.stringify((await staff.get("/api/admin/users")).body)).not.toContain("email");
+  });
 });

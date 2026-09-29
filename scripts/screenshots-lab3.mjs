@@ -442,7 +442,7 @@ async function queue(browser) {
     await sleep(2500);
     await route.continue();
   });
-  await page.locator("#queue-search").fill("x");
+  await page.locator("#queue-search").fill("Capacity");
   await page.getByRole("button", { name: "Search", exact: true }).click();
   await page.getByText("Loading the ticket queue…").waitFor();
   await screenshot(page, dir, "queue-07-loading-desktop.png");
@@ -470,6 +470,7 @@ async function queue(browser) {
   await screenshot(page, dir, "queue-08-empty-desktop.png");
   await page.unroute(/\/api\/staff\/tickets(\?.*)?$/);
   await page.getByRole("button", { name: "Reset" }).click();
+  await page.getByRole("button", { name: "Search", exact: true }).click();
   await queueResultText(page);
 
   // 09 — no results for a real search.
@@ -496,7 +497,7 @@ async function queue(browser) {
     await p.getByRole("heading", { name: "Ticket Queue" }).waitFor();
     await p.getByRole("button", { name: "Reset" }).click();
     await queueResultText(p);
-    await screenshot(p, dir, `queue-${num}-list-${suffix}.png`, true);
+    await screenshot(p, dir, `queue-${num}-list-${suffix}.png`);
     await p.close();
   }
 }
@@ -601,7 +602,7 @@ async function requester(browser) {
     const p = await browser.newPage({ viewport: size });
     await loginToShell(p, me);
     await p.getByRole("heading", { name: "My Tickets" }).waitFor();
-    await screenshot(p, dir, `requester-0${num}-my-tickets-list-${suffix}.png`, true);
+    await screenshot(p, dir, `requester-0${num}-my-tickets-list-${suffix}.png`);
     await p.close();
   }
 
@@ -614,7 +615,7 @@ async function requester(browser) {
     await loginToShell(p, me);
     await p.locator(`[aria-label="Open ticket ${ticketA.ticketNumber}"]:visible`).first().click();
     await p.getByText(ticketA.summary).first().waitFor();
-    await screenshot(p, dir, `requester-${num}-ticket-detail-${suffix}.png`, true);
+    await screenshot(p, dir, `requester-${num}-ticket-detail-${suffix}.png`);
     await p.close();
   }
 }
@@ -765,7 +766,7 @@ async function detail(browser) {
     const p = await browser.newPage({ viewport: size });
     await loginToShell(p, STAFF);
     await openTicketById(p, opsTicket.ticketNumber);
-    await screenshot(p, dir, `detail-${num}-detail-${suffix}.png`, true);
+    await screenshot(p, dir, `detail-${num}-detail-${suffix}.png`);
     await p.close();
   }
 }
@@ -918,7 +919,7 @@ async function users(browser) {
     const p = await browser.newPage({ viewport: size });
     await loginToShell(p, ADMIN);
     await p.getByRole("heading", { name: "User Management" }).waitFor();
-    await screenshot(p, dir, `users-${num}-list-${suffix}.png`, true);
+    await screenshot(p, dir, `users-${num}-list-${suffix}.png`);
     await p.close();
   }
 }
