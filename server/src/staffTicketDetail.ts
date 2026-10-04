@@ -46,7 +46,9 @@ const TRANSITIONS: Record<Status, readonly Status[]> = {
   CANCELLED: [],
 };
 
-const ELIGIBLE_OWNER_ROLES: readonly ("IT_STAFF" | "ADMIN")[] = ["IT_STAFF", "ADMIN"];
+// Roles eligible to own a Ticket (BR-07). Shared with the queue Owner filter
+// option list (GET /api/staff/assignees) so both surfaces stay in sync.
+export const ELIGIBLE_OWNER_ROLES: readonly ("IT_STAFF" | "ADMIN")[] = ["IT_STAFF", "ADMIN"];
 
 function notFound(res: Response) {
   return res

@@ -501,6 +501,22 @@ export async function fetchStaffQueue(query: StaffQueueQuery = {}): Promise<Staf
   return (await res.json()) as StaffQueueResponse;
 }
 
+export interface StaffAssignee {
+  id: number;
+  name: string;
+  role: "IT_STAFF" | "ADMIN";
+}
+
+// GET /api/staff/assignees (api-spec.md §6.1a) — active IT Staff and
+// Administrators eligible to own a ticket, ordered by name. Backs the queue
+// Owner filter so staff pick a person instead of typing a raw user id.
+export async function fetchStaffAssignees(): Promise<StaffAssignee[]> {
+  const res = await apiFetch("/api/staff/assignees");
+  if (!res.ok) throw await toApiError(res, "Unable to load the owner list.");
+  const body = (await res.json()) as { items: StaffAssignee[] };
+  return body.items;
+}
+
 // ---------------------------------------------------------------------------
 // Issue 22 — IT Staff Ticket Detail (api-spec.md §6.2..§6.5).
 // Retrieve one Ticket for operations, then claim/assign/reassign ownership,

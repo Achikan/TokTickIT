@@ -5,8 +5,10 @@ import {
   type Status,
   type StaffQueueQuery,
   type StaffTicket,
+  type StaffAssignee,
   type AuthUser,
   fetchCategories,
+  fetchStaffAssignees,
   fetchStaffQueue,
 } from "./api.js";
 
@@ -41,8 +43,17 @@ const STATUS_BADGES: Record<Status, string> = {
   CANCELLED: "badge-status-cancelled",
 };
 
+// Compact, locale-independent timestamp: "2026-09-29 11:52".
+// toLocaleString() produced "9/29/2026, 11:52:03 AM" (~21 chars) in two
+// nowrap columns, which pushed the Last Updated column out of the queue
+// viewport (ui-spec §5: no horizontal scroll, nothing clipped).
 function formatDate(value: string): string {
-  return new Date(value).toLocaleString();
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return "";
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(
+    d.getMinutes()
+  )}`;
 }
 
 // Issue 21 — IT Staff Ticket Queue (ui-spec.md §5, labs-sheet §8.3).
@@ -68,16 +79,23 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
   });
   const [filtersApplied, setFiltersApplied] = useState<Record<string, unknown>>({});
   const [categories, setCategories] = useState<Category[]>([]);
+  const [assignees, setAssignees] = useState<StaffAssignee[]>([]);
 
   const [query, setQuery] = useState<StaffQueueQuery>({ page: 1, pageSize: 10, sort: "-updatedAt" });
 
   const [searchInput, setSearchInput] = useState("");
-  const [ownerInput, setOwnerInput] = useState("");
+  // "" = All, "unassigned" = no owner, otherwise the assignee id (api-spec §6.1a).
+  const [ownerSelect, setOwnerSelect] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     fetchCategories()
       .then((cats) => !cancelled && setCategories(cats))
+      .catch(() => {});
+    // A failure here only narrows the Owner filter; the queue itself still
+    // loads, so it must not break the screen.
+    fetchStaffAssignees()
+      .then((list) => !cancelled && setAssignees(list))
       .catch(() => {});
     return () => {
       cancelled = true;
@@ -116,7 +134,7 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
     e.preventDefault();
     applyPatch({
       search: searchInput.trim() === "" ? undefined : searchInput.trim(),
-      ownerId: ownerInput.trim() === "" ? undefined : ownerInput.trim(),
+      ownerId: ownerSelect === "" ? undefined : ownerSelect,
     });
   }
 
@@ -132,18 +150,10 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
         </h2>
       </div>
 
-      {listStatus === "loading" && <p className="text-secondary">Loading the ticket queue…</p>}
-
-      {listStatus === "failure" && (
-        <p className="text-danger">
-          Unable to load the ticket queue. Please try again later.
-        </p>
-      )}
-
-      {listStatus === "ready" && (
-        <>
-          {/* Search, filters, sort */}
-          <form
+      {/* Search, filters and sort stay mounted while results refresh, so
+          changing a filter never makes the controls disappear mid-interaction
+          (ui-spec §5, §8 busy feedback is shown next to the results). */}
+      <form
             className="row g-2 mb-3 align-items-end"
             onSubmit={handleSearch}
             aria-label="Queue search and filters"
@@ -164,13 +174,24 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
               <label htmlFor="filter-owner" className="form-label">
                 Owner
               </label>
-              <input
+              <select
                 id="filter-owner"
-                className="form-control"
-                value={ownerInput}
-                onChange={(e) => setOwnerInput(e.target.value)}
-                placeholder='Owner id, or "unassigned"'
-              />
+                className="form-select"
+                value={ownerSelect}
+                onChange={(e) => {
+                  setOwnerSelect(e.target.value);
+                  // Owner is applied immediately, like the other selects.
+                  applyPatch({ ownerId: e.target.value === "" ? undefined : e.target.value });
+                }}
+              >
+                <option value="">All</option>
+                <option value="unassigned">Unassigned</option>
+                {assignees.map((a) => (
+                  <option key={a.id} value={String(a.id)}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="col-md-2 d-flex gap-2">
               <button type="submit" className="btn btn-secondary flex-grow-1">
@@ -181,7 +202,7 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                 className="btn btn-outline-secondary"
                 onClick={() => {
                   setSearchInput("");
-                  setOwnerInput("");
+                  setOwnerSelect("");
                   setQuery({ page: 1, pageSize: 10, sort: "-updatedAt" });
                 }}
               >
@@ -295,8 +316,22 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                 <option value="-itPriority">IT Priority high → low</option>
               </select>
             </div>
-          </form>
+      </form>
 
+      {listStatus === "loading" && (
+        <p className="text-secondary" role="status">
+          Loading the ticket queue…
+        </p>
+      )}
+
+      {listStatus === "failure" && (
+        <p className="text-danger" role="alert">
+          Unable to load the ticket queue. Please try again later.
+        </p>
+      )}
+
+      {listStatus === "ready" && (
+        <>
           {/* Distinct empty vs no-results states (AC-24) */}
           {pagination.total === 0 && !hasFilters && (
             <div className="alert alert-secondary" role="status">
@@ -318,9 +353,24 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                 <span className="fw-semibold">{query.sort}</span>
               </p>
 
-              {/* Desktop table (justified column set — ui-spec §5) */}
-              <div className="table-responsive d-none d-md-block">
-                <table className="table table-hover align-middle">
+              {/* Desktop table (justified column set — ui-spec §5).
+                  Shown from 992px up: below that the card list carries the same
+                  information. The table is a fixed layout sized to its container
+                  so it never needs sideways scrolling (ui-spec §5, §9). */}
+              <div className="d-none d-lg-block">
+                <table className="table table-hover align-middle queue-table-fixed">
+                  <colgroup>
+                    <col className="queue-col-number" />
+                    <col className="queue-col-summary" />
+                    <col className="queue-col-category" />
+                    <col className="queue-col-priority" />
+                    <col className="queue-col-priority" />
+                    <col className="queue-col-status" />
+                    <col className="queue-col-owner" />
+                    <col className="queue-col-time" />
+                    <col className="queue-col-time" />
+                    <col className="queue-col-action" />
+                  </colgroup>
                   <thead>
                     <tr>
                       <th scope="col">Ticket Number</th>
@@ -360,13 +410,20 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                           </span>
                         </td>
                         <td>
-                          <span className={`badge ${STATUS_BADGES[t.currentStatus]}`}>
+                          <span
+                            className={`badge ${STATUS_BADGES[t.currentStatus]}`}
+                            title={`Status ${t.currentStatus}`}
+                          >
                             {t.currentStatus}
                           </span>
                         </td>
                         <td>{t.owner ? t.owner.name : <em className="text-muted">Unassigned</em>}</td>
-                        <td className="text-nowrap text-muted">{formatDate(t.createdAt)}</td>
-                        <td className="text-nowrap text-muted">{formatDate(t.updatedAt)}</td>
+                        <td className="text-muted">
+                          <time dateTime={t.createdAt}>{formatDate(t.createdAt)}</time>
+                        </td>
+                        <td className="text-muted">
+                          <time dateTime={t.updatedAt}>{formatDate(t.updatedAt)}</time>
+                        </td>
                         <td>
                           <button
                             type="button"
@@ -383,8 +440,8 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                 </table>
               </div>
 
-              {/* Smaller-screen card representation */}
-              <ul className="list-unstyled d-md-none">
+              {/* Smaller-screen card representation (below 992px) */}
+              <ul className="list-unstyled d-lg-none">
                 {items.map((t) => (
                   <li key={t.id} className="card mb-2">
                     <div className="card-body py-2">
@@ -392,7 +449,8 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                       <div className="mb-2">{t.summary}</div>
                       <div className="small text-muted mb-2">
                         {t.category.name} · {t.owner ? t.owner.name : "Unassigned"} · Created{" "}
-                        {formatDate(t.createdAt)}
+                        <time dateTime={t.createdAt}>{formatDate(t.createdAt)}</time> · Updated{" "}
+                        <time dateTime={t.updatedAt}>{formatDate(t.updatedAt)}</time>
                       </div>
                       <div className="d-flex flex-wrap gap-2 align-items-center">
                         <span
@@ -407,7 +465,10 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                         >
                           IT {t.itPriority}
                         </span>
-                        <span className={`badge ${STATUS_BADGES[t.currentStatus]}`}>
+                        <span
+                          className={`badge ${STATUS_BADGES[t.currentStatus]}`}
+                          title={`Status ${t.currentStatus}`}
+                        >
                           {t.currentStatus}
                         </span>
                         {onOpenTicket && (
