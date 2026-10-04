@@ -10,12 +10,18 @@
 // Requester screenshots live under staff-ticket-detail/ with a requester- prefix.
 //
 // Requires the API server on :3000 and the Vite client on :5173 to be running.
+// SEED=1 (default on) first runs `npm --prefix server run prisma:seed`, because the
+// captures quote seeded tickets by summary ("Cannot log into VPN from lab") and
+// ticket number (TK-001001). The server test suite truncates the dev database,
+// so without a reseed this script silently depends on leftover state. Pass
+// SEED=0 to skip the reseed and capture whatever is already in the database.
 // Uses the session-authenticated UI (Lab 3) end to end, including the mandatory
 // first-login password change. STEPS=auth,queue,requester,detail,users,api filters
 // the run (default: all).
 
 import { chromium, request as playwrightRequest } from "@playwright/test";
 import { readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { mkdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +35,7 @@ const API_URL = process.env.API_URL ?? "http://localhost:3000";
 
 const VIEWPORTS = {
   desktop: { width: 1280, height: 900 },
+  narrowDesktop: { width: 1024, height: 900 },
   tablet: { width: 820, height: 900 },
   mobile: { width: 390, height: 844 },
 };
@@ -430,8 +437,7 @@ async function queue(browser) {
 
   // 06 — owner filter: unassigned tickets.
   await page.getByRole("button", { name: "Reset" }).click();
-  await page.locator("#filter-owner").fill("unassigned");
-  await page.getByRole("button", { name: "Search", exact: true }).click();
+  await page.locator("#filter-owner").selectOption("unassigned");
   const unassignedLine = await queueResultText(page);
   const unassignedTotal = Number((unassignedLine.match(/^([\d,]+) tickets/)?.[1] ?? "0").replaceAll(",", ""));
   if (unassignedTotal === 0) throw new Error("owner filter 'unassigned' returned no rows");
@@ -487,10 +493,13 @@ async function queue(browser) {
   await page.unroute(/\/api\/staff\/tickets\?/);
   await page.close();
 
-  // 11/12 — queue list at tablet + mobile.
+  // 11/12/13 — queue list at 1024, tablet and mobile. 1024 still shows the
+  // 10-column table (ui-spec §5) but with much less width than 1280, which is
+  // exactly where the Last Updated column used to be cut off.
   for (const [num, suffix, size] of [
     [11, "tablet", VIEWPORTS.tablet],
     [12, "mobile", VIEWPORTS.mobile],
+    [13, "narrow-desktop-1024", VIEWPORTS.narrowDesktop],
   ]) {
     const p = await browser.newPage({ viewport: size });
     await loginToShell(p, STAFF);
@@ -1025,6 +1034,21 @@ async function partApi(browser) {
 }
 
 // --- Run ----------------------------------------------------------------------
+
+const shouldSeed = process.env.SEED !== "0";
+if (shouldSeed) {
+  console.log("=== seed ===");
+  console.log("Reseeding the dev database (npm --prefix server run prisma:seed)…");
+  const seed = spawnSync("npm", ["--prefix", "server", "run", "prisma:seed"], {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  if (seed.status !== 0) {
+    console.error("Seed failed:", seed.stdout?.slice(-800), seed.stderr?.slice(-800));
+    process.exit(1);
+  }
+  console.log("Seed done.");
+}
 
 const browser = await chromium.launch();
 const wanted = (process.env.STEPS || "all")

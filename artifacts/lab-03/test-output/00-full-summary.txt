@@ -1,7 +1,9 @@
 ================================================================
 Lab 3 — FULL TEST SUMMARY (all suites)
 Branch: docs/lab3-test-evidence
-main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Base commit: e8c75b6fb1d05aad10bfc69acb86223f661630f0 2026-10-04 18:19:15 +0700 docs(lab-03): render reviewer/ui-spec/visual-inspection in the report, prove spec-before-code
+Working tree: Lab 3 Part 6 fixes (queue table clipping, Owner filter select, /api/staff/assignees)
+Captured: 2026-10-04 19:24:31 +0700
 ================================================================
 
 PRE-FLIGHT CHECK
@@ -10,62 +12,362 @@ PRE-FLIGHT CHECK
   RESULT: 0 matches — no skipped, focused or todo tests remain.
 
 ================================================================
-1. SERVER  (unit + API)      command: cd server && npm test
+1) SERVER — unit + API (all labs):  cd server && npm test
 ================================================================
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
+
+ ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 34644ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1263ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1199ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1204ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1197ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1255ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1293ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1290ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1253ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1190ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1195ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1204ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1197ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1259ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1261ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1216ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1212ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1339ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1220ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1382ms
+   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1273ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1222ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects changing the last active Administrator's role with 409 1222ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1281ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1230ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1226ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1229ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1245ms
+ ✓ tests/lab-03/staff-queue.api.test.ts (31 tests) 36768ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > returns the full seeded queue with default sort and pagination metadata 1182ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > search matches summary, description and ticketNumber case-insensitively 1142ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by status, requestedPriority and itPriority independently 1143ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by ownerId, including the unassigned markers null / unassigned 1142ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by categoryId and relatedSystemId 1148ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > sorts by a valid column in both directions 1140ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > paginates with page/pageSize and reports metadata 1159ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > combines filters and echoes filtersApplied 1143ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > allows Administrators to view the queue (AC-10) 1147ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page zero' -> 400 with a specific message, never silently ignored 1144ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page negative' -> 400 with a specific message, never silently ignored 1151ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page non-numeric' -> 400 with a specific message, never silently ignored 1144ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize zero' -> 400 with a specific message, never silently ignored 1143ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize over max' -> 400 with a specific message, never silently ignored 1160ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize non-numeric' -> 400 with a specific message, never silently ignored 1148ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown status' -> 400 with a specific message, never silently ignored 1153ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown requestedPriority' -> 400 with a specific message, never silently ignored 1147ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown itPriority' -> 400 with a specific message, never silently ignored 1155ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'ownerId non-numeric' -> 400 with a specific message, never silently ignored 1149ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId zero' -> 400 with a specific message, never silently ignored 1151ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId non-numeric' -> 400 with a specific message, never silently ignored 1141ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'relatedSystemId negative' -> 400 with a specific message, never silently ignored 1142ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unsupported sort column' -> 400 with a specific message, never silently ignored 1151ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'garbage sort' -> 400 with a specific message, never silently ignored 1146ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > rejects a combination containing one invalid parameter 1156ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > blocks unauthenticated access with 401 1091ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > forbids a Requester and returns no data 1141ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > returns every active IT Staff and Administrator, ordered by name, without requesters or inactive users 1149ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > is readable by an Administrator and omits pagination metadata 1156ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > blocks unauthenticated access with 401 and a Requester with 403 1152ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > reflects a newly created active staff account so the filter is not hard-coded 1263ms
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts (21 tests) 27938ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns requester, owner, priorities, status, attachments, comments and notes 1336ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > is available to Administrators too 1268ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns 404 for a missing Ticket and 403 for a Requester, 401 when unauthenticated 1269ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > claims an unassigned Ticket, then reassigns it to another eligible user 1273ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > lets an Administrator own a Ticket as well 1266ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects a Requester as owner target and inactive users with 400 1268ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects missing / non-integer ownerId with 400 1267ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > forbids a Requester from claiming and returns 404 for a missing Ticket 1275ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > updates IT Priority for staff and persists it 1279ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > lets an Administrator update IT Priority too 1280ms
+   ✓ API-32: IT Priority change by a Requester is rejected (AC-15, BR-08) > returns 403 for a Requester, 400 for an invalid enum and 404 when missing 1275ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'NEW' -> 'OPEN' succeeds and persists 1272ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'OPEN' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1274ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'IN_PROGRESS' -> 'RESOLVED' succeeds and persists 1270ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'RESOLVED' -> 'CLOSED' succeeds and persists 1271ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'CLOSED' -> 'REOPENED' succeeds and persists 1274ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'REOPENED' -> 'CANCELLED' succeeds and persists 1284ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > lets an Administrator perform a permitted transition 1295ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > rejects transitions outside the matrix with a specific 409 1282ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > treats the same status and a terminal CANCELLED as forbidden 1277ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > returns 400 for an invalid enum, 403 for a Requester and 404 when missing 1277ms
+ ✓ tests/lab-03/auth.api.test.ts (20 tests) 24384ms
+   ✓ API-01: valid login > returns 200, sets an HttpOnly SameSite=Strict session cookie and the user identity 1204ms
+   ✓ API-01: valid login > returns the correct role for IT Staff and Admin logins 1212ms
+   ✓ API-01: valid login > validates missing/invalid input with 400 and field messages 1104ms
+   ✓ API-01: valid login > rejects a login without the CSRF header with 403 1101ms
+   ✓ API-02: invalid credentials > returns the same generic 401 for a wrong password and an unknown email (no enumeration) 1162ms
+   ✓ API-03: inactive account login > returns a clear non-disclosing 403 for a valid inactive account and creates no session 1158ms
+   ✓ API-03: inactive account login > still returns the generic 401 for an inactive account with a wrong password 1157ms
+   ✓ API-03: inactive account login > blocks the inactive IT Staff account too 1170ms
+   ✓ API-04: requiresPasswordChange gate > flags a first-login user and blocks normal endpoints until the password is changed 1159ms
+   ✓ API-05: weak / mismatched new password > rejects a too-short password with 400 field validation 1179ms
+   ✓ API-05: weak / mismatched new password > rejects a password missing any required character class 1169ms
+   ✓ API-05: weak / mismatched new password > rejects mismatched confirmation and a password equal to the current one 1150ms
+   ✓ API-05: weak / mismatched new password > rejects a wrong current password with 401 and keeps the user gated 1204ms
+   ✓ API-05: weak / mismatched new password > still requires the CSRF header 1150ms
+   ✓ API-06: valid password change > clears requiresPasswordChange and unlocks the normal application 1378ms
+   ✓ API-07: logout invalidates the session > returns 200 and makes subsequent protected calls 401 1155ms
+   ✓ API-07: logout invalidates the session > requires authentication to log out 1090ms
+   ✓ API-08: current user retrieval > returns the authenticated identity and role 1146ms
+   ✓ API-08: current user retrieval > ignores a client-supplied requesterId header 1149ms
+   ✓ API-08: current user retrieval > returns 401 without a session 1098ms
+ ✓ tests/lab-03/authorization.api.test.ts (12 tests) 16133ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects every protected endpoint without a session 1288ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects unauthenticated mutating endpoints (CSRF present) with 401 1214ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > creates a ticket owned by the session user even when the body names someone else 1217ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > lists only the session user's tickets even when an X-Requester-Id header is sent 1218ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's ticket behind a 404 1312ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's attachment behind 404 for download and remove 1222ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids IT Staff from Requester-only endpoints with 403 1270ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids Admin from Requester-only endpoints with 403 1272ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > keeps reference data readable by every authenticated role 1327ms
+   ✓ API-13: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 for list and create without exposing note content 1215ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-10: a Requester requesting the staff queue is rejected with 403 (Issue 21) 1209ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-11: a non-Admin requesting user management is rejected with 403 (Issue 23) 1280ms
+ ✓ tests/lab-02/my-tickets.api.test.ts (9 tests) 12135ms
+   ✓ GET /api/tickets (My Tickets) > returns only the signed-in requester's tickets (API-04, AC-05, FR-11) 1271ms
+   ✓ GET /api/tickets (My Tickets) > rejects an unauthenticated request with 401 (no session cookie) 1220ms
+   ✓ GET /api/tickets (My Tickets) > paginates and returns page metadata (API-05, AC-07, FR-12) 1221ms
+   ✓ GET /api/tickets (My Tickets) > narrows results by search and by filters (API-06, AC-07, FR-12) 1228ms
+   ✓ GET /api/tickets (My Tickets) > sorts results as requested (API-07, AC-07, FR-12) 1218ms
+   ✓ GET /api/tickets (My Tickets) > uses a deterministic secondary sort when sorting by a non-unique column 1220ms
+   ✓ GET /api/tickets (My Tickets) > rejects invalid page, size, sort, and filter values with 400 (API-08, BR-10) 1216ms
+   ✓ GET /api/tickets (My Tickets) > returns an empty list with correct metadata when there are no tickets (empty state) 1218ms
+   ✓ GET /api/tickets (My Tickets) > does not leak another requester's tickets through filters (BR-06) 1220ms
+ ✓ tests/lab-03/comments-notes.api.test.ts (11 tests) 15840ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > records the comment with author and creation time 1383ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > rejects an anonymous mutating request without the CSRF header 1338ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > returns the comment to all permitted roles and hides it from another Requester 1350ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > lets IT Staff post a Public Comment on any Ticket 1332ms
+   ✓ API-21: IT Staff/Admin create and list Internal Notes (AC-17, FR-18) > creates and lists a note for staff and admin 1344ms
+   ✓ API-22: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 without any note content for read and write 1344ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Public Comments 1337ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Internal Notes 1344ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > records the indication once and surfaces it without changing the status 1330ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > rejects the indication from IT Staff (Requester-only) with 403 1321ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > hides another Requester's ticket behind 404 1324ms
+ ✓ tests/lab-02/attachments.api.test.ts (15 tests) 2426ms
+ ✓ tests/lab-02/seed.test.ts (10 tests) 5659ms
+   ✓ seed functions > seedRequesters is idempotent (upserts by email without duplicating) 550ms
+   ✓ seed functions > seedLab3 creates all users, tickets and categories 1119ms
+   ✓ seed functions > seedLab3 is idempotent — running twice does not duplicate records 2237ms
+   ✓ seed functions > seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6) 1124ms
+ ✓ tests/lab-02/create-ticket.api.test.ts (7 tests) 9216ms
+   ✓ POST /api/tickets > creates a valid ticket and returns 201 with an official Ticket Number (API-01) 1206ms
+   ✓ POST /api/tickets > rejects a missing summary with field errors and no save (API-02) 1152ms
+   ✓ POST /api/tickets > defaults requestedPriority to MEDIUM when omitted (BR-06) 1156ms
+   ✓ POST /api/tickets > rejects a categoryId that does not reference an active category 1149ms
+   ✓ POST /api/tickets > rejects an unauthenticated request with 401 1157ms
+   ✓ POST /api/tickets > rejects a mutating request without the CSRF header with 403 1148ms
+   ✓ POST /api/tickets > ignores a client-supplied requesterId and uses the session identity (BR-06) 1156ms
+ ✓ tests/lab-03/migration-regression.api.test.ts (7 tests) 8236ms
+   ✓ MIGR-01: Development Requester → User migration > at least one User with role REQUESTER exists (AC-12, FR-08) 1218ms
+   ✓ MIGR-01: Development Requester → User migration > inactive requester (evan.ellis) exists with active=false and role REQUESTER 1169ms
+   ✓ MIGR-01: Development Requester → User migration > GET /api/development-requesters no longer exists and returns 404 (selector removed) 1168ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > all seeded tickets have a valid requesterId referencing a User with role REQUESTER 1167ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets returns only Alice's tickets when signed in as Alice (FR-08) 1170ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets/:id returns ticket detail for an owned ticket (FR-08) 1164ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > attachment upload and retrieval still works with session auth (AC-12) 1177ms
+ ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 6000ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns the full Ticket detail for an owned ticket (API-10, FR-13) 1264ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > rejects an unauthenticated request with 401 (no session cookie) 1213ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a Ticket owned by another requester (non-disclosing) (API-09, AC-03, FR-14) 1215ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a non-existent Ticket ID 1210ms
+ ✓ tests/lab-03/email-normalize.unit.test.ts (6 tests) 1ms
+ ✓ tests/lab-01/seed.test.ts (2 tests) 34ms
+ ✓ tests/lab-03/session-lifecycle.unit.test.ts (4 tests) 1ms
+ ✓ tests/lab-03/password-policy.unit.test.ts (4 tests) 437ms
+ ✓ tests/lab-01/categories.test.ts (2 tests) 2294ms
+   ✓ GET /api/categories > requires authentication (401 without a session) 1135ms
+   ✓ GET /api/categories > returns the seeded categories in id order for an authenticated user 1159ms
+ ✓ tests/lab-03/ticket-number.unit.test.ts (3 tests) 1ms
+ ✓ tests/lab-01/health.test.ts (1 test) 7ms
+ ✓ tests/lab-02/ticket-number.test.ts (3 tests) 1ms
+
  Test Files  20 passed (20)
-      Tests  195 passed (195)
-   Duration  203.15s (transform 118ms, setup 0ms, collect 1.33s, tests 200.02s, environment 1ms, prepare 420ms)
+      Tests  199 passed (199)
+   Start at  19:25:01
+   Duration  205.12s (transform 125ms, setup 0ms, collect 1.22s, tests 202.15s, environment 1ms, prepare 416ms)
+
 
 ================================================================
-2. CLIENT  (UI + style)      command: cd client && npm test
+2) CLIENT — UI + style (all labs):  cd client && npm test
 ================================================================
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/client
+
+stderr | tests/lab-02/RequesterTicketDetail.test.tsx > TicketDetail > shows a loading state while the ticket is being fetched
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:566:25)
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:566:25)
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:566:25)
+
+stderr | tests/lab-02/style.test.tsx > Zen Green UI style (STYLE-01, ui-spec) > renders required-field red asterisks on Summary and Description (ui-spec §3)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx (8 tests) 159ms
+stderr | tests/lab-02/style.test.tsx > Zen Green UI style (STYLE-01, ui-spec) > renders read-only system fields distinctly from editable ones (ui-spec §3)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+ ✓ tests/lab-02/style.test.tsx (8 tests) 337ms
+ ✓ tests/lab-03/RequesterRegression.test.tsx (7 tests) 372ms
+ ✓ tests/lab-02/MyTickets.test.tsx (9 tests) 386ms
+ ✓ tests/lab-02/AttachmentSection.test.tsx (9 tests) 432ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx (10 tests) 699ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx (11 tests) 733ms
+ ✓ tests/lab-03/style.test.tsx (5 tests) 135ms
+ ✓ tests/lab-01/App.test.tsx (3 tests) 53ms
+stderr | tests/lab-02/CreateTicket.test.tsx > CreateTicket > disables the submit button and shows a busy state while submitting (UI-04)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+ ✓ tests/lab-02/AppShell.test.tsx (3 tests) 329ms
+ ✓ tests/lab-03/ChangePassword.test.tsx (2 tests) 354ms
+ ✓ tests/lab-03/UserManagement.test.tsx (13 tests) 1184ms
+   ✓ UserManagement > UI-16: create, edit and set initial password > creates a user with an initial password and confirms the mandatory change 305ms
+ ✓ tests/lab-03/Login.test.tsx (8 tests) 1192ms
+ ✓ tests/lab-02/CreateTicket.test.tsx (5 tests) 635ms
+
  Test Files  14 passed (14)
-      Tests  98 passed (98)
-   Duration  2.22s (transform 530ms, setup 713ms, collect 2.35s, tests 7.36s, environment 4.54s, prepare 759ms)
+      Tests  101 passed (101)
+   Start at  19:28:32
+   Duration  2.13s (transform 562ms, setup 714ms, collect 2.26s, tests 7.00s, environment 4.16s, prepare 731ms)
+
 
 ================================================================
-3. E2E + RESPONSIVE + A11Y   command: npm run test:e2e
+TOTALS
+  server 199 + client 101 + e2e 38 = 338 passed, 0 failed, 0 skipped
 ================================================================
-  25 passed (16.0s)
-
-================================================================
-RESULT TOTALS
-================================================================
-  server : 195 passed   0 failed   0 skipped   (20 test files)
-  client :  98 passed   0 failed   0 skipped   (14 test files)
-  e2e    :  25 passed   0 failed   0 skipped
-  ---------------------------------------------
-  TOTAL  : 318 passed   0 failed   0 skipped
-
-SCOPE BREAKDOWN (how the per-category logs add up)
-================================================================
-  SERVER 195
-    Lab 3 suites   142  (11 files)  = 01-unit 17 + 02-api 106 + 03-authorization 12
-                                + migration-regression 7
-    Lab 2 regress   48  ( 6 files)  = attachments 15, create-ticket 7,
-                                my-tickets 9, seed 10, ticket-detail 4,
-                                ticket-number 3      [inside 04-regression.txt]
-    Lab 1 baseline   5  ( 3 files)  = seed, categories, health
-                                (not Lab 3 scope; only in the full run)
-    142 + 48 + 5 = 195
-
-  CLIENT 98
-    Lab 3 UI/style  53  ( 7 files)  = 05-ui-component.txt
-    Lab 2 regress   42  ( 6 files)
-    Lab 1 baseline   3  ( 1 file )
-    53 + 42 + 3 = 98
-
-  E2E 25  (e2e/lab-03 only; playwright testDir = e2e/lab-03)
-
-================================================================
-PER-CATEGORY LOGS IN THIS FOLDER
-================================================================
-  01-unit.txt           17 tests /  4 files
-  02-api.txt           106 tests /  5 files
-  03-authorization.txt  12 tests /  1 file
-  04-regression.txt     55 tests /  7 files
-  05-ui-component.txt   53 tests /  7 files
-  06-e2e.txt            25 tests /  6 spec files
-
-Cross-check against docs/lab-03/tests.md section 6
-  (server 195/195, client 98/98, e2e 25/25): MATCHES

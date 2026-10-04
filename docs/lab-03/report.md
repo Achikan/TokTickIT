@@ -153,6 +153,37 @@ The timeline, built from the timestamps above:
 
 ![Spec existed before implementation PRs](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/01-spec-before-impl.png)
 
+**Every Sprint 3 pull request in one capture** — the raw `git log` line, the
+`createdAt`/`mergedAt` of each PR from the GitHub API, and the three computed intervals
+(`node scripts/evidence-timeline.mjs`; raw output in
+`artifacts/lab-03/evidence/spec-before-code.txt`):
+
+![Contract commit, all PR timestamps and the computed intervals](../../artifacts/lab-03/evidence/spec-before-code.png)
+
+| PR | Created (UTC) | Merged (UTC) | Role in the ordering |
+|---|---|---|---|
+| **#49** Issue 16: Sprint 3 Engineering Contract | 2026-09-17 12:42:44 | **2026-09-17 13:16:13** | **Specification DD — merged before any implementation PR existed** |
+| #50 Issue 17: Database Migration & User Model | 2026-09-17 13:45:36 | 2026-09-17 14:37:50 | First implementation PR (29m 23s after the #49 merge) |
+| #51 Issue 18: Authentication & Authorization API | 2026-09-17 15:33:48 | 2026-09-17 16:38:27 | Implementation |
+| #52 Issue 19: Login & Authentication UI | 2026-09-17 16:49:06 | 2026-09-17 17:15:41 | Implementation |
+| #53 Issue 20: requester regression | 2026-09-18 07:07:22 | 2026-09-18 07:45:39 | Implementation |
+| #54 Issue 21: IT Staff Ticket Queue | 2026-09-18 08:03:47 | 2026-09-18 08:43:45 | Implementation |
+| #55 Issue 22: IT Staff Ticket Detail (first attempt) | 2026-09-18 09:05:35 | **never merged** | Superseded the same day by #56 |
+| #56 Issue 22: IT Staff Ticket Detail (supersedes #55) | 2026-09-18 12:05:50 | 2026-09-18 12:08:01 | Implementation — the merge that actually shipped Issue 22 |
+| #57 Issue 23: Administrator User Management | 2026-09-19 06:57:59 | 2026-09-19 07:56:24 | Implementation |
+| #58 Issue 24: E2E testing, responsive & accessibility | 2026-09-19 09:04:14 | 2026-09-19 10:06:46 | Implementation |
+| #59 Issue 25: Final review, screenshots & release integration | 2026-09-19 10:31:10 | 2026-09-19 11:05:18 | Integration into `lab3-staging` |
+| #60 Issue 25: sheet checklist gap fixes | 2026-09-29 14:33:05 | 2026-09-29 14:45:47 | Documentation only |
+| #62 Issue 25: real unit + style tests, sheet-format test plan | 2026-09-29 16:59:12 | 2026-09-29 17:15:16 | Test coverage only |
+| #63 Release Lab 3 — Sprint 3 | 2026-09-29 17:18:11 | 2026-09-29 17:55:23 | Release `lab3-staging` → `main` |
+
+Three points are stated explicitly so the record is accurate: **PR #55 was never merged** (the
+GitHub API returns an empty `merged_at`; #56 is the merge that shipped Issue 22); PRs #60, #62 and
+#63 are documentation, test and release work that comes after the features by design; and the
+reviewer requested changes on **#49 itself** at 13:05:43 UTC, before merging it at 13:16:13, so the
+specification passed review while no Lab 3 code existed yet. The full write-up, with the commands
+used, is [docs/lab-03/timeline-evidence.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/timeline-evidence.md).
+
 **The contract commit on GitHub** — `716684e4`, authored 2026-09-17 12:42:24 UTC. The green
 banner is added by the evidence script and quotes the absolute timestamp from
 `git log --date=iso`, because the GitHub UI itself only renders "2 weeks ago":
@@ -170,6 +201,28 @@ correction recorded in `specification.md`:
 was merged** and only 19 seconds after the first implementation commit:
 
 ![PR #50 — Database Migration & User Model](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/05-github-pr50.png)
+
+### The submitted PDF
+
+`npm run pdf:lab3` builds `docs/lab-03/report_lab03_67070505229.pdf` from this file
+(`scripts/build-report.mjs` → pandoc → Chromium print → `scripts/check-report-pdf.py`). The build is
+deterministic and self-checking; the checker fails the build rather than shipping a bad PDF.
+
+| Property of the submitted PDF | Measured value |
+|---|---|
+| Format | A4 portrait, cover page + clickable contents page, then Answer Parts 1–9 in order |
+| Pages | **72** (the previous build was 102) |
+| Size | **9.56 MB** (the previous build was 17.1 MB) |
+| Images per page | 2–3 on evidence pages; 8 pages carry one tall sliced capture each (pages 10–13, 26, 29, 41, 60) |
+| Figures | 131 sources → 146 placements (very tall stitched captures are sliced so each slice still prints at A4 width) |
+| Legibility | worst effective print resolution **119 dpi** (phone captures are 390 px wide, so they print ~75 mm wide instead of being upscaled); 115 of 131 sources are ≥1000 px wide |
+| Page breaks | no figure, table row or heading is split across pages (`break-inside: avoid`) |
+| Links | 27 internal (cover → part, contents → part) + 18 external `https://` links, all clickable |
+| Machine checks | "Answer Part 1…9" present and in order, cover name + student ID present, no blank pages, ≤ 10 MB |
+
+Image budget per figure class (print height cap): tall ≤ 115 mm, large ≤ 90 mm, medium ≤ 70 mm,
+small ≤ 50 mm, page width 186 mm. Every figure is captioned with its `Figure N — …` label taken
+from the markdown alt text, and the running footer carries `Page N of M`.
 
 ### Rendered specification documents
 
@@ -214,20 +267,28 @@ Criterion and Business Rule has a planned test whose name embeds the relevant ta
 `e2e/lab-03/authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`,
 `user-administration.spec.ts`, `responsive.spec.ts`, and `accessibility.spec.ts`.
 
-### Final pass status — run against `main`
+### Final pass status — provenance of these captures
 
-All suites were executed on `main` at commit
-`d3e2be44e2f02bdb843e07f077af29d6f5318d6f` (*Merge pull request #63 from
-Achikan/lab3-staging*, 2026-09-30). The screenshots below are the actual terminal
-output from that run — the `main` commit hash is printed in the header of every capture.
-Nothing in this section was typed by hand.
+The captures below are real terminal output from the suites **as they stand on the
+documentation branch `docs/lab3-test-evidence`, at base commit `e8c75b6` plus the Part 6 and
+Part 9 fixes listed in `artifacts/lab-03/test-output/00-main-commit.txt`** — the working tree
+that this report describes. Every capture repeats that provenance in its own header
+(branch, base commit, changed files), so the numbers can always be traced to the code they
+came from. Nothing in this section was typed by hand.
+
+The earlier capture taken on `main` at `d3e2be4` (*Merge pull request #63 from
+Achikan/lab3-staging*, 2026-09-30 — server 195, client 98, e2e 25) is **superseded**: the fixes
+below added `GET /api/staff/assignees` (+4 API tests), the owner `<select>`, compact timestamps,
+the fixed queue table, clipping assertions at a fourth viewport (+3 client tests, +2 E2E tests),
+and the machine-verified visual checklist. It is kept only as the "Earlier capture
+(superseded)" line inside `00-main-commit.txt`.
 
 | Suite | Command | Result |
 |---|---|---|
-| Server (unit + API) — `cd server && npm test` | 195 (20 files) | ✅ 195/195 — 0 failed, 0 skipped |
-| Client (UI + style) — `cd client && npm test` | 98 (14 files) | ✅ 98/98 — 0 failed, 0 skipped |
-| E2E + responsive + accessibility — `npm run test:e2e` | 25 | ✅ 25/25 — 0 failed, 0 skipped |
-| **Total** | 318 | ✅ **318 passed / 0 failed / 0 skipped** |
+| Server (unit + API) — `cd server && npm test` | 199 (20 files) | ✅ 199/199 — 0 failed, 0 skipped |
+| Client (UI + style) — `cd client && npm test` | 101 (14 files) | ✅ 101/101 — 0 failed, 0 skipped |
+| E2E + responsive + accessibility — `npm run test:e2e` | 38 | ✅ 38/38 — 0 failed, 0 skipped |
+| **Total** | 338 | ✅ **338 passed / 0 failed / 0 skipped** |
 
 Pre-flight check: searching `server/tests`, `client/tests` and `e2e` for `test.skip`,
 `it.skip`, `describe.skip`, `.only(`, `xit(`, `xdescribe(` and `.todo(` returns **0
@@ -235,26 +296,26 @@ matches**, so nothing is skipped or left as a placeholder.
 
 #### Full run — all suites
 
-![Full test summary — server 195, client 98, e2e 25](../../artifacts/lab-03/test-output/png/00-full-summary.png)
+![Full test summary — server 199, client 101, e2e 38](../../artifacts/lab-03/test-output/png/00-full-summary.png)
 
 #### By requirement category
 
 | Category | Pass | Fail | Skip | Files |
 |---|---|---|---|---|
 | Unit — `*.unit.test.ts` | ✅ 17 | 0 | 0 | 4 |
-| API / integration | ✅ 106 | 0 | 0 | 5 |
+| API / integration | ✅ 110 | 0 | 0 | 5 |
 | Authorization / role gates | ✅ 12 | 0 | 0 | 1 |
 | Migration / regression (Lab 2 suites) | ✅ 55 | 0 | 0 | 7 |
-| UI component + UI style | ✅ 53 | 0 | 0 | 7 |
-| E2E + responsive + accessibility | ✅ 25 | 0 | 0 | 6 specs |
+| UI component + UI style | ✅ 56 | 0 | 0 | 7 |
+| E2E + responsive + accessibility | ✅ 38 | 0 | 0 | 6 specs |
 
 **Unit — 17/17**
 
 ![Unit tests — 17 passed](../../artifacts/lab-03/test-output/png/01-unit.png)
 
-**API / integration — 106/106**
+**API / integration — 110/110**
 
-![API tests — 106 passed](../../artifacts/lab-03/test-output/png/02-api.png)
+![API tests — 110 passed](../../artifacts/lab-03/test-output/png/02-api.png)
 
 **Authorization — 12/12**
 
@@ -264,22 +325,22 @@ matches**, so nothing is skipped or left as a placeholder.
 
 ![Regression tests — 55 passed](../../artifacts/lab-03/test-output/png/04-regression.png)
 
-**UI component + style — 53/53**
+**UI component + style — 56/56**
 
-![UI tests — 53 passed](../../artifacts/lab-03/test-output/png/05-ui-component.png)
+![UI tests — 56 passed](../../artifacts/lab-03/test-output/png/05-ui-component.png)
 
-**E2E + responsive + accessibility — 25/25**
+**E2E + responsive + accessibility — 38/38**
 
-![E2E tests — 25 passed](../../artifacts/lab-03/test-output/png/06-e2e.png)
+![E2E tests — 38 passed](../../artifacts/lab-03/test-output/png/06-e2e.png)
 
 #### How the totals reconcile
 
 The server and client totals include the earlier labs, because Lab 3 must not regress
-them. Server 195 = Lab 3 **142** (17 unit + 106 API + 12 authorization + 7 migration) +
-Lab 2 **48** + Lab 1 **5**. Client 98 = Lab 3 **53** + Lab 2 **42** + Lab 1 **3**. E2E runs
-against `e2e/lab-03` only, where 15 tests are defined and Playwright executes **25**
-across the desktop, tablet and mobile projects (RESP-01 ×5 and A11Y-01 ×5 re-run at tablet
-and mobile). Full breakdown in [`tests.md` §6.2](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/tests.md).
+them. Server 199 = Lab 3 **146** (17 unit + 110 API + 12 authorization + 7 migration) +
+Lab 2 **48** + Lab 1 **5**. Client 101 = Lab 3 **56** + Lab 2 **42** + Lab 1 **3**. E2E runs
+against `e2e/lab-03` only, where **17 tests** are defined in 6 spec files and Playwright
+executes **38**: every spec on the desktop 1280 project (10 tests), plus RESP-01 re-run at
+narrow-desktop 1024, tablet 820 and mobile 390 (7 tests × 3 extra projects). Full breakdown in [`tests.md` §6.2](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/tests.md).
 
 ### Rendered `tests.md` — Test DD and traceability
 
@@ -398,6 +459,29 @@ feedback, and the open-detail action. Requester access to the staff queue is for
 ![Queue — no-results state](../../artifacts/lab-03/screenshots/staff-queue/queue-09-no-results-desktop.png)
 
 ![Queue — failure feedback (network error)](../../artifacts/lab-03/screenshots/staff-queue/queue-10-failure-desktop.png)
+
+**Owner filter.** The Owner control is a select of `All`, `Unassigned` and every active IT
+Staff / Administrator by name, backed by `GET /api/staff/assignees` (api-spec §6.1a).
+It previously accepted a raw user id typed into a text box, which no user could guess.
+
+![Queue — owner filter as a select of assignable staff](../../artifacts/lab-03/screenshots/staff-queue/queue-06-owner-unassigned-desktop.png)
+
+**All ten columns fit, at every viewport.** The queue table no longer needs sideways
+scrolling: it uses a fixed layout sized to its container, and timestamps render compactly
+as `2026-09-29 11:52`. The capture below is 1024px wide — the width with the least room,
+where the `Last Updated` column used to be cut off.
+
+![Queue — 1024px: all ten columns readable, no horizontal scroll](../../artifacts/lab-03/screenshots/staff-queue/queue-13-list-narrow-desktop-1024.png)
+
+![Queue — tablet (820px): card representation, same information](../../artifacts/lab-03/screenshots/staff-queue/queue-11-list-tablet.png)
+
+![Queue — mobile (390px): card representation, same information](../../artifacts/lab-03/screenshots/staff-queue/queue-12-list-mobile.png)
+
+**Verification.** `npm run test:e2e` runs RESP-01 at 1280 / 1024 / 820 / 390. It asserts no
+page-level horizontal scrolling *and* — via `expectNoClippedContent` — that nothing is cut
+off inside a clipping box, that all ten column headers are visible, and that every cell's
+text is complete. Re-introducing the old `nowrap` timestamp makes that test fail, so it is a
+real regression test rather than a formality.
 
 ![Req-03-style API authorization — requester forbidden from staff queue (403)](../../artifacts/lab-03/api-evidence/part-6-queue/api-403-requester-queue.png)
 
@@ -519,12 +603,37 @@ nothing is sliced mid-row.
 
 ### Visual checklist — `visual-inspection.md`
 
-The eight-point checklist, checked against the code, the ui-spec §14 checklist (tokens and
-colors, editable vs read-only fields, validation placement, role navigation, Comments vs Notes
-distinction, badges, busy/disabled states) and the RESP-01 Playwright spec — every item ✅,
-each with the screenshot or spec that proves it:
+The sheet's nine items — design consistency, role navigation, badges, editable/read-only fields,
+validation placement, focus, clipping, overlap and horizontal overflow — are **measured in a real
+browser** by `node scripts/verify-visual-checklist.mjs`: 220 measurements across 4 viewports
+(1280 / 1024 / 820 / 390), 3 roles and 7 screens, **220 passed, 0 failed**. The checker reads
+computed styles and DOM geometry, exits non-zero on any failure, and writes its evidence to
+`artifacts/lab-03/visual-evidence/visual-check.{json,md}`.
 
-![Rendered visual-inspection.md](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/01-rendered-visual-inspection-md.png)
+| # | Checklist item | Measured | Result |
+|---|---|---:|---|
+| 1 | Design consistency | 28 | ✅ |
+| 2 | Role navigation shows only permitted destinations | 24 | ✅ |
+| 3 | Badges: status + both priorities, as text | 4 | ✅ |
+| 4 | Editable vs read-only fields distinct | 24 | ✅ |
+| 5 | Validation messages next to their field | 28 | ✅ |
+| 6 | Visible keyboard focus indicator | 28 | ✅ |
+| 7 | No clipped content | 28 | ✅ |
+| 8 | No overlapping content | 28 | ✅ |
+| 9 | No horizontal page overflow | 28 | ✅ |
+
+The geometry detectors were proven to fail on injected defects (a 1600px container reported
+`scrolls sideways by 570px`; an ellipsis-truncated ticket number and an absolutely positioned
+overlay were both caught), so a pass is not a rubber stamp. The pass also found and fixed a real
+inconsistency: the mobile queue card's status badge had no `title`, unlike the desktop table badge.
+
+The full checklist, the per-item measured detail and the screenshot inventory are rendered below:
+
+![Rendered visual-inspection.md — page 1](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/01-rendered-visual-inspection-md-p1.png)
+
+![Rendered visual-inspection.md — page 2](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/01-rendered-visual-inspection-md-p2.png)
+
+![Rendered visual-inspection.md — page 3](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/01-rendered-visual-inspection-md-p3.png)
 
 ### UI specification — `ui-spec.md`
 
@@ -541,9 +650,9 @@ feedback, the screen-state matrix, the responsive rules and the accessibility ru
 Source files: [visual-inspection.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/visual-inspection.md)
 and [ui-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ui-spec.md).
 
-The 14 committed responsive captures below cover the major Lab 3 screens at **tablet 820×900
-and mobile 390×844** and are readable without zoom (desktop 1280×900 captures are embedded
-throughout Parts 5–8 above):
+The 15 committed responsive captures below cover the major Lab 3 screens at **1024×900,
+tablet 820×900 and mobile 390×844** and are readable without zoom (desktop 1280×900 captures
+are embedded throughout Parts 5–8 above):
 
 ### Authentication — login and password change
 
@@ -557,9 +666,11 @@ throughout Parts 5–8 above):
 
 ### IT Staff Ticket Queue
 
-![Queue — tablet](../../artifacts/lab-03/screenshots/staff-queue/queue-11-list-tablet.png)
+![Queue — 1024px](../../artifacts/lab-03/screenshots/staff-queue/queue-13-list-narrow-desktop-1024.png)
 
-![Queue — mobile](../../artifacts/lab-03/screenshots/staff-queue/queue-12-list-mobile.png)
+![Queue — tablet (820px)](../../artifacts/lab-03/screenshots/staff-queue/queue-11-list-tablet.png)
+
+![Queue — mobile (390px)](../../artifacts/lab-03/screenshots/staff-queue/queue-12-list-mobile.png)
 
 ### IT Staff Ticket Detail
 

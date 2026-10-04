@@ -1,19 +1,17 @@
-Lab 3 — UNIT tests
-Branch: docs/lab3-test-evidence (based on main)
-main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
-Command: cd server && npx vitest run tests/lab-03/password-policy.unit.test.ts tests/lab-03/email-normalize.unit.test.ts tests/lab-03/session-lifecycle.unit.test.ts tests/lab-03/ticket-number.unit.test.ts
-========================================================================
 
+================================================================
+4) UNIT (Lab 3):  cd server && npx vitest run tests/lab-03/*.unit.test.ts
+================================================================
 
  RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
 
  ✓ tests/lab-03/email-normalize.unit.test.ts (6 tests) 1ms
  ✓ tests/lab-03/session-lifecycle.unit.test.ts (4 tests) 1ms
- ✓ tests/lab-03/password-policy.unit.test.ts (4 tests) 416ms
+ ✓ tests/lab-03/password-policy.unit.test.ts (4 tests) 434ms
  ✓ tests/lab-03/ticket-number.unit.test.ts (3 tests) 1ms
 
  Test Files  4 passed (4)
       Tests  17 passed (17)
-   Start at  17:24:37
-   Duration  820ms (transform 28ms, setup 0ms, collect 65ms, tests 419ms, environment 0ms, prepare 82ms)
+   Start at  19:29:05
+   Duration  819ms (transform 26ms, setup 0ms, collect 59ms, tests 438ms, environment 0ms, prepare 75ms)
 
