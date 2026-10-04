@@ -33,7 +33,7 @@ PRs in `il0lk3/TokTickIT` in return (two-way peer review).
 | Peer reviews I gave on my partner's Sprint 3 PRs | `artifacts/lab-03/report-evidence/part-1-git-evidence/05b-reviewed-partner-prs.png` |
 | GitHub Issues (all closed = Kanban Done) | `artifacts/lab-03/report-evidence/part-1-git-evidence/06-issues-done.png` |
 | GitHub Project board — all cards in Done | `artifacts/lab-03/report-evidence/part-1-git-evidence/kanban-done.png` |
-| Rendered reviewer.md | [docs/lab-03/reviewer.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/reviewer.md) |
+| **Rendered `reviewer.md` (in this report)** | `artifacts/lab-03/report-evidence/part-1-git-evidence/07-rendered-reviewer-md-p1.png` and `-p2.png` — see the two images at the end of this part |
 | README | [README.md](https://github.com/Achikan/TokTickIT/blob/main/README.md) |
 | .gitignore | [.gitignore](https://github.com/Achikan/TokTickIT/blob/main/.gitignore) |
 | Directory structure in the IDE | `artifacts/lab-03/report-evidence/part-1-git-evidence/02-directory-structure.png` |
@@ -79,16 +79,50 @@ second Issue 25 staging merge carrying the sheet-driven doc/evidence fixes.)
 
 ![.gitignore](../../artifacts/lab-03/report-evidence/part-1-git-evidence/04-gitignore.png)
 
+### Rendered `reviewer.md`
+
+The sheet asks for the reviewer record itself, not only a PR screenshot, so
+`docs/lab-03/reviewer.md` is rendered into this report below. It is the authoritative
+record: both partners, both directions of the review, every Lab 3 PR, the representative
+review comments and the responses, and the final verdicts. The black header band on each
+page carries the source path and the commit the render came from
+(`node scripts/render-docs.mjs`).
+
+Page 1 of 2 — author/reviewer, the two-way peer-review statement, the ten Lab 3 PRs authored
+and reviewed by the partner, and the first review comments:
+
+![Rendered reviewer.md — page 1 of 2](../../artifacts/lab-03/report-evidence/part-1-git-evidence/07-rendered-reviewer-md-p1.png)
+
+Page 2 of 2 — the remaining review responses, the five partner PRs reviewed in
+`il0lk3/TokTickIT`, and the outcome:
+
+![Rendered reviewer.md — page 2 of 2](../../artifacts/lab-03/report-evidence/part-1-git-evidence/07-rendered-reviewer-md-p2.png)
+
 ---
 
 ## Answer Part 2: Spec DD
 
 **Linked rendered copy:** [docs/lab-03/specification.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/specification.md)
 
-The Lab 3 specification is the engineering contract written **before** any implementation:
-PR **#49** (Issue 16: Sprint 3 Engineering Contract) merged on **2026-09-17 13:16 UTC**, and
-the first implementation PR **#50** (Issue 17: Database Migration & User Model) merged later on
-**2026-09-17 14:37 UTC**. The contract is split into three documents:
+The Lab 3 specification is the engineering contract written **before** any implementation.
+All four contract files were added in a single commit and released before the first line of
+Lab 3 code existed. The timestamps below are read from `git log --date=iso` and the GitHub
+REST API, and the captures are of the live github.com pages
+(`node scripts/evidence-spec-order.mjs`, raw output in
+`artifacts/lab-03/report-evidence/part-2-spec-evidence/01-spec-order.txt`):
+
+| Event | Timestamp (UTC) | Source |
+|---|---|---|
+| Contract committed — `specification.md`, `api-spec.md`, `ui-spec.md`, `tests.md` | **2026-09-17 12:42:24** | `git log --diff-filter=A` → `716684e4` on `feature/16-sprint-3-contract` |
+| PR **#49** merged into `lab3-staging` (Issue 16: Sprint 3 Engineering Contract) | **2026-09-17 13:16:13** | `gh api repos/Achikan/TokTickIT/pulls/49` (33m 49s after the commit) |
+| First implementation commit — database migration & User model | **2026-09-17 13:45:17** | `git log --ancestry-path 716684e4..main` → `90abb7fa` (29m 4s after the merge) |
+| PR **#50** opened (Issue 17: Database Migration & User Model) | **2026-09-17 13:45:36** | `gh api repos/Achikan/TokTickIT/pulls/50` |
+| PR **#50** merged | 2026-09-17 14:37:50 | `gh api repos/Achikan/TokTickIT/pulls/50` |
+
+**Contract → first implementation commit: 1h 2m 53s.** A scan of every pull request in the
+repository through the GitHub API confirms that **0** Lab 3 implementation PRs (#50 and up)
+were opened before PR #49 was merged — the count is measured, not asserted. The contract is
+split into three documents:
 
 - [specification.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/specification.md) — numbered requirements, business rules, the
   authorization rule, acceptance criteria, migration decisions (incl. the explicit
@@ -113,9 +147,59 @@ The numbered engineering contract includes:
 - **Definition of Done** requiring all scope implemented, all ACs satisfied, all planned
   automated tests passing from documented commands, and no required test skipped.
 
-The snapshot below records the exact file history and PR merge timestamps:
+### Ordering evidence
+
+The timeline, built from the timestamps above:
 
 ![Spec existed before implementation PRs](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/01-spec-before-impl.png)
+
+**The contract commit on GitHub** — `716684e4`, authored 2026-09-17 12:42:24 UTC. The green
+banner is added by the evidence script and quotes the absolute timestamp from
+`git log --date=iso`, because the GitHub UI itself only renders "2 weeks ago":
+
+![Contract commit 716684e4](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/06-github-spec-commit.png)
+
+**PR #49 — the specification release.** Opened 12:42:44 UTC, merged 13:16:13 UTC. The
+timeline underneath is the real GitHub conversation, including the reviewer's
+"requested changes" at 13:05:43 UTC that forced the `SUBMITTED → NEW` status-migration
+correction recorded in `specification.md`:
+
+![PR #49 — Sprint 3 Engineering Contract](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/04-github-pr49.png)
+
+**PR #50 — the first implementation PR.** Opened 13:45:36 UTC, i.e. **29 minutes after PR #49
+was merged** and only 19 seconds after the first implementation commit:
+
+![PR #50 — Database Migration & User Model](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/05-github-pr50.png)
+
+### Rendered specification documents
+
+The contract itself, rendered into this report rather than only linked.
+
+`specification.md` — numbered requirements, business rules, the authorization rule,
+acceptance criteria and the Definition of Done (5 pages):
+
+![Rendered specification.md — page 1](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/02-rendered-specification-md-p1.png)
+
+![Rendered specification.md — page 2](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/02-rendered-specification-md-p2.png)
+
+![Rendered specification.md — page 3](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/02-rendered-specification-md-p3.png)
+
+![Rendered specification.md — page 4](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/02-rendered-specification-md-p4.png)
+
+![Rendered specification.md — page 5](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/02-rendered-specification-md-p5.png)
+
+`api-spec.md` — endpoint contracts, authentication mechanism, request/response shapes,
+statuses, authorization and safe errors (5 pages):
+
+![Rendered api-spec.md — page 1](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/03-rendered-api-spec-md-p1.png)
+
+![Rendered api-spec.md — page 2](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/03-rendered-api-spec-md-p2.png)
+
+![Rendered api-spec.md — page 3](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/03-rendered-api-spec-md-p3.png)
+
+![Rendered api-spec.md — page 4](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/03-rendered-api-spec-md-p4.png)
+
+![Rendered api-spec.md — page 5](../../artifacts/lab-03/report-evidence/part-2-spec-evidence/03-rendered-api-spec-md-p5.png)
 
 ---
 
@@ -196,6 +280,25 @@ Lab 2 **48** + Lab 1 **5**. Client 98 = Lab 3 **53** + Lab 2 **42** + Lab 1 **3*
 against `e2e/lab-03` only, where 15 tests are defined and Playwright executes **25**
 across the desktop, tablet and mobile projects (RESP-01 ×5 and A11Y-01 ×5 re-run at tablet
 and mobile). Full breakdown in [`tests.md` §6.2](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/tests.md).
+
+### Rendered `tests.md` — Test DD and traceability
+
+The test plan itself, rendered into this report: the strategy, all 69 planned-test rows with
+their real file paths and Final status, the acceptance-criterion traceability matrix, the
+migration/regression evidence, the commands, and the final status with the per-category
+breakdown (6 pages).
+
+![Rendered tests.md — page 1](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p1.png)
+
+![Rendered tests.md — page 2](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p2.png)
+
+![Rendered tests.md — page 3](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p3.png)
+
+![Rendered tests.md — page 4](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p4.png)
+
+![Rendered tests.md — page 5](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p5.png)
+
+![Rendered tests.md — page 6](../../artifacts/lab-03/report-evidence/part-3-test-evidence/04-rendered-tests-md-p6.png)
 
 The untrimmed terminal output is committed as plain text in
 [`artifacts/lab-03/test-output/`](https://github.com/Achikan/TokTickIT/tree/main/artifacts/lab-03/test-output);
@@ -409,12 +512,34 @@ responsive Zen Green presentation.
 
 ## Answer Part 9: Zen Green UI and Responsive Evidence
 
-**Linked rendered copy:** [docs/lab-03/ui-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ui-spec.md)
+Both files are **rendered into this report** below, not just linked, so the checklist and the
+specification can be read without leaving the document. Rendered by
+`node scripts/render-docs.mjs`; each page is cut on a heading or table-row boundary so
+nothing is sliced mid-row.
 
-The completed **visual checklist** is [docs/lab-03/visual-inspection.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/visual-inspection.md)
-— checked against the code, the ui-spec §14 checklist (tokens/colors, editable vs read-only
-fields, validation placement, role navigation, Comments vs Notes distinction, badges,
-busy/disabled states) and the RESP-01 Playwright spec, with every item ✅.
+### Visual checklist — `visual-inspection.md`
+
+The eight-point checklist, checked against the code, the ui-spec §14 checklist (tokens and
+colors, editable vs read-only fields, validation placement, role navigation, Comments vs Notes
+distinction, badges, busy/disabled states) and the RESP-01 Playwright spec — every item ✅,
+each with the screenshot or spec that proves it:
+
+![Rendered visual-inspection.md](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/01-rendered-visual-inspection-md.png)
+
+### UI specification — `ui-spec.md`
+
+Color tokens, role/status/priority badges, every screen's structure, modes, controls and
+feedback, the screen-state matrix, the responsive rules and the accessibility rules
+(3 pages):
+
+![Rendered ui-spec.md — page 1](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/02-rendered-ui-spec-md-p1.png)
+
+![Rendered ui-spec.md — page 2](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/02-rendered-ui-spec-md-p2.png)
+
+![Rendered ui-spec.md — page 3](../../artifacts/lab-03/report-evidence/part-9-visual-evidence/02-rendered-ui-spec-md-p3.png)
+
+Source files: [visual-inspection.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/visual-inspection.md)
+and [ui-spec.md](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/ui-spec.md).
 
 The 14 committed responsive captures below cover the major Lab 3 screens at **tablet 820×900
 and mobile 390×844** and are readable without zoom (desktop 1280×900 captures are embedded
