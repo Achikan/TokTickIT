@@ -1,0 +1,69 @@
+================================================================
+Lab 3 — Part 2 evidence: the specification predates the code
+Repository: Achikan/TokTickIT
+Collected:      2026-10-04 11:14:22.750Z
+================================================================
+
+1. WHEN EACH CONTRACT FILE WAS FIRST COMMITTED (git log --diff-filter=A)
+----------------------------------------------------------------
+  716684e479  2026-09-17 19:42:24 +0700  docs(Issue 16): Sprint 3 engineering contract — specificat
+  716684e479  2026-09-17 19:42:24 +0700  docs(Issue 16): Sprint 3 engineering contract — specificat
+  716684e479  2026-09-17 19:42:24 +0700  docs(Issue 16): Sprint 3 engineering contract — specificat
+  716684e479  2026-09-17 19:42:24 +0700  docs(Issue 16): Sprint 3 engineering contract — specificat
+
+  All four contract files arrive in one commit:
+  716684e479  adds specification.md, api-spec.md, ui-spec.md, tests.md
+
+2. HISTORY OF THE CONTRACT FILES (git log --reverse)
+----------------------------------------------------------------
+  716684e  '2026-09-17 19:42'  docs(Issue 16): Sprint 3 engineering contract — specification, api-spec, ui-spec, tests
+  d10fde2  '2026-09-17 20:10'  docs(Issue 16): make Lab 3 status migration explicit re SUBMITTED->NEW (PR #34 review)
+  a0c8755  '2026-09-17 23:30'  fix(Issue 18): enforce full password policy (lower, upper, digit, special)
+  4823b78  '2026-09-18 15:03'  feat(Issue 21): IT Staff Ticket Queue — search, filters, sorting, pagination, responsive Zen Green UI
+  8de8609  '2026-09-18 16:01'  feat(Issue 22): IT Staff Ticket Detail — retrieve, ownership, IT priority, status transitions
+  f18d07a  '2026-09-19 13:57'  feat(Issue 23): Administrator User Management — list/search, create, edit, initial password, self/last-admin safety
+  269a46a  '2026-09-19 17:30'  chore(Issue 25): final review, screenshots & release evidence for Lab 3
+  deecaaa  '2026-09-19 17:56'  docs(Issue 25): fix tests.md E2E filenames/tags + capture login safe-failure UI
+  7bc68d5  '2026-09-29 21:32'  docs(Issue 25): close Lab 3 sheet checklist gaps (ui-spec modes & rationale, spec path convention, README local-only note)
+  43093dd  '2026-09-29 22:42'  docs(Issue 25): regenerate 75 UI screenshots + 6 API evidence, sync Lab 3 docs
+  afc7a56  '2026-09-29 23:57'  test(Issue 25): add UNIT-01..04 + STYLE-01/02 real tests, align tests.md to sheet's 7-column test plan
+  e2a1b65  '2026-10-04 17:53'  docs(lab-03): add real test-output evidence captured from main
+
+3. FIRST IMPLEMENTATION COMMITS (git log on schema/auth/App)
+----------------------------------------------------------------
+  90abb7fa9c  2026-09-17 20:45:17 +0700  feat(Issue 17): database migration & User model — replace Deve
+  bb7617e129  2026-09-17 21:37:49 +0700  Merge pull request #50 from Achikan/feature/17-database-migrat
+  37391d0e1f  2026-09-17 22:33:36 +0700  feat(Issue 18): authentication & authorization API
+
+4. PULL REQUEST TIMESTAMPS (gh api repos/Achikan/TokTickIT/pulls/{49,50})
+----------------------------------------------------------------
+  PR #49  Issue 16: Sprint 3 Engineering Contract
+    author   Achikan
+    branch   feature/16-sprint-3-contract -> lab3-staging
+    opened   2026-09-17 12:42:44 UTC
+    merged   2026-09-17 13:16:13 UTC
+    merge    f0f069feba
+  PR #50  Issue 17: Database Migration & User Model
+    author   Achikan
+    branch   feature/17-database-migration-user-model -> lab3-staging
+    opened   2026-09-17 13:45:36 UTC
+    merged   2026-09-17 14:37:50 UTC
+    merge    bb7617e129
+
+================================================================
+ORDERING
+================================================================
+  contract committed   2026-09-17 12:42:24 UTC   (716684e479)
+  PR #49 merged        2026-09-17 13:16:13 UTC   (specification release)
+  first code commit    2026-09-17 13:45:17 UTC   (90abb7fa9c)
+  PR #50 opened        2026-09-17 13:45:36 UTC   (first implementation PR)
+
+  contract -> PR #49 merged        33m 49s
+  PR #49 merged -> first code      29m 4s
+  contract -> first code commit   1h 2m 53s
+
+  Lab 3 implementation PRs (#50+) opened before PR #49 merged: 0 — none
+
+  The specification, API spec, UI spec and test plan were all committed and
+  merged BEFORE the first implementation commit. No implementation PR (#50+,
+  Issues 17-25) opened before PR #49 was merged.
