@@ -62,9 +62,15 @@ Token | Value | Intended Use
 
 - **Mode**: read-only list view (search/filter/sort/pagination; no inline edit).
 - Header: title, search box, filter controls (Status, Requested Priority, IT Priority, Owner incl. "Unassigned", Category), sort control, and pagination.
+- **Owner is a select, not a free-text id box.** Options are `All`, `Unassigned`, then every active IT Staff and Administrator by name from `GET /api/staff/assignees` (api-spec §6.1a). `All` omits `ownerId`; `Unassigned` sends `ownerId=unassigned`; a person sends their numeric id. It applies immediately, like the other selects.
+- **Search and filters stay mounted while results refresh.** The loading/failure/empty feedback is rendered next to the results, not instead of the controls, so changing two filters in a row always works.
 - Desktop table columns (justified set, avoid a mega-grid): Ticket Number, Summary, Category, Requested Priority, IT Priority, Current Status, Ticket Owner, Created, Last Updated, Open action.
   - **Why these columns**: each maps to a primary work-staff decision or filter in the queue — identity (`Ticket Number`, `Summary`), routing (`Category`, `Ticket Owner`), triage priority (`Requested Priority` / `IT Priority`), state (`Current Status`), and recency (`Created`, `Last Updated`). The Open action satisfies the primary staff task. Fields intentionally not columns (requester name, full description, attachments count, comment/note counters) are either visible in the row tooltip or reachable in one click from the Detail screen; they would only add noise to a scanning list.
   - **Why not a mega-grid**: Lab 2's requester table is a narrow, requester-owned list. A staff queue with every field as a column would exceed comfortable horizontal scan width, force visual truncation, and hurt readability — especially with 10 columns on a hinged tablet. The justified 10-column set above plus the exact same responsive card/table representation keeps every screen readable and usable per Section 9 without a horizontal scroll or a "frozen-panel tech-demo" layout.
+- **Breakpoint between the two representations**: the 10-column table is shown from **992px** up (`d-none d-lg-block`); below 992px the card list carries exactly the same information (`d-lg-none`). 992px is where the shell still has room for the full justified column set — at 820px it does not, and squeezing it in is what previously pushed the last column off screen.
+- **The table never scrolls sideways.** It uses `table-layout: fixed` with explicit column widths (`colgroup`, `.queue-table-fixed`), so its width is exactly its container's. There is no `overflow-x: auto` wrapper: a scrolling wrapper hides the defect instead of preventing it, and it is what allowed "Last Updated" to be cut off while the page itself reported no horizontal overflow.
+- **Timestamps are compact and machine-readable**: `2026-09-29 11:52` inside `<time dateTime="…">`, wrapping at the date/time space into two lines when the column is narrow. `toLocaleString()` output such as `9/29/2026, 11:52:03 AM` is 21 characters and is not used in the table.
+- **Wrapping rules inside the table**: Summary, Category, Owner and the status badge may wrap; Ticket Number and the priority badges must not be truncated. Long statuses such as `WAITING_FOR_REQUESTER` wrap rather than overflow, and every status/priority badge keeps a `title` with its full value.
 - Tablet/mobile: responsive representation (card or horizontal-scroll-free table) with the same information and an Open action.
 - Badges for status and both priorities; owner shown or "Unassigned".
 - States: loading, empty ("No tickets yet"), no-results (search/filters matched nothing) distinct, forbidden (non-staff), and safe failure.
@@ -99,10 +105,10 @@ Token | Value | Intended Use
 
 Viewport | Behavior
 ---|---
-Desktop ≥ 992px | Multi-column as specified; content centered with sensible max width.
-Tablet 768–991px | Two-column where practical; comments/notes stack cleanly.
+Desktop ≥ 992px | Multi-column as specified; content centered with sensible max width. The queue table is shown here with a fixed layout that fits its container.
+Tablet 768–991px | Two-column where practical; comments/notes stack cleanly. The staff queue uses its card representation here (see §5).
 Mobile < 768px | Fields and tables stack; touch-friendly buttons; no horizontal page scroll.
-All sizes | No clipped labels, overlapping messages, hidden buttons, or unreadable content.
+All sizes | No clipped labels, overlapping messages, hidden buttons, or unreadable content. Verified at 1280, 1024, 820 and 390 by `e2e/lab-03/responsive.spec.ts` (RESP-01).
 
 ## 10. Accessibility (unchanged from Lab 2)
 

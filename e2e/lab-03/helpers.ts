@@ -57,6 +57,88 @@ export async function expectNoHorizontalScroll(page: Page): Promise<void> {
   expect(overflow, "page must not scroll horizontally").toBeLessThanOrEqual(1);
 }
 
+// Nothing may be cut off or pushed out of view inside a clipping/scrolling box
+// (ui-spec §5, §9 — "no clipped labels, overlapping messages, hidden buttons").
+//
+// expectNoHorizontalScroll only measures the document element, so it stays green
+// while a `overflow-x: auto` wrapper hides a column that does not fit — exactly
+// how the queue table used to truncate "Last Updated". This walks the rendered
+// tree instead and fails on any element whose content is wider than its own box
+// when that box hides, clips or scrolls the overflow, and on any ellipsis
+// truncation.
+export async function expectNoClippedContent(page: Page, root = "body"): Promise<void> {
+  const problems = await page.evaluate((selector) => {
+    const found: string[] = [];
+    const scope = document.querySelector(selector) ?? document.body;
+    for (const el of scope.querySelectorAll<HTMLElement>("*")) {
+      const style = getComputedStyle(el);
+      if (style.display === "none" || style.visibility === "hidden") continue;
+      // Screen-reader-only text (Bootstrap .visually-hidden) is deliberately
+      // 1x1 and clipped; it is announced, not displayed, so it is not a defect.
+      if (el.closest(".visually-hidden, .visually-hidden-focusable, .sr-only") !== null) {
+        const holder = el.closest(".visually-hidden, .visually-hidden-focusable, .sr-only");
+        if (holder && holder !== el) continue;
+        if (el.classList.contains("visually-hidden")) continue;
+      }
+      if (el.getAttribute("aria-hidden") === "true") continue;
+      // Form controls report the width of their *value*, not of a laid-out
+      // child: a long value inside a normal-width input makes scrollWidth larger
+      // than clientWidth by design (the user simply scrolls inside the field).
+      // Clipping an input by an ancestor is still caught, because the ancestor
+      // itself is measured.
+      if (["INPUT", "TEXTAREA", "SELECT", "OPTION"].includes(el.tagName)) continue;
+      const box = el.getBoundingClientRect();
+      if (box.width === 0 && box.height === 0) continue;
+
+      const hides = ["hidden", "clip", "auto", "scroll"].includes(style.overflowX);
+      const wider = el.scrollWidth > el.clientWidth + 2;
+      if (hides && wider) {
+        found.push(
+          `${el.tagName.toLowerCase()}.${el.className || "(no class)"} overflow-x=${style.overflowX} ` +
+            `scrollWidth=${el.scrollWidth} clientWidth=${el.clientWidth} ` +
+            `text="${(el.textContent ?? "").trim().slice(0, 40)}"`
+        );
+      }
+      if (style.textOverflow === "ellipsis" && wider) {
+        found.push(
+          `${el.tagName.toLowerCase()}.${el.className || "(no class)"} truncated with ellipsis ` +
+            `text="${(el.textContent ?? "").trim().slice(0, 40)}"`
+        );
+      }
+    }
+    return found;
+  }, root);
+  expect(problems, `no clipped or sideways-scrolled content inside ${root}`).toEqual([]);
+}
+
+// Every declared table column is present, inside the viewport, and its text is
+// complete (no half-rendered timestamp or truncated header).
+export async function expectTableFullyVisible(page: Page): Promise<void> {
+  const report = await page.evaluate(() => {
+    const table = document.querySelector("table");
+    if (!table) return { error: "no table rendered", headers: [] as string[] };
+    const headers = [...table.querySelectorAll("thead th")].map((th) => (th.textContent ?? "").trim());
+    const box = table.getBoundingClientRect();
+    const cells = [...table.querySelectorAll("tbody td")];
+    const cutCells = cells
+      .filter((td) => td.scrollWidth > td.clientWidth + 2)
+      .map((td) => (td.textContent ?? "").trim().slice(0, 30));
+    return {
+      headers,
+      cutCells,
+      tableRight: Math.round(box.right),
+      viewportWidth: window.innerWidth,
+      rows: cells.length / Math.max(headers.length, 1),
+    };
+  });
+  expect(report.error).toBeUndefined();
+  expect(report.cutCells, "no table cell may cut off its own content").toEqual([]);
+  expect(
+    report.tableRight,
+    `the whole table must sit inside the viewport (${report.tableRight} vs ${report.viewportWidth})`
+  ).toBeLessThanOrEqual(report.viewportWidth + 1);
+}
+
 // ---------------------------------------------------------------------------
 // API helpers (fixtures)
 // ---------------------------------------------------------------------------
