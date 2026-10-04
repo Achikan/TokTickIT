@@ -217,3 +217,61 @@ input[type="file"]:focus-visible {
   background-color: #f1f3f5;
   color: #495057;
 }
+
+/* ---------------------------------------------------------------------------
+   Staff queue table (ui-spec §5, §9 — AC-13, AC-23).
+   The justified 10-column set must fit its container at >=992px with no
+   horizontal scroll, no clipped cell and no hidden column. A fixed layout with
+   explicit column widths guarantees that: the table can never grow wider than
+   its container, so nothing can be pushed out of view the way the old
+   nowrap "9/29/2026, 11:52:03 AM" timestamps were.
+   Dense columns use a slightly smaller type size and tighter cell padding so
+   the readable content fits; only wrapable values (summary, category, owner,
+   status, timestamps at the date/time space) are allowed to wrap.
+   --------------------------------------------------------------------------- */
+.queue-table-fixed {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.875rem;
+}
+.queue-table-fixed > :not(caption) > * > * {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  overflow-wrap: anywhere;
+}
+/* Bootstrap badges are nowrap; inside the fixed queue layout a long status
+   would overflow its cell, so allow it to wrap (the badge keeps a title). */
+.queue-table-fixed .badge {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+/* "2026-10-04 18:59" wraps at the space into date + time rather than being
+   clipped. */
+.queue-table-fixed time {
+  white-space: normal;
+  font-variant-numeric: tabular-nums;
+}
+.queue-col-number {
+  width: 10.5%;
+}
+.queue-col-summary {
+  width: 23%;
+}
+.queue-col-category {
+  width: 10%;
+}
+.queue-col-priority {
+  width: 6.5%;
+}
+.queue-col-status {
+  width: 10.5%;
+}
+.queue-col-owner {
+  width: 8%;
+}
+.queue-col-time {
+  width: 10%;
+}
+.queue-col-action {
+  width: 6.5%;
+}

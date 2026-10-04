@@ -6,6 +6,7 @@ import {
   requireAuth,
   requireRole,
 } from "./middleware.js";
+import { ELIGIBLE_OWNER_ROLES } from "./staffTicketDetail.js";
 
 // ---------------------------------------------------------------------------
 // Lab 3 (Issue 21) — IT Staff Ticket Queue (api-spec.md §6.1, labs-sheet §8.3).
@@ -217,6 +218,38 @@ staffQueueRouter.get(
       });
     } catch {
       res.status(500).json({ error: { code: "INTERNAL_ERROR", message: "Unable to list tickets" } });
+    }
+  }
+);
+// ---------------------------------------------------------------------------
+// Lab 3 (Issue 21 follow-up) — assignable owners for the queue Owner filter
+// (api-spec.md §6.1a, ui-spec.md §5).
+//
+// The Owner filter is expressed as ownerId in the queue query (§6.1), but a
+// free-text id box is not a usable filter and cannot be verified in the UI.
+// This endpoint returns the bounded set of users a ticket can actually be
+// assigned to — active IT Staff and Administrators — ordered by name, so the
+// client can render a select with "Unassigned" and "All" sentinels.
+// Inactive users are excluded: they cannot hold ownership.
+// ---------------------------------------------------------------------------
+
+staffQueueRouter.get(
+  "/assignees",
+  requireAuth,
+  blockPendingPasswordChange,
+  requireRole("IT_STAFF", "ADMIN"),
+  async (_req: Request, res: Response) => {
+    try {
+      const items = await getPrisma().user.findMany({
+        where: { role: { in: [...ELIGIBLE_OWNER_ROLES] }, active: true },
+        select: { id: true, name: true, role: true },
+        orderBy: { name: "asc" },
+      });
+      res.status(200).json({ items });
+    } catch {
+      res
+        .status(500)
+        .json({ error: { code: "INTERNAL_ERROR", message: "Unable to list assignable owners" } });
     }
   }
 );

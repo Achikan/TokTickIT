@@ -37,6 +37,7 @@ API-22 | API | AC-04, BR-04 | Requester requests Internal Note | 403; no note co
 API-23 | API | AC-17, BR-12 | Empty / whitespace / > 2,000 chars Comment/Note | 400 field error; nothing saved (append-only) | server/tests/lab-03/comments-notes.api.test.ts | Pass
 API-24 | API | FR-11, BR-05 | Requester indicates Problem Appears Resolved | 200 (idempotent); status unchanged; IT Staff can see it | server/tests/lab-03/comments-notes.api.test.ts | Pass
 API-25 | API | AC-13, FR-12 | Queue search / filter / sort / pagination | 200 correct items + pagination metadata + filtersApplied | server/tests/lab-03/staff-queue.api.test.ts | Pass
+API-25a | API | AC-13, AC-10 | Assignable owners list for the Owner filter | 200 active IT Staff/Admin by name; no Requester/inactive; 401/403 | server/tests/lab-03/staff-queue.api.test.ts | Pass
 API-26 | API | AC-13, BR-04 | Invalid search/filter/sort/page values | 400 specific error; not silently ignored | server/tests/lab-03/staff-queue.api.test.ts | Pass
 API-27 | API | AC-10, FR-06 | Queue requested by Requester | 403 without data | server/tests/lab-03/staff-queue.api.test.ts | Pass
 API-28 | API | FR-13 | Staff retrieve one Ticket | 200 full detail incl. comments/notes/attachments | server/tests/lab-03/staff-ticket-detail.api.test.ts | Pass
@@ -79,7 +80,7 @@ UI-17 | UI | AC-21 | Self/last-admin protection feedback | Conflict message show
 UI-18 | UI | AC-24 | Forbidden/failure feedback rendering | Safe messages on all screens | client/tests/lab-03/StaffTicketQueue.test.tsx | Pass
 STYLE-01 | UI Style | AC-23 | Role/status/priority badges; read-only vs editable | Assertions per ui-spec (colors, labels, markers) | client/tests/lab-03/style.test.tsx | Pass
 STYLE-02 | UI Style | AC-17 | Public Comments vs Internal Notes distinct | Distinct surface tint + Internal marker, text not color alone | client/tests/lab-03/style.test.tsx | Pass
-RESP-01 | Responsive | AC-23 | All major screens at desktop/tablet/mobile | No clipping/overlap/h-scroll; usable controls | e2e/lab-03/responsive.spec.ts | Pass
+RESP-01 | Responsive | AC-23 | All major screens at 1280 / 1024 / 820 / 390 | No page h-scroll, no clipped content, no overlap; usable controls; all 10 queue columns readable with a full page of realistic rows | e2e/lab-03/responsive.spec.ts | Pass
 A11Y-01 | Accessibility | AC-24, sheet §8.7 | Landmarks, labelled controls, keyboard usable | A11y assertions green at each viewport | e2e/lab-03/accessibility.spec.ts | Pass
 E2E-01 | E2E | AC-01..02 | Full auth flow: login → change password → logout → blocked | End-to-end gate + logout enforcement | e2e/lab-03/authentication.spec.ts | Pass
 E2E-02 | E2E | AC-02 | Initial-password (first login) change | App opens only after valid change | e2e/lab-03/authentication.spec.ts | Pass
@@ -103,7 +104,7 @@ AC-09 | API-09
 AC-10 | API-10, API-11, API-27
 AC-11 | API-15, UI-07
 AC-12 | MIGR-01, MIGR-02, API-16..18, UI-09
-AC-13 | API-25, API-26, UI-11
+AC-13 | API-25, API-25a, API-26, UI-11
 AC-14 | API-29, API-30, UI-13
 AC-15 | API-31, API-32, UI-13
 AC-16 | API-33, API-34, UI-13
@@ -113,7 +114,7 @@ AC-19 | API-36..38, UI-16, E2E-05
 AC-20 | API-39, API-40, UI-16, E2E-05
 AC-21 | API-41, API-42, UI-17
 AC-22 | API-11, API-43
-AC-23 | STYLE-01, RESP-01
+AC-23 | STYLE-01, RESP-01 (1280 / 1024 / 820 / 390)
 AC-24 | UI-12, UI-18, A11Y-01
 
 ## 4. Migration / Regression Evidence
@@ -126,16 +127,20 @@ AC-24 | UI-12, UI-18, A11Y-01
 - Server API/unit: `cd server && npm test`
 - Client UI/style: `cd client && npm test`
 - E2E + responsive: `npm run test:e2e` (root; starts the client on `:5173`; API must be running on `:3000`)
-- Visual screenshots: `npm run screenshots:lab3` (root; API on `:3000`, client on `:5173`) → 75 PNGs into `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` + 6 API/non-UI evidence captures into `artifacts/lab-03/api-evidence/`
+- Visual screenshots: `npm run screenshots:lab3` (root; API on `:3000`, client on `:5173`) → 76 PNGs into `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` + 6 API/non-UI evidence captures into `artifacts/lab-03/api-evidence/`
+- Machine-verified visual checklist: `node scripts/verify-visual-checklist.mjs` (root; API on `:3000`, client on `:5173`) → 220 measurements over 9 checklist items × 4 viewports × 3 roles, evidence in `artifacts/lab-03/visual-evidence/visual-check.{json,md}` and `docs/lab-03/visual-inspection.md`
 - Render test logs to PNG: `node scripts/render-test-logs.mjs` (root) → `artifacts/lab-03/test-output/png/`
+- Submission PDF: `npm run pdf:lab3` (root) → `docs/lab-03/report_lab03_67070505229.pdf` (and the `docs/` mirror) built from `docs/lab-03/report.md` with cover, clickable contents, 2–3 evidence images per A4 page and ≤ 10 MB; the same command runs `scripts/check-report-pdf.py`, which fails the build if the part order, cover identity, links, blank pages, legibility floor or size budget regress. Re-check an existing file with `npm run pdf:check`.
 
 ## 6. Final Status
 
-Every number below was produced by actually running the suites against `main`
-(commit `d3e2be44e2f02bdb843e07f077af29d6f5318d6f`, *Merge pull request #63 from
-Achikan/lab3-staging*, 2026-09-30). No count in this file was written by hand; the raw
-terminal output is committed under `artifacts/lab-03/test-output/` and rendered to PNG
-in `artifacts/lab-03/test-output/png/` (see §7).
+Every number below was produced by actually running the suites on branch
+`docs/lab3-test-evidence` at base commit `e8c75b6` plus the Part 6 fixes listed in
+`artifacts/lab-03/test-output/00-main-commit.txt` (captured 2026-10-04 19:24–19:33 +0700).
+The previous capture, taken from `main` (`d3e2be44`, PR #63), reported 195 / 98 / 25.
+No count in this file was written by hand; the raw terminal output is committed under
+`artifacts/lab-03/test-output/` and rendered to PNG in
+`artifacts/lab-03/test-output/png/` (see §7).
 
 Pre-flight check: a search of `server/tests`, `client/tests` and `e2e` for
 `test.skip` / `it.skip` / `describe.skip` / `.only(` / `xit(` / `xdescribe(` / `.todo(`
@@ -143,10 +148,10 @@ returned **0 matches** — nothing is skipped, focused or left as a todo.
 
 | Suite | Command | Result | Log |
 |---|---|---|---|
-| Server — unit + API (all labs) | `cd server && npm test` | **Pass — 195/195** (20 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
-| Client — UI + style (all labs) | `cd client && npm test` | **Pass — 98/98** (14 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
-| E2E + Responsive + Accessibility | `npm run test:e2e` | **Pass — 25/25** (0 failed, 0 skipped) | `06-e2e.txt` |
-| **Total** | — | **318 passed / 0 failed / 0 skipped** | `00-full-summary.txt` |
+| Server — unit + API (all labs) | `cd server && npm test` | **Pass — 199/199** (20 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
+| Client — UI + style (all labs) | `cd client && npm test` | **Pass — 101/101** (14 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
+| E2E + Responsive + Accessibility | `npm run test:e2e` | **Pass — 38/38** (0 failed, 0 skipped) | `06-e2e.txt` |
+| **Total** | — | **338 passed / 0 failed / 0 skipped** | `00-full-summary.txt` |
 
 ### 6.1 Breakdown by requirement category
 
@@ -155,37 +160,38 @@ Run separately so the rubric can see each category pass on its own.
 | Category | Command | Pass | Fail | Skip | Files | Log |
 |---|---|---|---|---|---|---|
 | Unit | `cd server && npx vitest run tests/lab-03/*.unit.test.ts` | **17** | 0 | 0 | 4 | `01-unit.txt` |
-| API / integration | `cd server && npx vitest run tests/lab-03/{auth,staff-queue,staff-ticket-detail,comments-notes,users-admin}.api.test.ts` | **106** | 0 | 0 | 5 | `02-api.txt` |
+| API / integration | `cd server && npx vitest run tests/lab-03/{auth,staff-queue,staff-ticket-detail,comments-notes,users-admin}.api.test.ts` | **110** | 0 | 0 | 5 | `02-api.txt` |
 | Authorization | `cd server && npx vitest run tests/lab-03/authorization.api.test.ts` | **12** | 0 | 0 | 1 | `03-authorization.txt` |
 | Migration / regression | `cd server && npx vitest run tests/lab-03/migration-regression.api.test.ts tests/lab-02` | **55** | 0 | 0 | 7 | `04-regression.txt` |
-| UI component + style | `cd client && npx vitest run tests/lab-03` | **53** | 0 | 0 | 7 | `05-ui-component.txt` |
-| E2E / responsive / a11y | `npm run test:e2e` | **25** | 0 | 0 | 6 specs | `06-e2e.txt` |
+| UI component + style | `cd client && npx vitest run tests/lab-03` | **56** | 0 | 0 | 7 | `05-ui-component.txt` |
+| E2E / responsive / a11y | `npm run test:e2e` | **38** | 0 | 0 | 6 specs | `06-e2e.txt` |
 
 ### 6.2 How the totals reconcile
 
-The 195 server / 98 client totals include the earlier labs, because Lab 3 must not
+The 199 server / 101 client totals include the earlier labs, because Lab 3 must not
 regress them. Split by lab:
 
 | Lab | Server | Client |
 |---|---|---|
-| Lab 3 (new in this issue) | 142 (11 files) | 53 (7 files) |
+| Lab 3 (new in this issue) | 146 (11 files) | 56 (7 files) |
 | Lab 2 (regression, must stay green) | 48 (6 files) | 42 (6 files) |
 | Lab 1 (baseline, must stay green) | 5 (3 files) | 3 (1 file) |
-| **Total** | **195 (20 files)** | **98 (14 files)** |
+| **Total** | **199 (20 files)** | **101 (14 files)** |
 
-Server Lab 3 = 17 unit + 106 API + 12 authorization + 7 migration-regression = **142**.
+Server Lab 3 = 17 unit + 110 API + 12 authorization + 7 migration-regression = **146**.
 The Lab 2 files sit inside `04-regression.txt`; the 5 Lab 1 tests (`seed`, `categories`,
 `health`) are baseline and only appear in the full run. E2E runs against `e2e/lab-03`
-only (`playwright.config.ts` sets `testDir` there), where 15 tests are defined and
-Playwright executes 25 across the desktop, tablet and mobile projects (RESP-01 ×5 and
-A11Y-01 ×5 re-run at tablet and mobile).
+only (`playwright.config.ts` sets `testDir` there), where 17 tests are defined and
+Playwright executes 38 across four viewport projects: the full suite runs on
+`desktop-chromium` (1280), while `narrow-desktop-chromium` (1024), `tablet-chromium`
+(820) and `mobile-chromium` (390) re-run RESP-01 (7 tests) and A11Y-01 (5 tests).
 
 ### 6.3 Issue-by-issue status
 
-- **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (27/27 tests in that file, per `02-api.txt`). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass** (8/8).
+- **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25, API-25a, API-26, API-27 → **Pass** (31/31 tests in that file, per `02-api.txt`). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18, AC-23 → **Pass** (11/11).
 - **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27, per `02-api.txt`). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass** (13/13).
-- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npm run test:e2e`**.
-- **Issue 25 (Final review)** — all 69 planned rows in §2 verified green against `main`: server **195/195**, client **98/98**, E2E **25/25**.
+- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`, 7 tests × 4 viewports) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 38/38 `npm run test:e2e`**.
+- **Issue 25 (Final review)** — every planned row in §2 verified green: server **199/199**, client **101/101**, E2E **38/38** (capture provenance in `00-main-commit.txt`).
 
 ## 7. Captured Test Evidence
 
@@ -202,12 +208,15 @@ monospace) produced by `node scripts/render-test-logs.mjs`.
 | Migration / regression | `04-regression.txt` | `png/04-regression.png` |
 | UI component + style | `05-ui-component.txt` | `png/05-ui-component.png` |
 | E2E / responsive / a11y | `06-e2e.txt` | `png/06-e2e.png` |
-| Provenance (`git log -1`) | `00-main-commit.txt` | — |
+| Provenance (branch, base commit, changed files) | `00-main-commit.txt` | — |
 
 Every capture starts with the same provenance header:
 
 ```
-main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Branch: docs/lab3-test-evidence
+Base commit: e8c75b6fb1d05aad10bfc69acb86223f661630f0 2026-10-04 18:19:15 +0700 docs(lab-03): render reviewer/ui-spec/visual-inspection in the report, prove spec-before-code
+Working tree: Lab 3 Part 6 fixes (queue table clipping, Owner filter select, /api/staff/assignees)
+Captured: 2026-10-04 19:24:31 +0700
 ```
 
 `02-api.txt` and `04-regression.txt` are long; their PNGs keep the header, the provenance

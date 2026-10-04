@@ -1,8 +1,15 @@
 # Lab 3 — AI Use and Reflection
 
-**LLM/agent used:** Anthropic Claude (claude-class) accessed as a coding agent through
+**LLM/agent used:** Anthropic Claude, accessed as a coding agent through
 [opencode](https://opencode.ai) — an agentic CLI that reads, edits, runs and verifies code in
 this repository (Spec-Driven Development + TDD, per the Lab 3 sheet).
+
+**Model version:** the exact model build used during Lab 3 was not recorded at the time, so it
+is stated here only as *Anthropic Claude* rather than guessed. What *is* recorded is the
+tooling and the method: every prompt below was issued through the opencode CLI against this
+repository, and every result was verified by running the suite locally rather than by reading
+the agent's summary. Where a number appears in this document it came from a command whose raw
+output is committed under `artifacts/lab-03/`.
 
 ## Selected key prompts (6–10)
 
@@ -19,8 +26,8 @@ and corrected the agent at each step.
 | 5 | "Preview the Admin user-management screen for self-deactivation and last-active-Administrator safety rules (BR)." | I asked the agent to surface the exact safety rules and then caught, via PR #57 review, that a weak new initial password showed the generic message instead of the server's specific reason; fixed it inline with `aria-invalid` + a UI-16 regression test (Issue 23). |
 | 6 | "Create the missing Playwright specs the config references — E2E-05, RESP-01 and A11Y-01 under e2e/lab-03." | My partner flagged these absent from PR #58; I matched the existing `helpers.ts` conventions, wired the specs to the desktop/tablet/mobile projects, added a `<main>` landmark for the A11Y landmarks test, and re-ran the whole suite (Issue 24). |
 | 7 | "Add `requester-flow.spec.ts` — drive a Requester submitting a Ticket through the Create Ticket UI under session auth (AC-12), then find/open it in My Tickets and manage its Attachment." | This closed the second review round on PR #58; I ported the Lab 2 E2E-01/E2E-02 flows and asserted the Requester is read from the session (read-only field), not a selector. |
-| 8 | "Generate desktop/tablet/mobile screenshots for authentication, staff-queue, staff-ticket-detail and user-management into artifacts/lab-03/screenshots." | Wrote `scripts/screenshots-lab3.mjs` that logs in through the real session-auth UI (including the mandatory first-password change) and captures 81 PNGs (75 UI into `artifacts/lab-03/screenshots/` + 6 API/non-UI evidence into `artifacts/lab-03/api-evidence/`); I debugged the fixtures myself (distinct active vs pending-password requesters per viewport, and the last-active-Administrator safety rule) instead of accepting a first draft that failed. |
-| 9 | "Fill tests.md Part 3 final status and reviewer.md from the real GitHub review threads on PRs #49–#58." | I pulled each PR's actual verdicts/comments via the GitHub API and put only verifiable numbers in `tests.md` (server 176 passed | 2 todo, client 93/93, E2E 25/25) — evidence, not memory. |
+| 8 | "Generate desktop/tablet/mobile screenshots for authentication, staff-queue, staff-ticket-detail and user-management into artifacts/lab-03/screenshots." | Wrote `scripts/screenshots-lab3.mjs` that logs in through the real session-auth UI (including the mandatory first-password change) and captures 82 PNGs (76 UI into `artifacts/lab-03/screenshots/` + 6 API/non-UI evidence into `artifacts/lab-03/api-evidence/`); I debugged the fixtures myself (distinct active vs pending-password requesters per viewport, and the last-active-Administrator safety rule) instead of accepting a first draft that failed. |
+| 9 | "Fill tests.md Part 3 final status and reviewer.md from the real GitHub review threads on PRs #49–#58." | I pulled each PR's actual verdicts and comments through the GitHub API (`gh pr view --json`), then re-ran every suite myself against `main` at commit `d3e2be4` and copied only the numbers that command produced: server **195/195** (20 files), client **98/98** (14 files), E2E **25/25**, with **0 failed and 0 skipped** anywhere — broken out per category as unit 17, API 106, authorization 12, regression 55, UI 53, E2E 25. The raw terminal output is committed under `artifacts/lab-03/test-output/` so every figure is checkable, and the first draft of this row claimed "server 176 passed, 2 todo", which I corrected because the current run has no todos left. |
 
 ## My Reflection
 

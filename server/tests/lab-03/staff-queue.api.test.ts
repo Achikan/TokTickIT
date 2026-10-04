@@ -247,3 +247,76 @@ describe("API-27: queue requested by a Requester -> 403 without data (AC-10, BR-
     expect(res.body.pagination).toBeUndefined();
   });
 });
+
+// API-25a: GET /api/staff/assignees — the Owner filter must offer real,
+// active IT Staff/Admin users, not raw ids (api-spec §6.1a, ui-spec §5).
+describe("API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10)", () => {
+  it("returns every active IT Staff and Administrator, ordered by name, without requesters or inactive users", async () => {
+    const client = await loginStaff(app);
+    const res = await client.get("/api/staff/assignees");
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.items)).toBe(true);
+
+    // Seeded roster: 3 active IT Staff (dan, eileen, frank), 1 active Admin
+    // (henri). Requesters and the inactive staff member (gina) must not appear.
+    expect(res.body.items).toHaveLength(4);
+    for (const item of res.body.items) {
+      expect(item).toMatchObject({
+        id: expect.any(Number),
+        name: expect.any(String),
+        role: expect.stringMatching(/^(IT_STAFF|ADMIN)$/),
+      });
+    }
+
+    const roles = res.body.items.map((u: { role: string }) => u.role);
+    expect(roles).toContain("IT_STAFF");
+    expect(roles).toContain("ADMIN");
+    expect(roles).not.toContain("REQUESTER");
+
+    const names = res.body.items.map((u: { name: string }) => u.name);
+    expect(names).not.toContain("Gina Hale"); // inactive IT Staff
+    expect(names).not.toContain("Alice Anderson"); // active Requester
+    expect([...names]).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+  });
+
+  it("is readable by an Administrator and omits pagination metadata", async () => {
+    const client = await loginAdmin(app);
+    const res = await client.get("/api/staff/assignees");
+
+    expect(res.status).toBe(200);
+    expect(res.body.items.length).toBeGreaterThan(0);
+    expect(res.body.pagination).toBeUndefined();
+  });
+
+  it("blocks unauthenticated access with 401 and a Requester with 403", async () => {
+    const anon = await request(app).get("/api/staff/assignees");
+    expect(anon.status).toBe(401);
+    expect(anon.body.error.code).toBe("UNAUTHORIZED");
+
+    const requesterClient = await loginRequester(app);
+    const res = await requesterClient.get("/api/staff/assignees");
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe("FORBIDDEN");
+    expect(res.body.items).toBeUndefined();
+  });
+
+  it("reflects a newly created active staff account so the filter is not hard-coded", async () => {
+    const admin = await loginAdmin(app);
+    const created = await admin.post("/api/admin/users").send({
+      name: "Zoe Newly Hired",
+      email: "zoe.newly@example.com",
+      role: "IT_STAFF",
+      active: true,
+      initialPassword: "ValidPass!23",
+    });
+    expect(created.status).toBe(201);
+
+    const client = await loginStaff(app);
+    const res = await client.get("/api/staff/assignees");
+    expect(res.status).toBe(200);
+    const names = res.body.items.map((u: { name: string }) => u.name);
+    expect(names).toContain("Zoe Newly Hired");
+    expect([...names]).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+  });
+});

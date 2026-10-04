@@ -1,1 +1,31 @@
-d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Lab 3 test evidence provenance
+=============================
+
+Branch:   docs/lab3-test-evidence
+Base:     e8c75b6fb1d05aad10bfc69acb86223f661630f0  2026-10-04 18:19:15 +0700
+          docs(lab-03): render reviewer/ui-spec/visual-inspection in the report, prove spec-before-code
+Plus:     uncommitted working-tree changes for the Part 6 fixes
+            client/src/StaffTicketQueue.tsx      owner <select>, compact <time> stamps, fixed table layout, filters stay mounted
+            client/src/styles.css                 .queue-table-fixed column widths and wrapping rules
+            client/src/api.ts                     fetchStaffAssignees()
+            server/src/staffQueue.ts              GET /api/staff/assignees
+            server/src/staffTicketDetail.ts       ELIGIBLE_OWNER_ROLES exported (shared source of truth)
+            server/tests/lab-03/staff-queue.api.test.ts   API-25a (+4 tests)
+            client/tests/lab-03/StaffTicketQueue.test.tsx UI-11 owner filter, compact stamps (+3 tests)
+            e2e/lab-03/helpers.ts                 expectNoClippedContent(), expectTableFullyVisible()
+            e2e/lab-03/responsive.spec.ts         RESP-01 +2 tests, clipping assertions on every screen
+            playwright.config.ts                  narrow-desktop-chromium project (1024px)
+
+Earlier capture (superseded): d3e2be44e2f02bdb843e07f077af29d6f5318d6f  2026-09-30 00:55:22 +0700
+          Merge pull request #63 from Achikan/lab3-staging — server 195, client 98, e2e 25.
+
+Captured: 2026-10-04 19:24–19:33 +0700
+Totals:   server 199/199 (20 files) · client 101/101 (14 files) · e2e 38/38 (4 viewport projects)
+          = 338 passed, 0 failed, 0 skipped
+Commands: cd server && npm test          -> 00-full-summary.txt
+          cd client && npm test          -> 00-full-summary.txt
+          npm run test:e2e               -> 06-e2e.txt
+          per-category commands           -> 01-unit.txt, 02-api.txt, 03-authorization.txt,
+                                            04-regression.txt, 05-ui-component.txt
+Pre-flight: rg for test.skip / it.skip / describe.skip / .only( / xit( / xdescribe( / .todo(
+            over server/tests client/tests e2e -> 0 matches.

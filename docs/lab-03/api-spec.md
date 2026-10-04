@@ -187,6 +187,16 @@ Success `200`:
 ```
 Errors: `401` unauthenticated, `403` Requester, `400` invalid query.
 
+### 6.1a Assignable Owners (queue Owner filter)
+
+`GET /api/staff/assignees` → `200 { "items": [ { "id": 7, "name": "Dan Das", "role": "IT_STAFF" } ] }`
+
+- **Purpose**: backs the queue `Owner` filter control so staff filter by a *name* instead of typing a raw user id (ui-spec §5, AC-13). Without it the only way to express `ownerId` is a free-text id, which is unusable and unverifiable in the UI.
+- **Roles**: IT Staff and Administrator only (`403` for Requester, `401` unauthenticated, blocked while a mandatory password change is pending — same guards as §6.1).
+- **Content**: every **active** user whose role is `IT_STAFF` or `ADMIN`, ordered by `name` ascending. Inactive users are excluded because they cannot hold or be given ownership.
+- **Not paginated**: the set is bounded by the staff/admin roster, so a bare `items` array is returned (no `pagination` object).
+- The client renders these options plus two sentinels: `unassigned` (→ `ownerId=unassigned`) and `""` (All — omit `ownerId`).
+
 ### 6.2 Single Ticket (Staff Detail)
 
 `GET /api/staff/tickets/:id` (IT Staff/Admin)

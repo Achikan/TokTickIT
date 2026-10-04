@@ -7,10 +7,11 @@
   "scripts": {
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-"screenshots": "node scripts/screenshots.mjs",
- "screenshots:lab3": "node scripts/screenshots-lab3.mjs",
- "report:evidence:lab3": "node scripts/evidence-lab3.mjs",
- "pdf:lab3": "node scripts/make-lab3-pdf.mjs"
+    "screenshots": "node scripts/screenshots.mjs",
+    "screenshots:lab3": "node scripts/screenshots-lab3.mjs",
+    "report:evidence:lab3": "node scripts/evidence-lab3.mjs",
+    "pdf:lab3": "node scripts/build-report.mjs",
+    "pdf:check": "python3 scripts/check-report-pdf.py docs/lab-03/report_lab03_67070505229.pdf docs/lab-03/report.md artifacts/lab-03/pdf-assets/manifest.json"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1"

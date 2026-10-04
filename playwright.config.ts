@@ -16,6 +16,9 @@ const API_URL = process.env.API_URL ?? "http://localhost:3000";
 // Standard viewports used by the responsive suite (ui-spec §9).
 export const VIEWPORTS = {
   desktop: { name: "desktop", width: 1280, height: 900 },
+  // 1024 is the awkward in-between width: it is still "desktop" by the md/lg
+  // grid, but the shell leaves the queue table much less room than at 1280.
+  narrowDesktop: { name: "narrow-desktop", width: 1024, height: 900 },
   tablet: { name: "tablet", width: 820, height: 900 },
   mobile: { name: "mobile", width: 390, height: 844 },
 } as const;
@@ -46,6 +49,13 @@ export default defineConfig({
       // Desktop runs every Lab 3 spec (E2E-01..05, RESP-01, A11Y-01).
       name: "desktop-chromium",
       use: { browserName: "chromium", viewport: VIEWPORTS.desktop },
+    },
+    {
+      // 1024 re-runs the responsive suite: the queue table is still shown here
+      // (>=992px) but with far less width than at 1280.
+      name: "narrow-desktop-chromium",
+      use: { browserName: "chromium", viewport: VIEWPORTS.narrowDesktop },
+      testMatch: /responsive\.spec\.ts/,
     },
     {
       // Tablet and mobile re-run the responsive suite at their viewports.

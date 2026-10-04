@@ -1,53 +1,51 @@
-Lab 3 — Migration / regression tests (Development Requester -> User, plus Lab 2 requester suites)
-Branch: docs/lab3-test-evidence (based on main)
-main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
-Command: cd server && npx vitest run tests/lab-03/migration-regression.api.test.ts tests/lab-02
-========================================================================
 
+================================================================
+7) MIGRATION / REGRESSION:  cd server && npx vitest run tests/lab-03/migration-regression.api.test.ts tests/lab-02
+================================================================
 
  RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
 
- ✓ tests/lab-02/my-tickets.api.test.ts (9 tests) 11969ms
-   ✓ GET /api/tickets (My Tickets) > returns only the signed-in requester's tickets (API-04, AC-05, FR-11) 1251ms
-   ✓ GET /api/tickets (My Tickets) > rejects an unauthenticated request with 401 (no session cookie) 1206ms
-   ✓ GET /api/tickets (My Tickets) > paginates and returns page metadata (API-05, AC-07, FR-12) 1210ms
-   ✓ GET /api/tickets (My Tickets) > narrows results by search and by filters (API-06, AC-07, FR-12) 1208ms
-   ✓ GET /api/tickets (My Tickets) > sorts results as requested (API-07, AC-07, FR-12) 1206ms
-   ✓ GET /api/tickets (My Tickets) > uses a deterministic secondary sort when sorting by a non-unique column 1199ms
-   ✓ GET /api/tickets (My Tickets) > rejects invalid page, size, sort, and filter values with 400 (API-08, BR-10) 1208ms
-   ✓ GET /api/tickets (My Tickets) > returns an empty list with correct metadata when there are no tickets (empty state) 1199ms
-   ✓ GET /api/tickets (My Tickets) > does not leak another requester's tickets through filters (BR-06) 1201ms
- ✓ tests/lab-02/attachments.api.test.ts (15 tests) 2393ms
- ✓ tests/lab-02/seed.test.ts (10 tests) 5600ms
+ ✓ tests/lab-02/my-tickets.api.test.ts (9 tests) 11836ms
+   ✓ GET /api/tickets (My Tickets) > returns only the signed-in requester's tickets (API-04, AC-05, FR-11) 1250ms
+   ✓ GET /api/tickets (My Tickets) > rejects an unauthenticated request with 401 (no session cookie) 1189ms
+   ✓ GET /api/tickets (My Tickets) > paginates and returns page metadata (API-05, AC-07, FR-12) 1193ms
+   ✓ GET /api/tickets (My Tickets) > narrows results by search and by filters (API-06, AC-07, FR-12) 1195ms
+   ✓ GET /api/tickets (My Tickets) > sorts results as requested (API-07, AC-07, FR-12) 1210ms
+   ✓ GET /api/tickets (My Tickets) > uses a deterministic secondary sort when sorting by a non-unique column 1184ms
+   ✓ GET /api/tickets (My Tickets) > rejects invalid page, size, sort, and filter values with 400 (API-08, BR-10) 1185ms
+   ✓ GET /api/tickets (My Tickets) > returns an empty list with correct metadata when there are no tickets (empty state) 1179ms
+   ✓ GET /api/tickets (My Tickets) > does not leak another requester's tickets through filters (BR-06) 1186ms
+ ✓ tests/lab-02/attachments.api.test.ts (15 tests) 2360ms
+ ✓ tests/lab-02/seed.test.ts (10 tests) 5522ms
    ✓ seed functions > seedRequesters is idempotent (upserts by email without duplicating) 547ms
-   ✓ seed functions > seedLab3 creates all users, tickets and categories 1117ms
-   ✓ seed functions > seedLab3 is idempotent — running twice does not duplicate records 2217ms
-   ✓ seed functions > seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6) 1113ms
- ✓ tests/lab-02/create-ticket.api.test.ts (7 tests) 9217ms
-   ✓ POST /api/tickets > creates a valid ticket and returns 201 with an official Ticket Number (API-01) 1219ms
-   ✓ POST /api/tickets > rejects a missing summary with field errors and no save (API-02) 1149ms
-   ✓ POST /api/tickets > defaults requestedPriority to MEDIUM when omitted (BR-06) 1152ms
-   ✓ POST /api/tickets > rejects a categoryId that does not reference an active category 1148ms
-   ✓ POST /api/tickets > rejects an unauthenticated request with 401 1148ms
-   ✓ POST /api/tickets > rejects a mutating request without the CSRF header with 403 1149ms
-   ✓ POST /api/tickets > ignores a client-supplied requesterId and uses the session identity (BR-06) 1157ms
- ✓ tests/lab-03/migration-regression.api.test.ts (7 tests) 8206ms
-   ✓ MIGR-01: Development Requester → User migration > at least one User with role REQUESTER exists (AC-12, FR-08) 1211ms
-   ✓ MIGR-01: Development Requester → User migration > inactive requester (evan.ellis) exists with active=false and role REQUESTER 1165ms
-   ✓ MIGR-01: Development Requester → User migration > GET /api/development-requesters no longer exists and returns 404 (selector removed) 1166ms
-   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > all seeded tickets have a valid requesterId referencing a User with role REQUESTER 1163ms
-   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets returns only Alice's tickets when signed in as Alice (FR-08) 1165ms
-   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets/:id returns ticket detail for an owned ticket (FR-08) 1163ms
-   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > attachment upload and retrieval still works with session auth (AC-12) 1172ms
- ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 6020ms
-   ✓ GET /api/tickets/:id (Ticket Detail) > returns the full Ticket detail for an owned ticket (API-10, FR-13) 1268ms
-   ✓ GET /api/tickets/:id (Ticket Detail) > rejects an unauthenticated request with 401 (no session cookie) 1211ms
-   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a Ticket owned by another requester (non-disclosing) (API-09, AC-03, FR-14) 1238ms
-   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a non-existent Ticket ID 1211ms
+   ✓ seed functions > seedLab3 creates all users, tickets and categories 1090ms
+   ✓ seed functions > seedLab3 is idempotent — running twice does not duplicate records 2182ms
+   ✓ seed functions > seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6) 1104ms
+ ✓ tests/lab-02/create-ticket.api.test.ts (7 tests) 9045ms
+   ✓ POST /api/tickets > creates a valid ticket and returns 201 with an official Ticket Number (API-01) 1182ms
+   ✓ POST /api/tickets > rejects a missing summary with field errors and no save (API-02) 1134ms
+   ✓ POST /api/tickets > defaults requestedPriority to MEDIUM when omitted (BR-06) 1138ms
+   ✓ POST /api/tickets > rejects a categoryId that does not reference an active category 1128ms
+   ✓ POST /api/tickets > rejects an unauthenticated request with 401 1132ms
+   ✓ POST /api/tickets > rejects a mutating request without the CSRF header with 403 1124ms
+   ✓ POST /api/tickets > ignores a client-supplied requesterId and uses the session identity (BR-06) 1134ms
+ ✓ tests/lab-03/migration-regression.api.test.ts (7 tests) 8127ms
+   ✓ MIGR-01: Development Requester → User migration > at least one User with role REQUESTER exists (AC-12, FR-08) 1217ms
+   ✓ MIGR-01: Development Requester → User migration > inactive requester (evan.ellis) exists with active=false and role REQUESTER 1153ms
+   ✓ MIGR-01: Development Requester → User migration > GET /api/development-requesters no longer exists and returns 404 (selector removed) 1154ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > all seeded tickets have a valid requesterId referencing a User with role REQUESTER 1148ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets returns only Alice's tickets when signed in as Alice (FR-08) 1149ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets/:id returns ticket detail for an owned ticket (FR-08) 1151ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > attachment upload and retrieval still works with session auth (AC-12) 1153ms
+ ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 5901ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns the full Ticket detail for an owned ticket (API-10, FR-13) 1243ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > rejects an unauthenticated request with 401 (no session cookie) 1192ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a Ticket owned by another requester (non-disclosing) (API-09, AC-03, FR-14) 1193ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a non-existent Ticket ID 1189ms
  ✓ tests/lab-02/ticket-number.test.ts (3 tests) 1ms
 
  Test Files  7 passed (7)
       Tests  55 passed (55)
-   Start at  17:27:54
-   Duration  44.56s (transform 67ms, setup 0ms, collect 518ms, tests 43.40s, environment 0ms, prepare 145ms)
+   Start at  19:31:52
+   Duration  43.77s (transform 67ms, setup 0ms, collect 388ms, tests 42.79s, environment 0ms, prepare 133ms)
 

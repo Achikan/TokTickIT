@@ -1,0 +1,28 @@
+$ git log --diff-filter=A --format='%h | %ad | %an | %s' --date=iso -- \
+      docs/lab-03/{specification,tests,api-spec,ui-spec}.md
+716684e | 2026-09-17 19:42:24 +0700 | kantawan | docs(Issue 16): Sprint 3 engineering contract — specification, api-spec, ui-spec, tests
+
+$ gh pr view <n> --json number,title,createdAt,mergedAt
+#49	Issue 16: Sprint 3 Engineering Contract	2026-09-17T12:42:44Z	2026-09-17T13:16:13Z
+#50	Issue 17: Database Migration & User Model	2026-09-17T13:45:36Z	2026-09-17T14:37:50Z
+#51	Issue 18: Authentication & Authorization API	2026-09-17T15:33:48Z	2026-09-17T16:38:27Z
+#52	Issue 19: Login & Authentication UI	2026-09-17T16:49:06Z	2026-09-17T17:15:41Z
+#53	feat(Issue 20): requester regression — session-authenticated identity, remove selector, public comments & resolution indication (#43)	2026-09-18T07:07:22Z	2026-09-18T07:45:39Z
+#54	feat(Issue 21): IT Staff Ticket Queue — search, filters, sorting, pagination, responsive Zen Green UI	2026-09-18T08:03:47Z	2026-09-18T08:43:45Z
+#55	feat(Issue 22): IT Staff Ticket Detail — ownership, IT priority, status transitions, comments & notes	2026-09-18T09:05:35Z	(never merged)
+#56	feat(Issue 22): IT Staff Ticket Detail — ownership, IT priority, status transitions, comments & notes (supersedes #55)	2026-09-18T12:05:50Z	2026-09-18T12:08:01Z
+#57	feat(Issue 23): Administrator User Management	2026-09-19T06:57:59Z	2026-09-19T07:56:24Z
+#58	feat(Issue 24): E2E testing, responsive & accessibility (#47)	2026-09-19T09:04:14Z	2026-09-19T10:06:46Z
+#59	feat(Issue 25): Final review, screenshots & release integration for Lab 3	2026-09-19T10:31:10Z	2026-09-19T11:05:18Z
+#60	docs(Issue 25): Lab 3 sheet checklist gap fixes (ui-spec modes/rationale, spec path, README note)	2026-09-29T14:33:05Z	2026-09-29T14:45:47Z
+#62	docs(Issue 25): real unit+style test coverage, sheet-format test plan, clipped responsive evidence	2026-09-29T16:59:12Z	2026-09-29T17:15:16Z
+#63	Release Lab 3 — TokTickIT (Sprint 3: session authentication, roles, staff queue, user management)	2026-09-29T17:18:11Z	2026-09-29T17:55:23Z
+
+contract committed   2026-09-17T19:42:24+07:00
+PR #49 merged        2026-09-17T13:16:13Z
+first impl commit    2026-09-17T20:45:17+07:00  90abb7fa9c
+PR #50 opened        2026-09-17T13:45:36Z
+
+#49 merged -> #50 opened            29m 23s
+contract -> first impl commit       1h 2m 53s
+impl PRs (#50+) opened before #49   0
