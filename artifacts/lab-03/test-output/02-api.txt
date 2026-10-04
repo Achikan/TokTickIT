@@ -1,0 +1,126 @@
+Lab 3 — API / integration tests (server/tests/lab-03)
+Branch: docs/lab3-test-evidence (based on main)
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Command: cd server && npx vitest run tests/lab-03/auth.api.test.ts tests/lab-03/staff-queue.api.test.ts tests/lab-03/staff-ticket-detail.api.test.ts tests/lab-03/comments-notes.api.test.ts tests/lab-03/users-admin.api.test.ts
+========================================================================
+
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
+
+ ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 35673ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1348ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1218ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1216ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1226ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1279ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1328ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1331ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1289ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1226ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1226ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1276ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1244ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1297ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1303ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1244ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1242ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1360ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1257ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1412ms
+   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1313ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1255ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects changing the last active Administrator's role with 409 1265ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1323ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1262ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1258ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1264ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1288ms
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts (21 tests) 28157ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns requester, owner, priorities, status, attachments, comments and notes 1339ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > is available to Administrators too 1269ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns 404 for a missing Ticket and 403 for a Requester, 401 when unauthenticated 1278ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > claims an unassigned Ticket, then reassigns it to another eligible user 1286ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > lets an Administrator own a Ticket as well 1287ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects a Requester as owner target and inactive users with 400 1282ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects missing / non-integer ownerId with 400 1283ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > forbids a Requester from claiming and returns 404 for a missing Ticket 1285ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > updates IT Priority for staff and persists it 1298ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > lets an Administrator update IT Priority too 1274ms
+   ✓ API-32: IT Priority change by a Requester is rejected (AC-15, BR-08) > returns 403 for a Requester, 400 for an invalid enum and 404 when missing 1279ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'NEW' -> 'OPEN' succeeds and persists 1283ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'OPEN' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1284ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'IN_PROGRESS' -> 'RESOLVED' succeeds and persists 1281ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'RESOLVED' -> 'CLOSED' succeeds and persists 1287ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'CLOSED' -> 'REOPENED' succeeds and persists 1290ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'REOPENED' -> 'CANCELLED' succeeds and persists 1286ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > lets an Administrator perform a permitted transition 1290ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > rejects transitions outside the matrix with a specific 409 1290ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > treats the same status and a terminal CANCELLED as forbidden 1301ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > returns 400 for an invalid enum, 403 for a Requester and 404 when missing 1289ms
+ ✓ tests/lab-03/auth.api.test.ts (20 tests) 24431ms
+   ✓ API-01: valid login > returns 200, sets an HttpOnly SameSite=Strict session cookie and the user identity 1212ms
+   ✓ API-01: valid login > returns the correct role for IT Staff and Admin logins 1210ms
+   ✓ API-01: valid login > validates missing/invalid input with 400 and field messages 1116ms
+   ✓ API-01: valid login > rejects a login without the CSRF header with 403 1097ms
+   ✓ API-02: invalid credentials > returns the same generic 401 for a wrong password and an unknown email (no enumeration) 1156ms
+   ✓ API-03: inactive account login > returns a clear non-disclosing 403 for a valid inactive account and creates no session 1152ms
+   ✓ API-03: inactive account login > still returns the generic 401 for an inactive account with a wrong password 1152ms
+   ✓ API-03: inactive account login > blocks the inactive IT Staff account too 1156ms
+   ✓ API-04: requiresPasswordChange gate > flags a first-login user and blocks normal endpoints until the password is changed 1161ms
+   ✓ API-05: weak / mismatched new password > rejects a too-short password with 400 field validation 1160ms
+   ✓ API-05: weak / mismatched new password > rejects a password missing any required character class 1155ms
+   ✓ API-05: weak / mismatched new password > rejects mismatched confirmation and a password equal to the current one 1156ms
+   ✓ API-05: weak / mismatched new password > rejects a wrong current password with 401 and keeps the user gated 1210ms
+   ✓ API-05: weak / mismatched new password > still requires the CSRF header 1151ms
+   ✓ API-06: valid password change > clears requiresPasswordChange and unlocks the normal application 1377ms
+   ✓ API-07: logout invalidates the session > returns 200 and makes subsequent protected calls 401 1170ms
+   ✓ API-07: logout invalidates the session > requires authentication to log out 1099ms
+   ✓ API-08: current user retrieval > returns the authenticated identity and role 1162ms
+   ✓ API-08: current user retrieval > ignores a client-supplied requesterId header 1158ms
+   ✓ API-08: current user retrieval > returns 401 without a session 1100ms
+ ✓ tests/lab-03/staff-queue.api.test.ts (27 tests) 32924ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > returns the full seeded queue with default sort and pagination metadata 1225ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > search matches summary, description and ticketNumber case-insensitively 1190ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by status, requestedPriority and itPriority independently 1187ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by ownerId, including the unassigned markers null / unassigned 1180ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by categoryId and relatedSystemId 1183ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > sorts by a valid column in both directions 1180ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > paginates with page/pageSize and reports metadata 1199ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > combines filters and echoes filtersApplied 1176ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > allows Administrators to view the queue (AC-10) 1174ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page zero' -> 400 with a specific message, never silently ignored 1174ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page negative' -> 400 with a specific message, never silently ignored 1175ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page non-numeric' -> 400 with a specific message, never silently ignored 1181ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize zero' -> 400 with a specific message, never silently ignored 1172ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize over max' -> 400 with a specific message, never silently ignored 1180ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize non-numeric' -> 400 with a specific message, never silently ignored 1184ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown status' -> 400 with a specific message, never silently ignored 1172ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown requestedPriority' -> 400 with a specific message, never silently ignored 1189ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown itPriority' -> 400 with a specific message, never silently ignored 1172ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'ownerId non-numeric' -> 400 with a specific message, never silently ignored 1171ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId zero' -> 400 with a specific message, never silently ignored 1173ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId non-numeric' -> 400 with a specific message, never silently ignored 1171ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'relatedSystemId negative' -> 400 with a specific message, never silently ignored 1172ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unsupported sort column' -> 400 with a specific message, never silently ignored 1177ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'garbage sort' -> 400 with a specific message, never silently ignored 1171ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > rejects a combination containing one invalid parameter 1175ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > blocks unauthenticated access with 401 1134ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > forbids a Requester and returns no data 1179ms
+ ✓ tests/lab-03/comments-notes.api.test.ts (11 tests) 15713ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > records the comment with author and creation time 1375ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > rejects an anonymous mutating request without the CSRF header 1319ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > returns the comment to all permitted roles and hides it from another Requester 1336ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > lets IT Staff post a Public Comment on any Ticket 1319ms
+   ✓ API-21: IT Staff/Admin create and list Internal Notes (AC-17, FR-18) > creates and lists a note for staff and admin 1322ms
+   ✓ API-22: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 without any note content for read and write 1333ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Public Comments 1319ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Internal Notes 1325ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > records the indication once and surfaces it without changing the status 1324ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > rejects the indication from IT Staff (Requester-only) with 403 1324ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > hides another Requester's ticket behind 404 1322ms
+
+ Test Files  5 passed (5)
+      Tests  106 passed (106)
+   Start at  17:25:06
+   Duration  138.01s (transform 77ms, setup 0ms, collect 585ms, tests 136.90s, environment 0ms, prepare 131ms)
+

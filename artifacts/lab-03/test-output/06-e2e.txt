@@ -1,0 +1,41 @@
+Lab 3 — End-to-end, responsive and accessibility tests (e2e/lab-03)
+Branch: docs/lab3-test-evidence (based on main)
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Command: npm run test:e2e   (playwright test; testDir=e2e/lab-03)
+Prereqs: API on :3000, Vite client on :5173
+========================================================================
+
+
+> toktickit-e2e@1.0.0 test:e2e
+> playwright test
+
+
+Running 25 tests using 1 worker
+
+  ✓   1 [desktop-chromium] › e2e/lab-03/accessibility.spec.ts:29:3 › Accessibility conventions (A11Y-01) › login screen: one h1, labelled inputs, and keyboard focus visibility (247ms)
+  ✓   2 [desktop-chromium] › e2e/lab-03/accessibility.spec.ts:50:3 › Accessibility conventions (A11Y-01) › mandatory Change Password screen: one h1 and labelled controls (473ms)
+  ✓   3 [desktop-chromium] › e2e/lab-03/accessibility.spec.ts:63:3 › Accessibility conventions (A11Y-01) › authenticated shell: banner, navigation and main landmarks with a single h1 (341ms)
+  ✓   4 [desktop-chromium] › e2e/lab-03/authentication.spec.ts:17:3 › Authentication end to end (E2E-01, E2E-02) › E2E-01: gates the app on first login, opens it after a valid change, and blocks access again after logout (661ms)
+  ✓   5 [desktop-chromium] › e2e/lab-03/authentication.spec.ts:52:3 › Authentication end to end (E2E-01, E2E-02) › E2E-02: rejects a policy-breaking new password and only proceeds after a valid one (617ms)
+  ✓   6 [desktop-chromium] › e2e/lab-03/requester-flow.spec.ts:14:3 › Requester ticket flow with session identity (AC-12) › creates a ticket through the UI, then finds and opens it in My Tickets (751ms)
+  ✓   7 [desktop-chromium] › e2e/lab-03/requester-flow.spec.ts:62:3 › Requester ticket flow with session identity (AC-12) › uploads and soft-removes an Attachment from the session-authenticated detail (1.1s)
+  ✓   8 [desktop-chromium] › e2e/lab-03/responsive.spec.ts:23:3 › Responsive layout across viewports (RESP-01) › guest screens show labelled, usable controls without horizontal scroll (116ms)
+  ✓   9 [desktop-chromium] › e2e/lab-03/responsive.spec.ts:34:3 › Responsive layout across viewports (RESP-01) › mandatory Change Password screen stays usable at every viewport (366ms)
+  ✓  10 [desktop-chromium] › e2e/lab-03/responsive.spec.ts:45:3 › Responsive layout across viewports (RESP-01) › Requester My Tickets and Ticket Detail have no clipping or hidden controls (633ms)
+  ✓  11 [desktop-chromium] › e2e/lab-03/responsive.spec.ts:70:3 › Responsive layout across viewports (RESP-01) › IT Staff queue and ticket detail have no clipping or hidden actions (728ms)
+  ✓  12 [desktop-chromium] › e2e/lab-03/responsive.spec.ts:92:3 › Responsive layout across viewports (RESP-01) › Administrator User Management has no clipping or hidden controls (350ms)
+  ✓  13 [desktop-chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:25:3 › IT Staff ticket flow (E2E-03, E2E-04) › E2E-03: staff claim, set IT priority, transition status, and post a comment and an internal note (991ms)
+  ✓  14 [desktop-chromium] › e2e/lab-03/staff-ticket-flow.spec.ts:83:3 › IT Staff ticket flow (E2E-03, E2E-04) › E2E-04: the Requester's resolution indication is visible to staff without changing the status (807ms)
+  ✓  15 [desktop-chromium] › e2e/lab-03/user-administration.spec.ts:19:3 › Administrator user management end to end (E2E-05) › E2E-05: admin creates a user; the new user must change the initial password at first login (2.2s)
+  ✓  16 [tablet-chromium] › e2e/lab-03/responsive.spec.ts:23:3 › Responsive layout across viewports (RESP-01) › guest screens show labelled, usable controls without horizontal scroll (113ms)
+  ✓  17 [tablet-chromium] › e2e/lab-03/responsive.spec.ts:34:3 › Responsive layout across viewports (RESP-01) › mandatory Change Password screen stays usable at every viewport (415ms)
+  ✓  18 [tablet-chromium] › e2e/lab-03/responsive.spec.ts:45:3 › Responsive layout across viewports (RESP-01) › Requester My Tickets and Ticket Detail have no clipping or hidden controls (642ms)
+  ✓  19 [tablet-chromium] › e2e/lab-03/responsive.spec.ts:70:3 › Responsive layout across viewports (RESP-01) › IT Staff queue and ticket detail have no clipping or hidden actions (734ms)
+  ✓  20 [tablet-chromium] › e2e/lab-03/responsive.spec.ts:92:3 › Responsive layout across viewports (RESP-01) › Administrator User Management has no clipping or hidden controls (352ms)
+  ✓  21 [mobile-chromium] › e2e/lab-03/responsive.spec.ts:23:3 › Responsive layout across viewports (RESP-01) › guest screens show labelled, usable controls without horizontal scroll (117ms)
+  ✓  22 [mobile-chromium] › e2e/lab-03/responsive.spec.ts:34:3 › Responsive layout across viewports (RESP-01) › mandatory Change Password screen stays usable at every viewport (418ms)
+  ✓  23 [mobile-chromium] › e2e/lab-03/responsive.spec.ts:45:3 › Responsive layout across viewports (RESP-01) › Requester My Tickets and Ticket Detail have no clipping or hidden controls (626ms)
+  ✓  24 [mobile-chromium] › e2e/lab-03/responsive.spec.ts:70:3 › Responsive layout across viewports (RESP-01) › IT Staff queue and ticket detail have no clipping or hidden actions (708ms)
+  ✓  25 [mobile-chromium] › e2e/lab-03/responsive.spec.ts:92:3 › Responsive layout across viewports (RESP-01) › Administrator User Management has no clipping or hidden controls (338ms)
+
+  25 passed (17.1s)

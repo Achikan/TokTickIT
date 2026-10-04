@@ -1,0 +1,22 @@
+Lab 3 — UI component + UI style tests (client/tests/lab-03)
+Branch: docs/lab3-test-evidence (based on main)
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Command: cd client && npx vitest run tests/lab-03
+========================================================================
+
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/client
+
+ ✓ tests/lab-03/style.test.tsx (5 tests) 199ms
+ ✓ tests/lab-03/RequesterRegression.test.tsx (7 tests) 366ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx (8 tests) 442ms
+ ✓ tests/lab-03/ChangePassword.test.tsx (2 tests) 441ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx (10 tests) 557ms
+ ✓ tests/lab-03/UserManagement.test.tsx (13 tests) 892ms
+ ✓ tests/lab-03/Login.test.tsx (8 tests) 951ms
+
+ Test Files  7 passed (7)
+      Tests  53 passed (53)
+   Start at  17:28:50
+   Duration  1.82s (transform 358ms, setup 368ms, collect 1.26s, tests 3.85s, environment 2.62s, prepare 452ms)
+

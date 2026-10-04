@@ -130,24 +130,79 @@ Criterion and Business Rule has a planned test whose name embeds the relevant ta
 `e2e/lab-03/authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`,
 `user-administration.spec.ts`, `responsive.spec.ts`, and `accessibility.spec.ts`.
 
-### Final pass status (from `main`-ready `lab3-staging`)
+### Final pass status — run against `main`
 
-| Suite | Count | Result |
+All suites were executed on `main` at commit
+`d3e2be44e2f02bdb843e07f077af29d6f5318d6f` (*Merge pull request #63 from
+Achikan/lab3-staging*, 2026-09-30). The screenshots below are the actual terminal
+output from that run — the `main` commit hash is printed in the header of every capture.
+Nothing in this section was typed by hand.
+
+| Suite | Command | Result |
 |---|---|---|
-| Server (unit + API) — `cd server && npm test` | 195 (20 files) | ✅ 195/195 |
-| Client (UI + style) — `cd client && npm test` | 98 | ✅ 98/98 |
-| E2E + responsive + accessibility — `npm run test:e2e` | 25 | ✅ 25/25 (E2E-01..05, RESP-01 ×5, A11Y-01 ×5) |
+| Server (unit + API) — `cd server && npm test` | 195 (20 files) | ✅ 195/195 — 0 failed, 0 skipped |
+| Client (UI + style) — `cd client && npm test` | 98 (14 files) | ✅ 98/98 — 0 failed, 0 skipped |
+| E2E + responsive + accessibility — `npm run test:e2e` | 25 | ✅ 25/25 — 0 failed, 0 skipped |
+| **Total** | 318 | ✅ **318 passed / 0 failed / 0 skipped** |
 
-Complete passing output, captured from the current implementation:
+Pre-flight check: searching `server/tests`, `client/tests` and `e2e` for `test.skip`,
+`it.skip`, `describe.skip`, `.only(`, `xit(`, `xdescribe(` and `.todo(` returns **0
+matches**, so nothing is skipped or left as a placeholder.
 
-![Server tests — 195 passed](../../artifacts/lab-03/report-evidence/part-3-test-evidence/01-server-tests-pass.png)
+#### Full run — all suites
 
-![Client tests — 98/98](../../artifacts/lab-03/report-evidence/part-3-test-evidence/02-client-tests-pass.png)
+![Full test summary — server 195, client 98, e2e 25](../../artifacts/lab-03/test-output/png/00-full-summary.png)
 
-![E2E + responsive + accessibility — 25/25](../../artifacts/lab-03/report-evidence/part-3-test-evidence/03-e2e-tests-pass.png)
+#### By requirement category
 
-(The rubric asks for output *from main*; the same code and counts are on `main` after the
-release PR merge — output above was generated from the Lab 3 release branch.)
+| Category | Pass | Fail | Skip | Files |
+|---|---|---|---|---|
+| Unit — `*.unit.test.ts` | ✅ 17 | 0 | 0 | 4 |
+| API / integration | ✅ 106 | 0 | 0 | 5 |
+| Authorization / role gates | ✅ 12 | 0 | 0 | 1 |
+| Migration / regression (Lab 2 suites) | ✅ 55 | 0 | 0 | 7 |
+| UI component + UI style | ✅ 53 | 0 | 0 | 7 |
+| E2E + responsive + accessibility | ✅ 25 | 0 | 0 | 6 specs |
+
+**Unit — 17/17**
+
+![Unit tests — 17 passed](../../artifacts/lab-03/test-output/png/01-unit.png)
+
+**API / integration — 106/106**
+
+![API tests — 106 passed](../../artifacts/lab-03/test-output/png/02-api.png)
+
+**Authorization — 12/12**
+
+![Authorization tests — 12 passed](../../artifacts/lab-03/test-output/png/03-authorization.png)
+
+**Migration / regression — 55/55**
+
+![Regression tests — 55 passed](../../artifacts/lab-03/test-output/png/04-regression.png)
+
+**UI component + style — 53/53**
+
+![UI tests — 53 passed](../../artifacts/lab-03/test-output/png/05-ui-component.png)
+
+**E2E + responsive + accessibility — 25/25**
+
+![E2E tests — 25 passed](../../artifacts/lab-03/test-output/png/06-e2e.png)
+
+#### How the totals reconcile
+
+The server and client totals include the earlier labs, because Lab 3 must not regress
+them. Server 195 = Lab 3 **142** (17 unit + 106 API + 12 authorization + 7 migration) +
+Lab 2 **48** + Lab 1 **5**. Client 98 = Lab 3 **53** + Lab 2 **42** + Lab 1 **3**. E2E runs
+against `e2e/lab-03` only, where 15 tests are defined and Playwright executes **25**
+across the desktop, tablet and mobile projects (RESP-01 ×5 and A11Y-01 ×5 re-run at tablet
+and mobile). Full breakdown in [`tests.md` §6.2](https://github.com/Achikan/TokTickIT/blob/main/docs/lab-03/tests.md).
+
+The untrimmed terminal output is committed as plain text in
+[`artifacts/lab-03/test-output/`](https://github.com/Achikan/TokTickIT/tree/main/artifacts/lab-03/test-output);
+the PNGs above are renders of those files (`node scripts/render-test-logs.mjs`). For the two
+longest logs the render keeps the header, the `main` commit line, every passing test file
+and the final `Test Files` / `Tests` / `Duration` block, and states how many per-test lines
+were trimmed.
 
 ---
 

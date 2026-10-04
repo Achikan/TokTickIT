@@ -1,0 +1,28 @@
+Lab 3 — Authorization / role-gate tests
+Branch: docs/lab3-test-evidence (based on main)
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+Command: cd server && npx vitest run tests/lab-03/authorization.api.test.ts
+========================================================================
+
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
+
+ ✓ tests/lab-03/authorization.api.test.ts (12 tests) 16001ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects every protected endpoint without a session 1265ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects unauthenticated mutating endpoints (CSRF present) with 401 1215ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > creates a ticket owned by the session user even when the body names someone else 1211ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > lists only the session user's tickets even when an X-Requester-Id header is sent 1206ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's ticket behind a 404 1213ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's attachment behind 404 for download and remove 1241ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids IT Staff from Requester-only endpoints with 403 1265ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids Admin from Requester-only endpoints with 403 1266ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > keeps reference data readable by every authenticated role 1323ms
+   ✓ API-13: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 for list and create without exposing note content 1228ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-10: a Requester requesting the staff queue is rejected with 403 (Issue 21) 1207ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-11: a non-Admin requesting user management is rejected with 403 (Issue 23) 1267ms
+
+ Test Files  1 passed (1)
+      Tests  12 passed (12)
+   Start at  17:27:29
+   Duration  16.26s (transform 52ms, setup 0ms, collect 152ms, tests 16.00s, environment 0ms, prepare 27ms)
+

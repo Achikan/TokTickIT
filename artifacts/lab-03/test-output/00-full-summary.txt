@@ -1,0 +1,71 @@
+================================================================
+Lab 3 — FULL TEST SUMMARY (all suites)
+Branch: docs/lab3-test-evidence
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+================================================================
+
+PRE-FLIGHT CHECK
+  rg over server/tests client/tests e2e for:
+    test.skip / it.skip / describe.skip / .only( / xit( / xdescribe( / .todo(
+  RESULT: 0 matches — no skipped, focused or todo tests remain.
+
+================================================================
+1. SERVER  (unit + API)      command: cd server && npm test
+================================================================
+ Test Files  20 passed (20)
+      Tests  195 passed (195)
+   Duration  203.15s (transform 118ms, setup 0ms, collect 1.33s, tests 200.02s, environment 1ms, prepare 420ms)
+
+================================================================
+2. CLIENT  (UI + style)      command: cd client && npm test
+================================================================
+ Test Files  14 passed (14)
+      Tests  98 passed (98)
+   Duration  2.22s (transform 530ms, setup 713ms, collect 2.35s, tests 7.36s, environment 4.54s, prepare 759ms)
+
+================================================================
+3. E2E + RESPONSIVE + A11Y   command: npm run test:e2e
+================================================================
+  25 passed (16.0s)
+
+================================================================
+RESULT TOTALS
+================================================================
+  server : 195 passed   0 failed   0 skipped   (20 test files)
+  client :  98 passed   0 failed   0 skipped   (14 test files)
+  e2e    :  25 passed   0 failed   0 skipped
+  ---------------------------------------------
+  TOTAL  : 318 passed   0 failed   0 skipped
+
+SCOPE BREAKDOWN (how the per-category logs add up)
+================================================================
+  SERVER 195
+    Lab 3 suites   142  (11 files)  = 01-unit 17 + 02-api 106 + 03-authorization 12
+                                + migration-regression 7
+    Lab 2 regress   48  ( 6 files)  = attachments 15, create-ticket 7,
+                                my-tickets 9, seed 10, ticket-detail 4,
+                                ticket-number 3      [inside 04-regression.txt]
+    Lab 1 baseline   5  ( 3 files)  = seed, categories, health
+                                (not Lab 3 scope; only in the full run)
+    142 + 48 + 5 = 195
+
+  CLIENT 98
+    Lab 3 UI/style  53  ( 7 files)  = 05-ui-component.txt
+    Lab 2 regress   42  ( 6 files)
+    Lab 1 baseline   3  ( 1 file )
+    53 + 42 + 3 = 98
+
+  E2E 25  (e2e/lab-03 only; playwright testDir = e2e/lab-03)
+
+================================================================
+PER-CATEGORY LOGS IN THIS FOLDER
+================================================================
+  01-unit.txt           17 tests /  4 files
+  02-api.txt           106 tests /  5 files
+  03-authorization.txt  12 tests /  1 file
+  04-regression.txt     55 tests /  7 files
+  05-ui-component.txt   53 tests /  7 files
+  06-e2e.txt            25 tests /  6 spec files
+
+Cross-check against docs/lab-03/tests.md section 6
+  (server 195/195, client 98/98, e2e 25/25): MATCHES

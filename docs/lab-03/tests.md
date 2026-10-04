@@ -127,20 +127,89 @@ AC-24 | UI-12, UI-18, A11Y-01
 - Client UI/style: `cd client && npm test`
 - E2E + responsive: `npm run test:e2e` (root; starts the client on `:5173`; API must be running on `:3000`)
 - Visual screenshots: `npm run screenshots:lab3` (root; API on `:3000`, client on `:5173`) → 75 PNGs into `artifacts/lab-03/screenshots/{authentication,staff-queue,staff-ticket-detail,user-management}/` + 6 API/non-UI evidence captures into `artifacts/lab-03/api-evidence/`
+- Render test logs to PNG: `node scripts/render-test-logs.mjs` (root) → `artifacts/lab-03/test-output/png/`
 
 ## 6. Final Status
 
-Populated by the corresponding implementation issues (18–25) as each suite turns green.
+Every number below was produced by actually running the suites against `main`
+(commit `d3e2be44e2f02bdb843e07f077af29d6f5318d6f`, *Merge pull request #63 from
+Achikan/lab3-staging*, 2026-09-30). No count in this file was written by hand; the raw
+terminal output is committed under `artifacts/lab-03/test-output/` and rendered to PNG
+in `artifacts/lab-03/test-output/png/` (see §7).
 
-| Suite | Command | Status |
+Pre-flight check: a search of `server/tests`, `client/tests` and `e2e` for
+`test.skip` / `it.skip` / `describe.skip` / `.only(` / `xit(` / `xdescribe(` / `.todo(`
+returned **0 matches** — nothing is skipped, focused or left as a todo.
+
+| Suite | Command | Result | Log |
+|---|---|---|---|
+| Server — unit + API (all labs) | `cd server && npm test` | **Pass — 195/195** (20 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
+| Client — UI + style (all labs) | `cd client && npm test` | **Pass — 98/98** (14 files, 0 failed, 0 skipped) | `00-full-summary.txt` |
+| E2E + Responsive + Accessibility | `npm run test:e2e` | **Pass — 25/25** (0 failed, 0 skipped) | `06-e2e.txt` |
+| **Total** | — | **318 passed / 0 failed / 0 skipped** | `00-full-summary.txt` |
+
+### 6.1 Breakdown by requirement category
+
+Run separately so the rubric can see each category pass on its own.
+
+| Category | Command | Pass | Fail | Skip | Files | Log |
+|---|---|---|---|---|---|---|
+| Unit | `cd server && npx vitest run tests/lab-03/*.unit.test.ts` | **17** | 0 | 0 | 4 | `01-unit.txt` |
+| API / integration | `cd server && npx vitest run tests/lab-03/{auth,staff-queue,staff-ticket-detail,comments-notes,users-admin}.api.test.ts` | **106** | 0 | 0 | 5 | `02-api.txt` |
+| Authorization | `cd server && npx vitest run tests/lab-03/authorization.api.test.ts` | **12** | 0 | 0 | 1 | `03-authorization.txt` |
+| Migration / regression | `cd server && npx vitest run tests/lab-03/migration-regression.api.test.ts tests/lab-02` | **55** | 0 | 0 | 7 | `04-regression.txt` |
+| UI component + style | `cd client && npx vitest run tests/lab-03` | **53** | 0 | 0 | 7 | `05-ui-component.txt` |
+| E2E / responsive / a11y | `npm run test:e2e` | **25** | 0 | 0 | 6 specs | `06-e2e.txt` |
+
+### 6.2 How the totals reconcile
+
+The 195 server / 98 client totals include the earlier labs, because Lab 3 must not
+regress them. Split by lab:
+
+| Lab | Server | Client |
 |---|---|---|
-| Server (unit + API) — Lab 3 | `cd server && npm test` | **Pass — 195/195 (20 files)** |
-| Client (UI + style) — Lab 3 | `cd client && npm test` | **Pass — 98/98** |
-| E2E + Responsive + Accessibility — Lab 3 | `npm run test:e2e` | **Pass — 25/25** (E2E-01..05, RESP-01, A11Y-01) |
+| Lab 3 (new in this issue) | 142 (11 files) | 53 (7 files) |
+| Lab 2 (regression, must stay green) | 48 (6 files) | 42 (6 files) |
+| Lab 1 (baseline, must stay green) | 5 (3 files) | 3 (1 file) |
+| **Total** | **195 (20 files)** | **98 (14 files)** |
 
-Issue-by-issue pass status (updated as each implementation lands):
+Server Lab 3 = 17 unit + 106 API + 12 authorization + 7 migration-regression = **142**.
+The Lab 2 files sit inside `04-regression.txt`; the 5 Lab 1 tests (`seed`, `categories`,
+`health`) are baseline and only appear in the full run. E2E runs against `e2e/lab-03`
+only (`playwright.config.ts` sets `testDir` there), where 15 tests are defined and
+Playwright executes 25 across the desktop, tablet and mobile projects (RESP-01 ×5 and
+A11Y-01 ×5 re-run at tablet and mobile).
 
-- **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (`cd server && npm test`, 12/12 queue tests). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass**.
-- **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27 admin tests). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass**.
-- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npx playwright test`**.
-- **Issue 25 (Final review)** — all planned rows above verified green at final review: server **195/195**, client **98/98**, E2E **25/25**.
+### 6.3 Issue-by-issue status
+
+- **Issue 21 (Staff Ticket Queue)** — `server/tests/lab-03/staff-queue.api.test.ts` API-25..27 → **Pass** (27/27 tests in that file, per `02-api.txt`). `client/tests/lab-03/StaffTicketQueue.test.tsx` UI-11, UI-12, UI-18 → **Pass** (8/8).
+- **Issue 23 (Administrator User Management)** — `server/tests/lab-03/users-admin.api.test.ts` API-35..43 → **Pass** (27/27, per `02-api.txt`). `client/tests/lab-03/UserManagement.test.tsx` UI-15..18 → **Pass** (13/13).
+- **Issue 24 (E2E, Responsive, Accessibility)** — `e2e/lab-03/` E2E-01..05 (`authentication.spec.ts`, `requester-flow.spec.ts`, `staff-ticket-flow.spec.ts`, `user-administration.spec.ts`) + RESP-01 (`responsive.spec.ts`) + A11Y-01 (`accessibility.spec.ts`) → **Pass — 25/25 `npm run test:e2e`**.
+- **Issue 25 (Final review)** — all 69 planned rows in §2 verified green against `main`: server **195/195**, client **98/98**, E2E **25/25**.
+
+## 7. Captured Test Evidence
+
+Committed under `artifacts/lab-03/test-output/`. The `.txt` files are the unmodified
+terminal output; the PNGs in `png/` are renders of those same files (dark background,
+monospace) produced by `node scripts/render-test-logs.mjs`.
+
+| Category | Raw log | Rendered PNG |
+|---|---|---|
+| Full summary (server + client + e2e) | `00-full-summary.txt` | `png/00-full-summary.png` |
+| Unit | `01-unit.txt` | `png/01-unit.png` |
+| API / integration | `02-api.txt` | `png/02-api.png` |
+| Authorization | `03-authorization.txt` | `png/03-authorization.png` |
+| Migration / regression | `04-regression.txt` | `png/04-regression.png` |
+| UI component + style | `05-ui-component.txt` | `png/05-ui-component.png` |
+| E2E / responsive / a11y | `06-e2e.txt` | `png/06-e2e.png` |
+| Provenance (`git log -1`) | `00-main-commit.txt` | — |
+
+Every capture starts with the same provenance header:
+
+```
+main commit: d3e2be44e2f02bdb843e07f077af29d6f5318d6f 2026-09-30 00:55:22 +0700 Merge pull request #63 from Achikan/lab3-staging
+```
+
+`02-api.txt` and `04-regression.txt` are long; their PNGs keep the header, the provenance
+line, every passing test file and the final `Test Files` / `Tests` / `Duration` block, and
+state how many per-test lines were trimmed. The untrimmed logs are committed alongside.
