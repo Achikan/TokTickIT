@@ -54,6 +54,7 @@ model User {
   ownedTickets          Ticket[]        @relation("Owner")
   comments              PublicComment[]
   notes                 InternalNote[]
+  actionsPerformed      ActionTaken[]
   sessions              Session[]
 }
 
@@ -110,11 +111,36 @@ model Ticket {
   attachments                Attachment[]
   comments                   PublicComment[]
   notes                      InternalNote[]
+  actions                    ActionTaken[]
 
   @@index([requesterId])
   @@index([ownerId])
   @@index([categoryId])
   @@index([relatedSystemId])
+}
+
+// Lab 4 (Issue 29) — Actions Taken work log. 1 Ticket : many Actions.
+// ticketId cascades with its Ticket (comments/notes pattern); performedById is
+// RESTRICT because Users are deactivated, never deleted (audit trail, D-9/D-4).
+// updatedAt is the optimistic-concurrency anchor for stale-update handling (BR-12, D-1).
+model ActionTaken {
+  id                Int      @id @default(autoincrement())
+  ticketId          Int
+  actionDateTime    DateTime
+  actionDescription String
+  result            String?
+  performedById     Int
+  followUpRequired  Boolean  @default(false)
+  followUpNote      String?
+  attachmentNotes   String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  ticket            Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  performedBy       User     @relation(fields: [performedById], references: [id])
+
+  @@index([ticketId])
+  @@index([performedById])
+  @@index([ticketId, actionDateTime])
 }
 
 model PublicComment {

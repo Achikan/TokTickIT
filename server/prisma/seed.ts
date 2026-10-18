@@ -40,12 +40,15 @@ export const REQUESTER_INITIAL_PASSWORD = "LostPass!23";
 export const STAFF_ADMIN_PASSWORD = "DevPass!23";
 
 export const USERS = [
-  // Requesters: 4 active + 1 inactive (must change their initial password).
+  // Requesters: 4 active + 1 inactive (must change their initial password),
+  // plus a fresh active requester with zero Tickets so dashboard zero-states
+  // can be demonstrated (specification.md §7.3, BR-19).
   { name: "Alice Anderson", email: "alice.anderson@example.com", role: "REQUESTER", active: true },
   { name: "Bob Brown", email: "bob.brown@example.com", role: "REQUESTER", active: true },
   { name: "Carol Chen", email: "carol.chen@example.com", role: "REQUESTER", active: true },
   { name: "David Diaz", email: "david.diaz@example.com", role: "REQUESTER", active: true },
   { name: "Evan Ellis", email: "evan.ellis@example.com", role: "REQUESTER", active: false },
+  { name: "Ivy Ing", email: "ivy.ing@example.com", role: "REQUESTER", active: true },
   // IT Staff: 3 active + 1 inactive.
   { name: "Dan Das", email: "dan.das@example.com", role: "IT_STAFF", active: true },
   { name: "Eileen Ford", email: "eileen.ford@example.com", role: "IT_STAFF", active: true },
@@ -327,6 +330,155 @@ export async function seedLab3(prisma: DbClient): Promise<{ tickets: { id: numbe
   return { tickets };
 }
 
+// ---------------------------------------------------------------------------
+// Lab 4 (Issue 29) — Actions Taken seed (specification.md §7.3, BR-18/BR-19).
+//
+// Coverage (MIG-04):
+//   * zero actions  : 1001 (NEW), 1005 (RESOLVED - grandfathered), 1006 (CLOSED -
+//                     grandfathered, also demos "recently resolved" without actions),
+//                     1008 (CANCELLED)
+//   * one action    : 1002, 1004 (follow-up required + note), 1007 (performer
+//                     differs from the Ticket Owner - BR-02)
+//   * many actions  : 1003 (three actions across three staff performers)
+//   * attachmentNotes example on 1003; follow-up No/Yes both present.
+//
+// Idempotency + legacy backfill: actions are seeded per ticket only while that
+// ticket has ZERO actions, so re-runs are no-ops AND an existing Lab 1-3
+// database (Tickets present, no Actions) receives its backfill on the first
+// Lab 4 seed (BR-18).
+//
+// Recency (BR-15, D-5): tickets that carry actions are "touched" to a recent
+// updatedAt so SD-05/RD-03/RD-04 have non-zero demo values; the fresh
+// requester (Ivy) keeps all metrics at zero for empty-state demos.
+// ---------------------------------------------------------------------------
+
+interface ActionSeed {
+  ticketNumber: string;
+  performerEmail: string;
+  actionDateTime: string; // ISO-8601 UTC
+  actionDescription: string;
+  result?: string;
+  followUpRequired?: boolean;
+  followUpNote?: string;
+  attachmentNotes?: string;
+  /** hours subtracted from now() for the parent Ticket's updatedAt touch */
+  touchTicketUpdatedAtHoursAgo?: number;
+}
+
+export const TICKET_ACTIONS: ActionSeed[] = [
+  {
+    ticketNumber: formatTicketNumber(1002),
+    performerEmail: "dan.das@example.com",
+    actionDateTime: "2026-10-10T09:15:00.000Z",
+    actionDescription: "Reviewed the VPN gateway logs; error 813 traces to an expired lab certificate.",
+    result: "New certificate installed on the gateway; asked the requester to reconnect.",
+    touchTicketUpdatedAtHoursAgo: 3,
+  },
+  {
+    ticketNumber: formatTicketNumber(1003),
+    performerEmail: "frank.gao@example.com",
+    actionDateTime: "2026-10-08T14:00:00.000Z",
+    actionDescription: "Cleared the paper path and cleaned the rollers of the floor-3 printer.",
+    result: "Test print succeeded twice; ordered a spare feeder as prevention.",
+    attachmentNotes: "printer-cleanup-photo.jpg - before/after picture of the roller assembly",
+    touchTicketUpdatedAtHoursAgo: 26,
+  },
+  {
+    ticketNumber: formatTicketNumber(1003),
+    performerEmail: "eileen.ford@example.com",
+    actionDateTime: "2026-10-09T10:30:00.000Z",
+    actionDescription: "Installed the spare feeder and ran a quick verification pass.",
+    result: "Feeder replaced; first pass completed without jams.",
+    attachmentNotes: "feeder-verification.txt",
+    touchTicketUpdatedAtHoursAgo: 24,
+  },
+  {
+    ticketNumber: formatTicketNumber(1003),
+    performerEmail: "dan.das@example.com",
+    actionDateTime: "2026-10-12T10:30:00.000Z",
+    actionDescription: "Follow-up inspection after the feeder replacement (recorded by a different staff member than the Ticket Owner).",
+    result: "No jams observed in a 24-hour soak test.",
+    attachmentNotes: "feeder-replacement-log.pdf",
+  },
+  {
+    ticketNumber: formatTicketNumber(1004),
+    performerEmail: "dan.das@example.com",
+    actionDateTime: "2026-10-14T11:45:00.000Z",
+    actionDescription: "Re-ran the CRM export with the finance date range; reproduced the missing-rows defect and opened a vendor ticket.",
+    result: "Vendor acknowledged a patch for the next release; waiting for the requester to confirm the export dates.",
+    followUpRequired: true,
+    followUpNote: "Re-run the export with the requester once the vendor patch is applied (target: next week).",
+    touchTicketUpdatedAtHoursAgo: 48,
+  },
+  {
+    ticketNumber: formatTicketNumber(1007),
+    performerEmail: "frank.gao@example.com",
+    actionDateTime: "2026-10-15T13:10:00.000Z",
+    actionDescription: "Traced the duplicate invoice job to a stuck scheduler lock; cleared the lock and re-queued a single run.",
+    result: "One clean invoice produced; monitoring the overnight batch after the reopen.",
+    touchTicketUpdatedAtHoursAgo: 5,
+  },
+];
+
+export async function seedActions(prisma: DbClient): Promise<number> {
+  let created = 0;
+  const checked = new Set<number>();
+  const alreadyHasActions = new Set<number>();
+  for (const a of TICKET_ACTIONS) {
+    const ticket = await prisma.ticket.findUnique({ where: { ticketNumber: a.ticketNumber } });
+    if (!ticket) continue;
+    // Zero-count guard, evaluated once per ticket: idempotent on re-run, and
+    // backfills legacy Lab 1-3 tickets that arrive with no actions (BR-18).
+    if (!checked.has(ticket.id)) {
+      checked.add(ticket.id);
+      const existing = await prisma.actionTaken.count({ where: { ticketId: ticket.id } });
+      if (existing > 0) alreadyHasActions.add(ticket.id);
+    }
+    if (alreadyHasActions.has(ticket.id)) continue;
+    const performer = await prisma.user.findUnique({
+      where: { email: a.performerEmail.toLowerCase() },
+    });
+    if (!performer) continue;
+    await prisma.actionTaken.create({
+      data: {
+        ticketId: ticket.id,
+        actionDateTime: new Date(a.actionDateTime),
+        actionDescription: a.actionDescription,
+        result: a.result ?? null,
+        performedById: performer.id,
+        followUpRequired: a.followUpRequired ?? false,
+        followUpNote: a.followUpNote ?? null,
+        attachmentNotes: a.attachmentNotes ?? null,
+      },
+    });
+    created += 1;
+    if (a.touchTicketUpdatedAtHoursAgo !== undefined) {
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { updatedAt: new Date(Date.now() - a.touchTicketUpdatedAtHoursAgo * 3_600_000) },
+      });
+    }
+  }
+  // Legacy-closed demo (RD-04 "recently resolved"): keep 1006 inside the
+  // 7-day window without inventing actions for it (it stays zero-action).
+  const closed = await prisma.ticket.findUnique({ where: { ticketNumber: formatTicketNumber(1006) } });
+  if (closed) {
+    await prisma.ticket.update({
+      where: { id: closed.id },
+      data: { updatedAt: new Date(Date.now() - 6 * 24 * 3_600_000) },
+    });
+  }
+  return created;
+}
+
+export async function seedLab4(
+  prisma: DbClient
+): Promise<{ tickets: { id: number; ticketNumber: string }[]; actionsCreated: number }> {
+  const { tickets } = await seedLab3(prisma);
+  const actionsCreated = await seedActions(prisma);
+  return { tickets, actionsCreated };
+}
+
 // Backwards-compatible alias used by Lab 2 seed callers (categories + systems + requesters).
 export async function seedLab2(prisma: DbClient): Promise<void> {
   await seedCategories(prisma);
@@ -336,13 +488,14 @@ export async function seedLab2(prisma: DbClient): Promise<void> {
 
 async function main() {
   const prisma = getPrisma();
-  const result = await seedLab3(prisma);
+  const result = await seedLab4(prisma);
   console.log(
     `Seeded ${CATEGORIES.length} categories, ${RELATED_SYSTEMS.length} related systems, ` +
       `${USERS.length} users (${USERS.filter((u) => u.role === "REQUESTER").length} requesters, ` +
       `${USERS.filter((u) => u.role === "IT_STAFF").length} IT staff, ` +
       `${USERS.filter((u) => u.role === "ADMIN").length} admin), ` +
-      `${TICKETS.length} tickets (${result.tickets.length} newly created) + sample comments/notes.`
+      `${TICKETS.length} tickets (${result.tickets.length} newly created), ` +
+      `${result.actionsCreated} actions taken (${TICKET_ACTIONS.length} planned) + sample comments/notes.`
   );
 }
 
