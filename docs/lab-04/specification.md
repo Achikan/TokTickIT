@@ -218,7 +218,7 @@ Every AC maps to at least one planned test (IDs finalized in `tests.md`, Issue 2
 
 ID | Criterion | Planned test(s)
 ---|---|---
-AC-01 | Given a permitted IT Staff user and valid data, when an Actions Taken is created, then it is saved under the correct Ticket with the authenticated creator recorded as Performed By. | API-TA-01 (`actions-taken.api.test.ts`), UI-TA-02, E2E-01
+AC-01 | Given a permitted IT Staff user and valid data, when an Actions Taken is created, then it is saved under the correct Ticket with the authenticated creator recorded as Performed By and the approved assignee (Ticket Owner) preserved. | API-TA-01 (`actions-taken.api.test.ts`, includes owner-preserved assertion), UI-TA-02, E2E-01
 AC-02 | Given an authenticated Requester, when dashboard data is retrieved, then only metrics and recent Tickets owned by that Requester are returned. | API-RD-01 (`requester-dashboard.api.test.ts`), UI-RD-01
 AC-03 | Given a client that tampers with the performer field, when an Action is created, then Performed By is still the session user. | API-TA-02
 AC-04 | Given Follow-Up Required = Yes without a Follow-up Note (or with an empty/over-length note), when the Action is submitted, then `400` field validation is returned and nothing is saved; with a valid note it saves. | API-TA-03, UI-TA-03
@@ -280,4 +280,9 @@ Meaningful choices not fixed by the handout (numbered decisions also referenced 
 - **D-10 — Lab 4 transition matrix**: kept identical to the approved Lab 3 matrix (statuses and role rules already enforced there); Lab 4 adds the BR-11 resolution gate and formalizes the matrix as the single source of truth in this specification (§5.2).
 - **D-11 — Requester dashboard roles**: Administrators do not get a separate requester-style dashboard; they reuse the IT Staff dashboard plus AD-01 (sheet §4.6 allows reuse). A Staff/Admin calling the requester endpoint receives `403` to keep scope rules unambiguous.
 - **D-12 — Document path convention**: the handout mixes separators; this repository uses `lab-04` consistently (`docs/lab-04/`, `server/tests/lab-04/`, `client/tests/lab-04/`, `e2e/lab-04/`, `artifacts/lab-04/`), continuing the Lab 3 convention.
+- **D-13 — Ticket Detail control mapping**: the single IT Staff Ticket Detail screen hosts three distinct control groups that must not be conflated in UI or E2E design:
+  1. **Owner assignment** governs ticket coordination — claim/reassign to an active IT Staff/Administrator only; inactive assignees are rejected (Lab 3 eligibility rules).
+  2. **Status transitions** govern ticket completion and cancellation — only matrix-permitted transitions (§5.2), with `RESOLVED` additionally gated by the BR-11 Actions Taken requirement.
+  3. **Actions Taken section** governs the line-by-line work log — create, edit, and view of individual actions (BR-02 allows a performer different from the Owner); it never changes Ticket Owner or status by itself.
+  Recording an Action therefore leaves Owner and status untouched (AC-01), and each control group maps to its own API path (`/owner`, `/status`, `/actions`).
 - **Spec-before-code**: this contract is committed on `feature/26-sprint4-contract-spec` before the main implementation PRs (Issues 29–37) are completed, providing the ordering evidence required by grading Part 2.
