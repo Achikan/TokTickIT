@@ -60,6 +60,7 @@ function wrap(agent: ReturnType<typeof request.agent>): ApiClient {
 
 export async function resetDatabase(): Promise<void> {
   const prisma = getPrisma();
+  await prisma.actionTaken.deleteMany();
   await prisma.internalNote.deleteMany();
   await prisma.publicComment.deleteMany();
   await prisma.attachment.deleteMany();
