@@ -528,6 +528,9 @@ export interface StaffTicketDetailData extends StaffTicket {
   description: string;
   relatedSystem: { id: number; name: string; type: string };
   requesterIndicatedResolvedAt: string | null;
+  // Recorded Actions on this Ticket; drives the BR-11 resolution-gate pre-check
+  // (api-spec.md §2.3, Issue 32/33). Optional so older fixtures stay valid.
+  actionsCount?: number;
   attachments: AttachmentInfo[];
   comments: TicketComment[];
   notes: TicketNote[];
@@ -574,14 +577,17 @@ export async function updateStaffTicketPriority(
 }
 
 // PATCH /api/staff/tickets/:id/status — permitted transition only (FR-16, BR-09).
+// Carries the `updatedAt` the caller last saw so a concurrent write is a 409
+// STALE_UPDATE rather than a silent overwrite (D-1, BR-12).
 export async function updateStaffTicketStatus(
   ticketId: number,
-  newStatus: Status
+  newStatus: Status,
+  expectedUpdatedAt: string
 ): Promise<StaffTicket> {
   const res = await apiFetch(`/api/staff/tickets/${ticketId}/status`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ newStatus }),
+    body: JSON.stringify({ newStatus, expectedUpdatedAt }),
   });
   if (!res.ok) throw await toApiError(res, "Unable to update the ticket status.");
   const body = await res.json();
