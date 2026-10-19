@@ -13,6 +13,7 @@ import { ticketCommunicationRouter } from "./communication.js";
 import { staffQueueRouter } from "./staffQueue.js";
 import { staffTicketDetailRouter } from "./staffTicketDetail.js";
 import { adminUsersRouter } from "./adminUsers.js";
+import { actionsTakenRouter } from "./actionsTaken.js";
 import {
   blockPendingPasswordChange,
   csrfProtection,
@@ -52,6 +53,10 @@ app.use("/api/staff", staffTicketDetailRouter);
 // Lab 3 (Issue 23) — Administrator User Management: list/search/filter, create,
 // edit and set a new initial password (api-spec.md §7, FR-19..FR-22/AC-18..AC-22).
 app.use("/api/admin", adminUsersRouter);
+
+// Lab 4 (Issue 30) — Actions Taken API (api-spec.md §1): create/update under
+// /api/staff/tickets/:id/actions, list under /api/tickets/:id/actions.
+app.use("/api", actionsTakenRouter);
 
 // ---------------------------------------------------------------------------
 // Issue 11 — Attachment upload configuration (BR-07).
