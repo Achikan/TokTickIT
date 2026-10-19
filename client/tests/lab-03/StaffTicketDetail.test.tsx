@@ -68,7 +68,10 @@ describe("StaffTicketDetail", () => {
     // Operational controls for ownership, IT Priority and status.
     expect(screen.getByRole("button", { name: /Claim ticket/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/IT Priority value/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/New status/i)).toBeInTheDocument();
+    // Lab 4 Issue 33 replaced the Lab 3 status <select> with a permitted-only
+    // button row (ui-spec §6); NEW opens with its matrix choices.
+    expect(screen.getByRole("button", { name: "Open" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cancel Ticket" })).toBeInTheDocument();
   });
 
   it("UI-13: claims a Ticket and reflects the new owner", async () => {
@@ -132,19 +135,19 @@ describe("StaffTicketDetail", () => {
     render(<StaffTicketDetail user={DAN} ticket={SUMMARY} onBack={() => {}} />);
     await screen.findByRole("heading", { name: "TK-001001" });
 
-    // NEW may only move to OPEN / IN_PROGRESS / CANCELLED.
-    const select = screen.getByLabelText(/New status/i);
-    expect(within(select).getByRole("option", { name: "OPEN" })).toBeInTheDocument();
-    expect(within(select).getByRole("option", { name: "CANCELLED" })).toBeInTheDocument();
-    expect(within(select).queryByRole("option", { name: "RESOLVED" })).toBeNull();
+    // NEW may only move to OPEN / IN_PROGRESS / CANCELLED (ui-spec §6 button row).
+    const row = screen.getByTestId("workflow-actions");
+    expect(within(row).getByRole("button", { name: "Open" })).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Start Progress" })).toBeInTheDocument();
+    expect(within(row).getByRole("button", { name: "Cancel Ticket" })).toBeInTheDocument();
+    expect(within(row).queryByRole("button", { name: "Resolve" })).toBeNull();
 
-    await user.selectOptions(select, "OPEN");
-    await user.click(screen.getByRole("button", { name: /Update Status/i }));
+    await user.click(screen.getByRole("button", { name: "Open" }));
 
     expect(statusSpy).toHaveBeenCalledWith(101, "OPEN", DETAIL.updatedAt);
-    // A forbidden transition surface a specific conflict, not a hidden option.
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      /cannot move from NEW to RESOLVED/i
+    // A forbidden transition surfaces a specific conflict, not a hidden option.
+    expect(await screen.findByTestId("workflow-forbidden")).toHaveTextContent(
+      /no longer allowed/i
     );
   });
 
