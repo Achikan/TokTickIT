@@ -459,6 +459,9 @@ export interface StaffTicket {
   currentStatus: Status;
   createdAt: string;
   updatedAt: string;
+  // Present on workflow responses (PATCH status, action create) so clients can
+  // keep the BR-11 resolve pre-check in sync without a refetch (Issue 33).
+  actionsCount?: number;
 }
 
 export interface StaffQueueQuery {

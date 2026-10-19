@@ -232,6 +232,9 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
             itPriority: updated.itPriority,
             currentStatus: updated.currentStatus,
             updatedAt: updated.updatedAt,
+            // Preserve the recorded-Action count from the response so the BR-11
+            // resolve pre-check stays consistent across transitions (Issue 33).
+            actionsCount: updated.actionsCount ?? d.actionsCount,
           }
         : d
     );
@@ -537,7 +540,7 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
             ticketId={detail.id}
             currentStatus={detail.currentStatus}
             expectedUpdatedAt={detail.updatedAt}
-            actionsCount={detail.actionsCount ?? actions.length}
+            actionsCount={Math.max(detail.actionsCount ?? 0, actions.length)}
             onTransitioned={applyUpdatedSummary}
             onReloadTicket={reloadTicket}
           />
@@ -554,9 +557,18 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
         ticketCreatedAt={detail.createdAt}
         onCreated={(action, ticketSummary) => {
           setActions((list) => sortActionsNewestFirst([...list, action]));
-          // Creating an Action advances the Ticket's updatedAt server-side; keep
-          // the cached anchor in sync so later writes do not see a stale version.
-          setDetail((d) => (d ? { ...d, updatedAt: ticketSummary.updatedAt } : d));
+          // Creating an Action advances the Ticket's updatedAt server-side and
+          // raises its action count; sync both so the cached anchor stays fresh
+          // and the resolve pre-check un-gates without a reload (Issue 33).
+          setDetail((d) =>
+            d
+              ? {
+                  ...d,
+                  updatedAt: ticketSummary.updatedAt,
+                  actionsCount: ticketSummary.actionsCount,
+                }
+              : d
+          );
         }}
         onUpdated={(updated) =>
           setActions((list) => list.map((a) => (a.id === updated.id ? updated : a)))

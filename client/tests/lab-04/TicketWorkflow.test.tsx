@@ -185,6 +185,8 @@ describe("UI-WF-02: conflict, gate and stale feedback", () => {
     expect(callout).toHaveTextContent(/changed by someone else/i);
     await user.click(within(callout).getByRole("button", { name: /Reload ticket/i }));
     expect(onReloadTicket).toHaveBeenCalled();
+    // The conflict callout clears once the reload is requested (Issue 33 review).
+    expect(screen.queryByTestId("workflow-stale")).toBeNull();
   });
 
   it("falls back to a safe failure message for unexpected errors", async () => {
@@ -285,6 +287,51 @@ describe("UI-WF-01 (integration): the summary status badge refreshes in place", 
     // Insync badge: the Current Status row now shows IN_PROGRESS.
     const statusBadge = container.querySelector(".badge-status-in-progress");
     expect(statusBadge).toHaveTextContent("IN_PROGRESS");
+  });
+});
+
+// ---------------------------------------------------------------------------
+describe("UI-WF-01 (integration): the resolve pre-check follows on-screen Actions", () => {
+  it("un-gates Resolve when an Action is on screen despite a zero actionsCount", async () => {
+    vi.spyOn(api, "fetchStaffTicketDetail").mockResolvedValue({
+      ...summaryWith({ currentStatus: "IN_PROGRESS" }),
+      description: "Battery drains fast.",
+      relatedSystem: { id: 1, name: "ERP System", type: "Application" },
+      requesterIndicatedResolvedAt: null,
+      // Stale server count: the on-screen Action list must still un-gate Resolve.
+      actionsCount: 0,
+      attachments: [],
+      comments: [],
+      notes: [],
+      availableOwners: [{ id: 6, name: "Dan Das" }],
+    });
+    vi.spyOn(api, "fetchTicketActions").mockResolvedValue([
+      {
+        id: 501,
+        ticketId: 101,
+        actionDateTime: "2026-09-01T10:30:00.000Z",
+        actionDescription: "Swapped the battery.",
+        result: "Full charge.",
+        performedBy: { id: 6, name: "Dan Das", role: "IT_STAFF" },
+        followUpRequired: false,
+        followUpNote: null,
+        attachmentNotes: null,
+        createdAt: "2026-09-01T10:31:00.000Z",
+        updatedAt: "2026-09-01T10:31:00.000Z",
+      },
+    ]);
+
+    render(
+      <StaffTicketDetail
+        user={DAN}
+        ticket={summaryWith({ currentStatus: "IN_PROGRESS" })}
+        onBack={() => {}}
+      />
+    );
+    await screen.findByRole("heading", { name: "TK-001001" });
+
+    expect(screen.getByRole("button", { name: "Resolve" })).toBeEnabled();
+    expect(screen.queryByText(/Record at least one Action Taken first/i)).toBeNull();
   });
 });
 

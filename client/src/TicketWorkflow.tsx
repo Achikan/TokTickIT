@@ -85,6 +85,12 @@ export default function TicketWorkflow({
     setConfirmingCancel(false);
   }, [currentStatus]);
 
+  // A refreshed concurrency anchor means the parent re-read the Ticket, so any
+  // conflict/gate feedback is resolved and must not linger (Issue 33 review).
+  useEffect(() => {
+    setError(null);
+  }, [expectedUpdatedAt]);
+
   // Move focus to the confirmation button so the destructive step is keyboard
   // operable without a mouse (ui-spec §9).
   useEffect(() => {
@@ -123,6 +129,13 @@ export default function TicketWorkflow({
     } finally {
       setBusyTarget(null);
     }
+  }
+
+  // Clears the stale-conflict callout immediately, then asks the parent to
+  // re-read the Ticket (ui-spec §6).
+  function handleReload() {
+    setError(null);
+    onReloadTicket();
   }
 
   function renderButton(to: Status) {
@@ -231,7 +244,7 @@ export default function TicketWorkflow({
           <button
             type="button"
             className="btn btn-outline-secondary btn-sm ms-1"
-            onClick={onReloadTicket}
+            onClick={handleReload}
           >
             Reload ticket
           </button>
