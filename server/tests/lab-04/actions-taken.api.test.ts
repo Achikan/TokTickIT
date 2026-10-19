@@ -338,6 +338,16 @@ describe("API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06)",
       );
     expect(newest.status).toBe(201);
   });
+
+  it("drops a Follow-up Note sent with Follow-Up Required No (BR-05 iff)", async () => {
+    const res = await dan
+      .post(`/api/staff/tickets/${aliceTicket.id}/actions`)
+      .send(validCreate({ followUpRequired: false, followUpNote: "Should not be stored." }));
+
+    expect(res.status).toBe(201);
+    expect(res.body.action.followUpRequired).toBe(false);
+    expect(res.body.action.followUpNote).toBeNull();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -481,6 +491,28 @@ describe("API-TA-08: update permitted fields only (AC-09, BR-06)", () => {
       performedBy: { id: danId },
     });
     expect(res.body.action.attachmentNotes).toBe("battery-report.png — final diagnostic tab");
+  });
+
+  it("clears a stored Follow-up Note when the flag is turned off without sending the note", async () => {
+    const created = await dan
+      .post(`/api/staff/tickets/${aliceTicket.id}/actions`)
+      .send(validCreate({ followUpRequired: true, followUpNote: "Needs a trial replacement." }));
+    expect(created.status).toBe(201);
+    expect(created.body.action.followUpNote).toBe("Needs a trial replacement.");
+
+    // Only the flag is sent: the stale Note must not survive it (BR-05 "iff").
+    const res = await dan
+      .patch(`/api/staff/tickets/${aliceTicket.id}/actions/${created.body.action.id}`)
+      .send({ followUpRequired: false, expectedUpdatedAt: created.body.action.updatedAt });
+
+    expect(res.status).toBe(200);
+    expect(res.body.action.followUpRequired).toBe(false);
+    expect(res.body.action.followUpNote).toBeNull();
+
+    const stored = await getPrisma().actionTaken.findUniqueOrThrow({
+      where: { id: created.body.action.id },
+    });
+    expect(stored.followUpNote).toBeNull();
   });
 
   it("requires a non-empty note when the merged follow-up flag stays true", async () => {

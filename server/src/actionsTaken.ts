@@ -34,14 +34,6 @@ const PERFORMER_INCLUDE = {
   performedBy: { select: { id: true, name: true, role: true } },
 } satisfies Prisma.ActionTakenInclude;
 
-type ActionWithPerformer = Prisma.ActionTakenGetPayload<{ include: typeof PERFORMER_INCLUDE }>;
-
-const ticketNotFound = (res: Response) =>
-  res.status(404).json({ error: { code: "NOT_FOUND", message: "Ticket not found." } });
-
-const actionNotFound = (res: Response) =>
-  res.status(404).json({ error: { code: "NOT_FOUND", message: "Action not found." } });
-
 function validationError(res: Response, fields: Record<string, string>) {
   return res
     .status(400)
@@ -215,10 +207,13 @@ function validateActionInput(
       followUpRequired = body.followUpRequired;
     }
   }
-  const followUpNote = optionalText(body.followUpNote, "followUpNote", fields);
+  let followUpNote = optionalText(body.followUpNote, "followUpNote", fields);
   if (followUpRequired && !followUpNote) {
     fields.followUpNote = "A Follow-up Note is required when follow-up is needed.";
   }
+  // BR-05 is an "if and only if": with Follow-Up Required No the Note must not
+  // exist, so a stale Note is dropped rather than stored alongside a false flag.
+  if (!followUpRequired) followUpNote = null;
 
   let actionDateTime = now;
   if (body.actionDateTime !== undefined && body.actionDateTime !== null) {
