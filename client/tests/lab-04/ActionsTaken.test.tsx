@@ -249,6 +249,50 @@ describe("Actions Taken (UI-TA-01..06)", () => {
     expect(within(form).getByLabelText("Action Description")).toHaveValue("Follow up with vendor");
   });
 
+  it("UI-TA-02/BR-07: inserts a backdated action newest-first and refreshes the ticket timestamp", async () => {
+    vi.spyOn(api, "fetchTicketActions").mockResolvedValue([ACTION_FOLLOW_UP]);
+    const backdated: api.TicketAction = {
+      ...CREATED_ACTION,
+      id: 800,
+      actionDateTime: "2026-09-01T08:00:00.000Z",
+      actionDescription: "Backdated earlier action",
+    };
+    const newTicketSummary: api.TicketActionTicketSummary = {
+      ...CREATED_TICKET_SUMMARY,
+      updatedAt: "2026-09-01T14:00:00.000Z",
+    };
+    vi.spyOn(api, "createTicketAction").mockResolvedValue({
+      action: backdated,
+      ticket: newTicketSummary,
+    });
+
+    const user = userEvent.setup();
+    renderStaff();
+    await screen.findByRole("heading", { name: "Actions Taken" });
+
+    await user.click(screen.getByRole("button", { name: "Add Action" }));
+    const form = screen.getByRole("form", { name: /Add action/i });
+    await user.type(
+      within(form).getByLabelText("Action Description"),
+      "Backdated earlier action"
+    );
+    await user.click(within(form).getByRole("button", { name: "Save Action" }));
+
+    // BR-07: the older action lands below the newer one, not at the top.
+    await waitFor(() =>
+      expect(screen.getAllByText("Backdated earlier action").length).toBeGreaterThan(0)
+    );
+    const table = screen.getByTestId("actions-table");
+    const bodyRows = within(table).getAllByRole("row").slice(1);
+    expect(bodyRows[0].textContent).toContain(ACTION_FOLLOW_UP.actionDescription);
+    expect(bodyRows[1].textContent).toContain("Backdated earlier action");
+
+    // The Ticket's cached updatedAt follows the create response (BR-12 anchor).
+    expect(
+      screen.getByText(new Date(newTicketSummary.updatedAt).toLocaleString())
+    ).toBeInTheDocument();
+  });
+
   it("UI-TA-04: requester sees the actions read-only with no write controls", async () => {
     vi.spyOn(api, "fetchTicketDetail").mockResolvedValue(REQUESTER_DETAIL);
     vi.spyOn(api, "fetchTicketComments").mockResolvedValue([]);

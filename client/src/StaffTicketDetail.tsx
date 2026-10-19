@@ -18,7 +18,7 @@ import {
   updateStaffTicketPriority,
   updateStaffTicketStatus,
 } from "./api.js";
-import { ActionsTakenSection } from "./ActionsTaken.js";
+import { ActionsTakenSection, sortActionsNewestFirst } from "./ActionsTaken.js";
 
 // Lab 3 Issue 22 — IT Staff Ticket Detail (ui-spec.md §6, labs-sheet §8.4).
 // Grouped Ticket information with only permitted operational fields editable:
@@ -207,7 +207,7 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     let cancelled = false;
     fetchTicketActions(ticket.id)
       .then((items) => {
-        if (!cancelled) setActions(items);
+        if (!cancelled) setActions(sortActionsNewestFirst(items));
       })
       .catch(() => {});
     return () => {
@@ -602,7 +602,13 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
         actions={actions}
         editable
         performerName={user.name}
-        onCreated={(action) => setActions((list) => [action, ...list])}
+        ticketCreatedAt={detail.createdAt}
+        onCreated={(action, ticketSummary) => {
+          setActions((list) => sortActionsNewestFirst([...list, action]));
+          // Creating an Action advances the Ticket's updatedAt server-side; keep
+          // the cached anchor in sync so later writes do not see a stale version.
+          setDetail((d) => (d ? { ...d, updatedAt: ticketSummary.updatedAt } : d));
+        }}
         onUpdated={(updated) =>
           setActions((list) => list.map((a) => (a.id === updated.id ? updated : a)))
         }

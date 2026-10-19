@@ -17,7 +17,7 @@ import {
   removeAttachment,
   uploadAttachment,
 } from "./api.js";
-import { ActionsTakenSection } from "./ActionsTaken.js";
+import { ActionsTakenSection, sortActionsNewestFirst } from "./ActionsTaken.js";
 
 const PRIORITY_BADGES: Record<Priority, string> = {
   LOW: "badge-priority-low",
@@ -408,7 +408,7 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
     let cancelled = false;
     fetchTicketActions(ticket.id)
       .then((items) => {
-        if (!cancelled) setActions(items);
+        if (!cancelled) setActions(sortActionsNewestFirst(items));
       })
       .catch(() => {});
     return () => {

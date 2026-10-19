@@ -4,6 +4,7 @@ import {
   type Role,
   type TicketAction,
   type TicketActionInput,
+  type TicketActionTicketSummary,
   createTicketAction,
   updateTicketAction,
 } from "./api.js";
@@ -53,6 +54,15 @@ function roleLabel(role: Role): string {
   return ROLE_LABELS[role];
 }
 
+// BR-07: newest Action Date/Time first, ties broken by id descending. Creating a
+// backdated Action must slot it into this order, not simply prepend it.
+export function sortActionsNewestFirst(list: TicketAction[]): TicketAction[] {
+  return [...list].sort((a, b) => {
+    const diff = new Date(b.actionDateTime).getTime() - new Date(a.actionDateTime).getTime();
+    return Number.isNaN(diff) || diff === 0 ? b.id - a.id : diff;
+  });
+}
+
 function PerformedBy({ action }: { action: TicketAction }) {
   return (
     <span>
@@ -89,12 +99,6 @@ interface ActionFormValues {
   followUpRequired: boolean;
   followUpNote: string;
   attachmentNotes: string;
-}
-
-function toLocalInputFromDate(d: Date): string {
-  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(
-    d.getHours()
-  )}:${pad2(d.getMinutes())}`;
 }
 
 function initialValues(action: TicketAction | null): ActionFormValues {
@@ -159,6 +163,8 @@ function ActionForm({
   serverFieldErrors,
   error,
   staleConflict,
+  minDateTime,
+  maxDateTime,
   onReload,
   onSubmit,
   onCancel,
@@ -169,6 +175,10 @@ function ActionForm({
   serverFieldErrors: Record<string, string>;
   error: string | null;
   staleConflict: boolean;
+  // D-6 bounds: [Ticket.createdAt − 30 days, now + 24 hours], applied to the
+  // datetime-local control so the browser guides valid entry (server is authority).
+  minDateTime?: string;
+  maxDateTime?: string;
   onReload: () => void;
   onSubmit: (input: TicketActionInput, expectedUpdatedAt?: string) => void;
   onCancel: () => void;
@@ -277,6 +287,8 @@ function ActionForm({
           type="datetime-local"
           className={`form-control ${errorFor("actionDateTime") ? "is-invalid" : ""}`}
           value={values.actionDateTime}
+          min={minDateTime}
+          max={maxDateTime}
           aria-describedby={errorFor("actionDateTime") ? describedBy("actionDateTime") : undefined}
           onChange={(e) => setValue("actionDateTime", e.target.value)}
         />
@@ -417,6 +429,7 @@ export function ActionsTakenSection({
   actions,
   editable,
   performerName,
+  ticketCreatedAt,
   onCreated,
   onUpdated,
   onReload,
@@ -425,7 +438,9 @@ export function ActionsTakenSection({
   actions: TicketAction[];
   editable: boolean;
   performerName: string;
-  onCreated: (action: TicketAction) => void;
+  // Ticket creation time, used only to bound the Action Date/Time control (D-6).
+  ticketCreatedAt?: string;
+  onCreated: (action: TicketAction, ticket: TicketActionTicketSummary) => void;
   onUpdated: (action: TicketAction) => void;
   onReload: () => void;
 }) {
@@ -436,6 +451,12 @@ export function ActionsTakenSection({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [staleConflict, setStaleConflict] = useState(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
+
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const minDateTime = ticketCreatedAt
+    ? toLocalInput(new Date(new Date(ticketCreatedAt).getTime() - 30 * DAY_MS))
+    : undefined;
+  const maxDateTime = toLocalInput(new Date(Date.now() + DAY_MS));
 
   function finishSave() {
     setMode("list");
@@ -461,8 +482,8 @@ export function ActionsTakenSection({
         onUpdated(updated);
         finishSave();
       } else {
-        const { action } = await createTicketAction(ticketId, input);
-        onCreated(action);
+        const { action, ticket } = await createTicketAction(ticketId, input);
+        onCreated(action, ticket);
         finishSave();
       }
     } catch (e) {
@@ -534,6 +555,8 @@ export function ActionsTakenSection({
             serverFieldErrors={fieldErrors}
             error={error}
             staleConflict={staleConflict}
+            minDateTime={minDateTime}
+            maxDateTime={maxDateTime}
             onReload={onReload}
             onSubmit={handleSubmit}
             onCancel={() => {
