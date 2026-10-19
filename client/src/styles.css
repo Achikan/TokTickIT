@@ -219,6 +219,42 @@ input[type="file"]:focus-visible {
 }
 
 /* ---------------------------------------------------------------------------
+   Actions Taken (Lab 4 Issue 31 — ui-spec §5).
+   A fixed-layout 8-column table fits the container at >=992px with no sideways
+   scroll; below that breakpoint the same fields render as stacked cards
+   (`.actions-cards`) so nothing is clipped and the page never scrolls sideways.
+   --------------------------------------------------------------------------- */
+.actions-table {
+  table-layout: fixed;
+  width: 100%;
+  font-size: 0.875rem;
+}
+.actions-table > :not(caption) > * > * {
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  vertical-align: top;
+}
+/* Long Description/Result/Note/Attachment values truncate in-cell with the full
+   text available via the element's title. */
+.actions-cell-clamp {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.actions-table time {
+  white-space: nowrap;
+}
+
+/* Follow-Up badge: neutral amber pill that ALWAYS carries a non-colour cue
+   (❗ icon + the literal word "Follow-up"); absence is plain "No" text. */
+.badge-followup {
+  background-color: #fdf3dc;
+  border: 1px solid var(--tok-warning);
+  color: #5a4a00;
+}
+
+/* ---------------------------------------------------------------------------
    Staff queue table (ui-spec §5, §9 — AC-13, AC-23).
    The justified 10-column set must fit its container at >=992px with no
    horizontal scroll, no clipped cell and no hidden column. A fixed layout with

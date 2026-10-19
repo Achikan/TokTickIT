@@ -5,9 +5,11 @@ import {
   MyTicket,
   Priority,
   Status,
+  TicketAction,
   TicketComment,
   TicketDetail as TicketDetailType,
   downloadAttachment,
+  fetchTicketActions,
   fetchTicketComments,
   fetchTicketDetail,
   indicateProblemResolved,
@@ -15,6 +17,7 @@ import {
   removeAttachment,
   uploadAttachment,
 } from "./api.js";
+import { ActionsTakenSection, sortActionsNewestFirst } from "./ActionsTaken.js";
 
 const PRIORITY_BADGES: Record<Priority, string> = {
   LOW: "badge-priority-low",
@@ -376,6 +379,7 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
   const [status, setStatus] = useState<"loading" | "ready" | "failure">("loading");
   const [detail, setDetail] = useState<TicketDetailType | null>(null);
   const [comments, setComments] = useState<TicketComment[]>([]);
+  const [actions, setActions] = useState<TicketAction[]>([]);
   const [indicateBusy, setIndicateBusy] = useState(false);
   const [indicateError, setIndicateError] = useState<string | null>(null);
 
@@ -393,6 +397,20 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
       .catch(() => {
         if (!cancelled) setStatus("failure");
       });
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket.id]);
+
+  // Actions Taken are a secondary section: a failure here must not blank the
+  // ticket itself, so they load independently and stay empty on error.
+  useEffect(() => {
+    let cancelled = false;
+    fetchTicketActions(ticket.id)
+      .then((items) => {
+        if (!cancelled) setActions(sortActionsNewestFirst(items));
+      })
+      .catch(() => {});
     return () => {
       cancelled = true;
     };
@@ -567,6 +585,23 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
           )}
         </div>
       </section>
+
+      {/* Actions Taken — read-only on owned Tickets (ui-spec §5.4, sheet §8.3).
+          All fields (incl. Follow-up Note and Attachment Notes) are visible; no
+          Add/Edit controls are rendered for Requesters (BR-04). */}
+      <ActionsTakenSection
+        ticketId={detail.id}
+        actions={actions}
+        editable={false}
+        performerName={requester.name}
+        onCreated={() => {}}
+        onUpdated={() => {}}
+        onReload={() => {
+          fetchTicketActions(detail.id)
+            .then(setActions)
+            .catch(() => {});
+        }}
+      />
 
       {/* Issue 20 — Public Comments (FR-10, AC-17): visible to all three roles. */}
       <CommunicationSection

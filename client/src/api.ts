@@ -607,6 +607,97 @@ export async function indicateProblemResolved(
   return body.ticket as ResolvedIndication;
 }
 // ---------------------------------------------------------------------------
+// Issue 31 — Actions Taken (api-spec.md §1, FR-01..FR-08).
+// IT Staff/Administrators create and update Actions on a Ticket; Requesters read
+// the Actions of owned Tickets only. Performed By is always the session user, so
+// the client never sends a performer (BR-03).
+// ---------------------------------------------------------------------------
+
+export interface TicketActionPerformer {
+  id: number;
+  name: string;
+  role: Role;
+}
+
+export interface TicketAction {
+  id: number;
+  ticketId: number;
+  actionDateTime: string;
+  actionDescription: string;
+  result: string | null;
+  performedBy: TicketActionPerformer;
+  followUpRequired: boolean;
+  followUpNote: string | null;
+  attachmentNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// The ticket summary returned after a create lets the UI refresh status and
+// recency without a second request (api-spec.md §1.1).
+export interface TicketActionTicketSummary {
+  id: number;
+  currentStatus: Status;
+  updatedAt: string;
+  actionsCount: number;
+}
+
+export interface TicketActionInput {
+  actionDateTime?: string;
+  actionDescription: string;
+  result?: string | null;
+  followUpRequired?: boolean;
+  followUpNote?: string | null;
+  attachmentNotes?: string | null;
+}
+
+export interface TicketActionUpdateInput extends Partial<TicketActionInput> {
+  expectedUpdatedAt: string;
+}
+
+// GET /api/tickets/:id/actions — newest first per BR-07 (FR-04, AC-06).
+export async function fetchTicketActions(ticketId: number): Promise<TicketAction[]> {
+  const res = await apiFetch(`/api/tickets/${ticketId}/actions`);
+  if (!res.ok) throw await toApiError(res, "Unable to load actions.");
+  const body = (await res.json()) as { items: TicketAction[] };
+  return body.items;
+}
+
+// POST /api/staff/tickets/:id/actions — create (FR-02, BR-05/BR-06/BR-13).
+export async function createTicketAction(
+  ticketId: number,
+  input: TicketActionInput
+): Promise<{ action: TicketAction; ticket: TicketActionTicketSummary }> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/actions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to save the action.");
+  return (await res.json()) as {
+    action: TicketAction;
+    ticket: TicketActionTicketSummary;
+  };
+}
+
+// PATCH /api/staff/tickets/:id/actions/:actionId — update; requires the action's
+// last-read `updatedAt` (FR-03, BR-12).
+export async function updateTicketAction(
+  ticketId: number,
+  actionId: number,
+  input: TicketActionUpdateInput
+): Promise<TicketAction> {
+  const res = await apiFetch(`/api/staff/tickets/${ticketId}/actions/${actionId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw await toApiError(res, "Unable to update the action.");
+  const body = (await res.json()) as { action: TicketAction };
+  return body.action;
+}
+
+// ---------------------------------------------------------------------------
 // Issue 23 — Administrator User Management (api-spec.md §7, FR-19..FR-22).
 // List/search/filter users, create a user with one role, edit name/email/role/
 // activation, and set a new initial password. Administrator only (AC-22).
