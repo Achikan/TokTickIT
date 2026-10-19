@@ -7,15 +7,18 @@ import {
   type StaffTicket,
   type StaffTicketDetailData,
   type Status,
+  type TicketAction,
   type TicketComment,
   type TicketNote,
   fetchStaffTicketDetail,
+  fetchTicketActions,
   postTicketComment,
   postTicketNote,
   updateStaffTicketOwner,
   updateStaffTicketPriority,
   updateStaffTicketStatus,
 } from "./api.js";
+import { ActionsTakenSection } from "./ActionsTaken.js";
 
 // Lab 3 Issue 22 — IT Staff Ticket Detail (ui-spec.md §6, labs-sheet §8.4).
 // Grouped Ticket information with only permitted operational fields editable:
@@ -157,6 +160,7 @@ function AttachmentsList({ attachments }: { attachments: AttachmentInfo[] }) {
 export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
   const [loadStatus, setLoadStatus] = useState<"loading" | "ready" | "failure">("loading");
   const [detail, setDetail] = useState<StaffTicketDetailData | null>(null);
+  const [actions, setActions] = useState<TicketAction[]>([]);
 
   const [ownerBusy, setOwnerBusy] = useState(false);
   const [ownerError, setOwnerError] = useState<string | null>(null);
@@ -196,6 +200,29 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
       cancelled = true;
     };
   }, [ticket.id]);
+
+  // Actions Taken are a secondary section: a failure here must not blank the
+  // ticket itself, so they load independently and stay empty on error.
+  useEffect(() => {
+    let cancelled = false;
+    fetchTicketActions(ticket.id)
+      .then((items) => {
+        if (!cancelled) setActions(items);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket.id]);
+
+  async function reloadActions() {
+    try {
+      setActions(await fetchTicketActions(ticket.id));
+    } catch {
+      // The conflict callout already tells the user to reload; a failed reload
+      // keeps the current list rather than blanking the section.
+    }
+  }
 
   function applyUpdatedSummary(updated: StaffTicket) {
     setDetail((d) =>
@@ -567,6 +594,20 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
           </div>
         </div>
       </section>
+
+      {/* Actions Taken — line-by-line work log (ui-spec §5, lab sheet §8.3).
+          Placed between Ticket information/Operations and Public Comments. */}
+      <ActionsTakenSection
+        ticketId={detail.id}
+        actions={actions}
+        editable
+        performerName={user.name}
+        onCreated={(action) => setActions((list) => [action, ...list])}
+        onUpdated={(updated) =>
+          setActions((list) => list.map((a) => (a.id === updated.id ? updated : a)))
+        }
+        onReload={reloadActions}
+      />
 
       {/* Public Comments — visible to all three roles (FR-10, AC-17) */}
       <section className="card mb-4" aria-labelledby="staff-public-comments-heading">
