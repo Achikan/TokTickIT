@@ -125,7 +125,7 @@ describe("StaffTicketDetail", () => {
     const statusSpy = vi
       .spyOn(api, "updateStaffTicketStatus")
       .mockRejectedValue(
-        new api.ApiError("A Ticket cannot move from NEW to RESOLVED.", 409, "INVALID_TRANSITION")
+        new api.ApiError("A Ticket cannot move from NEW to RESOLVED.", 409, "FORBIDDEN_TRANSITION")
       );
     const user = userEvent.setup();
 
@@ -141,7 +141,7 @@ describe("StaffTicketDetail", () => {
     await user.selectOptions(select, "OPEN");
     await user.click(screen.getByRole("button", { name: /Update Status/i }));
 
-    expect(statusSpy).toHaveBeenCalledWith(101, "OPEN");
+    expect(statusSpy).toHaveBeenCalledWith(101, "OPEN", DETAIL.updatedAt);
     // A forbidden transition surface a specific conflict, not a hidden option.
     expect(await screen.findByRole("alert")).toHaveTextContent(
       /cannot move from NEW to RESOLVED/i

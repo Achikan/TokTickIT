@@ -287,7 +287,7 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     setStatusBusy(true);
     setStatusError(null);
     try {
-      const updated = await updateStaffTicketStatus(detail.id, statusValue);
+      const updated = await updateStaffTicketStatus(detail.id, statusValue, detail.updatedAt);
       applyUpdatedSummary(updated);
       setStatusValue("");
     } catch (e) {

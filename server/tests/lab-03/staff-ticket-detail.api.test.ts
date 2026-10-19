@@ -47,6 +47,7 @@ async function ticket(ticketNumber: string) {
       requesterId: true,
       itPriority: true,
       requestedPriority: true,
+      updatedAt: true,
     },
   });
   if (!row) throw new Error(`seeded ticket not found: ${ticketNumber}`);
@@ -266,9 +267,20 @@ describe("API-33: permitted status transitions (AC-16, FR-16)", () => {
     { number: "TK-001007", from: "REOPENED", to: "CANCELLED" },
   ])("$from -> $to succeeds and persists", async ({ number, to }) => {
     const t = await ticket(number);
+    // BR-11: resolving requires at least one recorded Action.
+    if (to === "RESOLVED") {
+      await getPrisma().actionTaken.create({
+        data: {
+          ticketId: t.id,
+          actionDateTime: new Date(),
+          actionDescription: "Investigated and applied the fix.",
+          performedById: danId,
+        },
+      });
+    }
     const res = await staff
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: to });
+      .send({ newStatus: to, expectedUpdatedAt: t.updatedAt.toISOString() });
 
     expect(res.status).toBe(200);
     expect(res.body.ticket.currentStatus).toBe(to);
@@ -281,7 +293,7 @@ describe("API-33: permitted status transitions (AC-16, FR-16)", () => {
     const t = await ticket("TK-001001");
     const res = await admin
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "IN_PROGRESS" });
+      .send({ newStatus: "IN_PROGRESS", expectedUpdatedAt: t.updatedAt.toISOString() });
     expect(res.status).toBe(200);
     expect(res.body.ticket.currentStatus).toBe("IN_PROGRESS");
   });
@@ -292,10 +304,10 @@ describe("API-34: forbidden status transitions (AC-16, BR-09)", () => {
     const t = await ticket("TK-001001"); // NEW
     const res = await staff
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "RESOLVED" });
+      .send({ newStatus: "RESOLVED", expectedUpdatedAt: t.updatedAt.toISOString() });
 
     expect(res.status).toBe(409);
-    expect(res.body.error.code).toBe("INVALID_TRANSITION");
+    expect(res.body.error.code).toBe("FORBIDDEN_TRANSITION");
     expect(res.body.error.message).toContain("NEW");
     expect(res.body.error.message).toContain("RESOLVED");
   });
@@ -304,12 +316,12 @@ describe("API-34: forbidden status transitions (AC-16, BR-09)", () => {
     const t = await ticket("TK-001008"); // CANCELLED (terminal)
     const same = await staff
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "CANCELLED" });
+      .send({ newStatus: "CANCELLED", expectedUpdatedAt: t.updatedAt.toISOString() });
     expect(same.status).toBe(409);
 
     const reopen = await staff
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "OPEN" });
+      .send({ newStatus: "OPEN", expectedUpdatedAt: t.updatedAt.toISOString() });
     expect(reopen.status).toBe(409);
   });
 
@@ -318,18 +330,18 @@ describe("API-34: forbidden status transitions (AC-16, BR-09)", () => {
 
     const invalid = await staff
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "ARCHIVED" });
+      .send({ newStatus: "ARCHIVED", expectedUpdatedAt: t.updatedAt.toISOString() });
     expect(invalid.status).toBe(400);
     expect(invalid.body.error.fields.newStatus).toBeTruthy();
 
     const forbidden = await alice
       .patch(`/api/staff/tickets/${t.id}/status`)
-      .send({ newStatus: "OPEN" });
+      .send({ newStatus: "OPEN", expectedUpdatedAt: t.updatedAt.toISOString() });
     expect(forbidden.status).toBe(403);
 
     const missing = await staff
       .patch("/api/staff/tickets/999999/status")
-      .send({ newStatus: "OPEN" });
+      .send({ newStatus: "OPEN", expectedUpdatedAt: new Date().toISOString() });
     expect(missing.status).toBe(404);
   });
 });
