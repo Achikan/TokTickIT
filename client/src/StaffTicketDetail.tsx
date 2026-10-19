@@ -16,9 +16,9 @@ import {
   postTicketNote,
   updateStaffTicketOwner,
   updateStaffTicketPriority,
-  updateStaffTicketStatus,
 } from "./api.js";
 import { ActionsTakenSection, sortActionsNewestFirst } from "./ActionsTaken.js";
+import TicketWorkflow from "./TicketWorkflow.js";
 
 // Lab 3 Issue 22 — IT Staff Ticket Detail (ui-spec.md §6, labs-sheet §8.4).
 // Grouped Ticket information with only permitted operational fields editable:
@@ -46,17 +46,8 @@ const STATUS_BADGES: Record<Status, string> = {
   CANCELLED: "badge-status-cancelled",
 };
 
-// specification.md §5.2 — the only statuses reachable from each current status.
-const TRANSITIONS: Record<Status, Status[]> = {
-  NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
-  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
-  RESOLVED: ["CLOSED", "REOPENED"],
-  CLOSED: ["REOPENED"],
-  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  CANCELLED: [],
-};
+// specification.md §5.2 — the only statuses reachable from each current status
+// now live in the TicketWorkflow control component (ui-spec §6).
 
 function formatDateTime(v: string): string {
   return new Date(v).toLocaleString();
@@ -170,10 +161,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
   const [priorityBusy, setPriorityBusy] = useState(false);
   const [priorityError, setPriorityError] = useState<string | null>(null);
 
-  const [statusValue, setStatusValue] = useState<Status | "">("");
-  const [statusBusy, setStatusBusy] = useState(false);
-  const [statusError, setStatusError] = useState<string | null>(null);
-
   const [commentValue, setCommentValue] = useState("");
   const [commentBusy, setCommentBusy] = useState(false);
   const [commentError, setCommentError] = useState<string | null>(null);
@@ -190,7 +177,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
         if (cancelled) return;
         setDetail(data);
         setPriorityValue(data.itPriority);
-        setStatusValue("");
         setLoadStatus("ready");
       })
       .catch(() => {
@@ -224,6 +210,19 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     }
   }
 
+  // Re-reads the ticket so the workflow control set and summary reflect the
+  // server's current state (used by the forbidden-transition and stale-update
+  // recovery paths — ui-spec §6).
+  async function reloadTicket() {
+    try {
+      const data = await fetchStaffTicketDetail(ticket.id);
+      setDetail(data);
+      setPriorityValue(data.itPriority);
+    } catch {
+      // Keep the current view; the callout already explains the conflict.
+    }
+  }
+
   function applyUpdatedSummary(updated: StaffTicket) {
     setDetail((d) =>
       d
@@ -233,6 +232,9 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
             itPriority: updated.itPriority,
             currentStatus: updated.currentStatus,
             updatedAt: updated.updatedAt,
+            // Preserve the recorded-Action count from the response so the BR-11
+            // resolve pre-check stays consistent across transitions (Issue 33).
+            actionsCount: updated.actionsCount ?? d.actionsCount,
           }
         : d
     );
@@ -279,23 +281,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
       setPriorityError(e instanceof ApiError ? e.message : "Unable to update IT Priority.");
     } finally {
       setPriorityBusy(false);
-    }
-  }
-
-  async function handleUpdateStatus() {
-    if (!detail || statusValue === "") return;
-    setStatusBusy(true);
-    setStatusError(null);
-    try {
-      const updated = await updateStaffTicketStatus(detail.id, statusValue, detail.updatedAt);
-      applyUpdatedSummary(updated);
-      setStatusValue("");
-    } catch (e) {
-      // A forbidden transition returns a specific 409 message (BR-09); surface
-      // it instead of silently hiding the option (ui-spec §6).
-      setStatusError(e instanceof ApiError ? e.message : "Unable to update the ticket status.");
-    } finally {
-      setStatusBusy(false);
     }
   }
 
@@ -357,7 +342,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     );
   }
 
-  const allowedTransitions: Status[] = TRANSITIONS[detail.currentStatus];
   const alreadyOwner = detail.owner?.id === user.id;
 
   return (
@@ -550,48 +534,16 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
           </div>
 
           {/* Status transition, restricted to the approved matrix (FR-16, BR-09) */}
-          <div className="mb-0">
-            <h4 className="h6">Status</h4>
-            {allowedTransitions.length === 0 ? (
-              <p className="text-muted small mb-0">
-                No further status transitions are permitted from {detail.currentStatus}.
-              </p>
-            ) : (
-              <div className="d-flex flex-wrap gap-2 align-items-end">
-                <div>
-                  <label htmlFor="status-transition" className="form-label mb-1">
-                    New status
-                  </label>
-                  <select
-                    id="status-transition"
-                    className="form-select form-select-sm"
-                    value={statusValue}
-                    onChange={(e) => setStatusValue(e.target.value as Status | "")}
-                  >
-                    <option value="">Select a permitted status…</option>
-                    {allowedTransitions.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-tok-primary btn-sm"
-                  onClick={handleUpdateStatus}
-                  disabled={statusBusy || statusValue === ""}
-                >
-                  {statusBusy ? "Updating…" : "Update Status"}
-                </button>
-              </div>
-            )}
-            {statusError && (
-              <p className="text-danger small mt-2 mb-0" role="alert">
-                {statusError}
-              </p>
-            )}
-          </div>
+          {/* Status transition — permitted matrix choices only, as a labelled
+              button row (ui-spec §6 / FR-16, BR-09/BR-11/BR-12). */}
+          <TicketWorkflow
+            ticketId={detail.id}
+            currentStatus={detail.currentStatus}
+            expectedUpdatedAt={detail.updatedAt}
+            actionsCount={Math.max(detail.actionsCount ?? 0, actions.length)}
+            onTransitioned={applyUpdatedSummary}
+            onReloadTicket={reloadTicket}
+          />
         </div>
       </section>
 
@@ -605,9 +557,18 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
         ticketCreatedAt={detail.createdAt}
         onCreated={(action, ticketSummary) => {
           setActions((list) => sortActionsNewestFirst([...list, action]));
-          // Creating an Action advances the Ticket's updatedAt server-side; keep
-          // the cached anchor in sync so later writes do not see a stale version.
-          setDetail((d) => (d ? { ...d, updatedAt: ticketSummary.updatedAt } : d));
+          // Creating an Action advances the Ticket's updatedAt server-side and
+          // raises its action count; sync both so the cached anchor stays fresh
+          // and the resolve pre-check un-gates without a reload (Issue 33).
+          setDetail((d) =>
+            d
+              ? {
+                  ...d,
+                  updatedAt: ticketSummary.updatedAt,
+                  actionsCount: ticketSummary.actionsCount,
+                }
+              : d
+          );
         }}
         onUpdated={(updated) =>
           setActions((list) => list.map((a) => (a.id === updated.id ? updated : a)))

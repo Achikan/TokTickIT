@@ -64,6 +64,30 @@ input[type="file"]:focus-visible {
   color: #0b4028;
 }
 
+/* Conflict/blocked callout (Lab 4 Issue 33): the BR-11 resolution gate is a
+   red-adjacent surface with an explicit remedy, distinct from the amber
+   "refresh and retry" conflict callouts. Colour is never the only signal —
+   the callout always carries the remedy text (ui-spec §6, §9). */
+.callout-error {
+  background-color: #fde8ea;
+  border-left: 0.25rem solid var(--tok-error);
+  color: #7a0016;
+}
+
+/* Workflow transition button row (Lab 4 Issue 33, ui-spec §6/§8): the row wraps
+   at tablet width and stacks full-width on mobile so no button is clipped. */
+.workflow-actions .btn {
+  min-width: 8rem;
+}
+@media (max-width: 767.98px) {
+  .workflow-actions {
+    flex-direction: column;
+  }
+  .workflow-actions .btn {
+    width: 100%;
+  }
+}
+
 /* Internal Notes must be visually distinct from Public Comments (AC-17):
    a pale amber surface plus an explicit "Internal" text marker, so private
    notes are never mistaken for public comments (never colour alone). */

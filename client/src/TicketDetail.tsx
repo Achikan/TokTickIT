@@ -560,17 +560,20 @@ export default function TicketDetail({ requester, ticket, onBack }: Props) {
           <h3 className="h5 mb-2">Resolution Feedback</h3>
           {alreadyIndicated ? (
             <div className="callout-success px-3 py-2 rounded" role="status" data-testid="resolved-indicated">
-              <span className="fw-semibold">You indicated this problem appears resolved.</span>
+              <span className="fw-semibold">
+                Your note was recorded for IT Staff. The ticket status has not changed.
+              </span>
               <span className="text-muted d-block small">
-                Recorded {formatDateTime(detail.requesterIndicatedResolvedAt!)}. The ticket status is
-                unchanged; IT Staff can still act on the ticket.
+                Recorded {formatDateTime(detail.requesterIndicatedResolvedAt!)}. IT Staff remain
+                responsible for formally resolving or closing the ticket.
               </span>
             </div>
           ) : (
             <>
               <p className="text-muted small mb-2">
-                If the problem appears resolved from your side, record that here. It does not
-                formally mark the ticket Resolved/Closed.
+                If the problem appears resolved from your side, record that here. This is advisory
+                only — it does not formally mark the ticket Resolved/Closed and the status will not
+                change.
               </p>
               {indicateError && <p className="text-danger small">{indicateError}</p>}
               <button

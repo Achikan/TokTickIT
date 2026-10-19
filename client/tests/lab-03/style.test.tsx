@@ -95,8 +95,10 @@ describe("STYLE-01: badge styling and read-only vs editable treatments (AC-23, u
     render(<StaffTicketDetail user={DAN} ticket={SUMMARY} onBack={() => {}} />);
     await screen.findByRole("heading", { name: "TK-001001" });
 
-    const statusEdit = screen.getByLabelText(/New status/i);
-    expect(statusEdit.tagName).toBe("SELECT");
+    // Lab 4 Issue 33 replaced the Lab 3 status <select> with a permitted-only
+    // button row; the other operational controls keep their native types.
+    const statusControls = screen.getByTestId("workflow-actions");
+    expect(within(statusControls).getAllByRole("button").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /You own this ticket/i })).toBeDisabled();
     expect(screen.getByLabelText(/Reassign to/i).tagName).toBe("SELECT");
   });
