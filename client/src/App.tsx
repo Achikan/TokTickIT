@@ -13,6 +13,7 @@ import Login from "./Login.js";
 import MyTickets from "./MyTickets.js";
 import StaffTicketDetail from "./StaffTicketDetail.js";
 import StaffTicketQueue from "./StaffTicketQueue.js";
+import StaffDashboard from "./StaffDashboard.js";
 import TicketDetail from "./TicketDetail.js";
 import UserManagement from "./UserManagement.js";
 
@@ -24,6 +25,7 @@ type View =
   | "ticket-detail"
   | "staff-queue"
   | "staff-detail"
+  | "staff-dashboard"
   | "user-management";
 
 type AuthState =
@@ -45,8 +47,8 @@ const ROLE_BADGE_CLASS: Record<Role, string> = {
 };
 
 function defaultViewFor(role: Role): View {
-  if (role === "IT_STAFF") return "staff-queue";
-  if (role === "ADMIN") return "user-management";
+  if (role === "IT_STAFF") return "staff-dashboard";
+  if (role === "ADMIN") return "staff-dashboard";
   return "my-tickets";
 }
 
@@ -176,6 +178,16 @@ export default function App() {
                   Create Ticket
                 </button>
               </>
+            )}
+            {(user.role === "IT_STAFF" || user.role === "ADMIN") && (
+              <button
+                type="button"
+                className={`nav-link ${view === "staff-dashboard" ? "active" : ""}`}
+                style={view === "staff-dashboard" ? { background: "#0B7A46" } : { color: "#fff" }}
+                onClick={() => setView("staff-dashboard")}
+              >
+                Staff Dashboard
+              </button>
             )}
             {user.role === "IT_STAFF" && (
               <button
