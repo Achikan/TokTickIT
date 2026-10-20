@@ -14,6 +14,7 @@ import { staffQueueRouter } from "./staffQueue.js";
 import { staffTicketDetailRouter } from "./staffTicketDetail.js";
 import { adminUsersRouter } from "./adminUsers.js";
 import { actionsTakenRouter } from "./actionsTaken.js";
+import { getStaffDashboard } from "./staffDashboard.js";
 import {
   blockPendingPasswordChange,
   csrfProtection,
@@ -49,6 +50,9 @@ app.use("/api/staff", staffQueueRouter);
 // Lab 3 (Issue 22) — IT Staff Ticket Detail: retrieve, ownership, IT Priority
 // and permitted status transitions (api-spec.md §6.2..§6.5, FR-13..FR-16).
 app.use("/api/staff", staffTicketDetailRouter);
+
+// Lab 4 (Issue 34) — IT Staff Dashboard
+app.get("/api/staff/dashboard", getStaffDashboard);
 
 // Lab 3 (Issue 23) — Administrator User Management: list/search/filter, create,
 // edit and set a new initial password (api-spec.md §7, FR-19..FR-22/AC-18..AC-22).
