@@ -242,6 +242,15 @@ export default function App() {
               }}
             />
           )
+        ) : (user.role === "IT_STAFF" || user.role === "ADMIN") && view === "staff-dashboard" ? (
+          <StaffDashboard
+            user={user}
+            onSelectTicket={(id) => {
+              // find in queue not stored; navigate to detail via queue selection
+              setView("staff-queue");
+            }}
+            onViewQueue={(filters) => setView("staff-queue")}
+          />
         ) : user.role === "IT_STAFF" ? (
           view === "staff-detail" && selectedStaffTicket ? (
             <StaffTicketDetail

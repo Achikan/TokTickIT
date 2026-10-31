@@ -1,13 +1,16 @@
 import type { Request, Response } from "express";
 import { getPrisma } from "./prisma.js";
-import { findValidSession, readSessionToken } from "./session.js";
+import { blockPendingPasswordChange, requireAuth, requireRole } from "./middleware.js";
+
+export const staffDashboardRouter = (() => {
+  const router = (require("express") as typeof import("express")).Router();
+  router.use(requireAuth, blockPendingPasswordChange, requireRole("IT_STAFF", "ADMIN"));
+  router.get("/", getStaffDashboard);
+  return router;
+})();
 
 const ALL_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"] as const;
 const ALL_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-
-function isStaffOrAdmin(role: string) {
-  return role === "IT_STAFF" || role === "ADMIN";
-}
 
 function isRecent7d(updatedAt: Date, now: Date) {
   const weekMs = 7 * 24 * 60 * 60 * 1000;
@@ -38,59 +41,91 @@ function ticketRef(t: {
 
 export async function getStaffDashboard(req: Request, res: Response) {
   try {
-    const token = readSessionToken(req);
-    if (!token) return res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication required." } });
-
-    const session = await findValidSession(token);
-    if (!session) return res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication required." } });
-
-    const user = session.user;
-    if (!user.active) {
-      return res.status(403).json({ error: { code: "ACCOUNT_INACTIVE", message: "This account is not active. Contact an administrator." } });
-    }
-    if (!isStaffOrAdmin(user.role)) {
+    if (!req.user) return res.status(401).json({ error: { code: "UNAUTHENTICATED", message: "Authentication required." } });
+    if (req.user.role !== "IT_STAFF" && req.user.role !== "ADMIN") {
       return res.status(403).json({ error: { code: "FORBIDDEN", message: "Forbidden." } });
     }
 
     const prisma = getPrisma();
     const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const tickets = await prisma.ticket.findMany({
-      select: {
-        id: true,
-        ticketNumber: true,
-        summary: true,
-        currentStatus: true,
-        itPriority: true,
-        requestedPriority: true,
-        updatedAt: true,
-        ownerId: true,
-        requesterId: true,
-      },
-    });
-
-    const unassigned = tickets.filter((t) => t.ownerId === null).length;
-    const ownedByMe = tickets.filter((t) => t.ownerId === user.id).length;
+    const [
+      unassigned,
+      ownedByMe,
+      statusGroups,
+      prioGroups,
+      recentlyUpdatedList,
+      urgentHighList,
+      totalUsers,
+      requestersCount,
+      staffCount,
+      adminsCount,
+    ] = await Promise.all([
+      prisma.ticket.count({ where: { ownerId: null } }),
+      prisma.ticket.count({ where: { ownerId: req.user.id } }),
+      prisma.ticket.groupBy({
+        by: ["currentStatus"],
+        _count: { _all: true },
+      }),
+      prisma.ticket.groupBy({
+        by: ["itPriority"],
+        _count: { _all: true },
+      }),
+      prisma.ticket.findMany({
+        where: { updatedAt: { gte: sevenDaysAgo } },
+        orderBy: { updatedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          ticketNumber: true,
+          summary: true,
+          currentStatus: true,
+          itPriority: true,
+          requestedPriority: true,
+          updatedAt: true,
+          ownerId: true,
+        },
+      }),
+      prisma.ticket.findMany({
+        where: {
+          AND: [
+            { OR: [{ itPriority: "URGENT" }, { requestedPriority: "HIGH" }] },
+            { NOT: { currentStatus: { in: ["CLOSED", "CANCELLED"] } } },
+          ],
+        },
+        orderBy: { updatedAt: "desc" },
+        take: 5,
+        select: {
+          id: true,
+          ticketNumber: true,
+          summary: true,
+          currentStatus: true,
+          itPriority: true,
+          requestedPriority: true,
+          updatedAt: true,
+          ownerId: true,
+        },
+      }),
+      prisma.user.count(),
+      prisma.user.count({ where: { role: "REQUESTER" } }),
+      prisma.user.count({ where: { role: "IT_STAFF" } }),
+      prisma.user.count({ where: { role: "ADMIN" } }),
+    ]);
 
     const byStatus: Record<string, number> = {};
     for (const s of ALL_STATUSES) byStatus[s] = 0;
-    for (const t of tickets) byStatus[t.currentStatus]++;
+    for (const g of statusGroups) {
+      const k = g.currentStatus as string;
+      if (k in byStatus) byStatus[k] = g._count._all;
+    }
 
     const byItPriority: Record<string, number> = {};
     for (const p of ALL_PRIORITIES) byItPriority[p] = 0;
-    for (const t of tickets) byItPriority[t.itPriority]++;
-
-    const recentlyUpdated = tickets
-      .filter((t) => isRecent7d(t.updatedAt, now))
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-      .slice(0, 5)
-      .map(ticketRef);
-
-    const urgentHigh = tickets
-      .filter((t) => (t.itPriority === "URGENT" || t.requestedPriority === "HIGH") && t.currentStatus !== "CLOSED" && t.currentStatus !== "CANCELLED")
-      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-      .slice(0, 5)
-      .map(ticketRef);
+    for (const g of prioGroups) {
+      const k = g.itPriority as string;
+      if (k in byItPriority) byItPriority[k] = g._count._all;
+    }
 
     const response: any = {
       metrics: {
@@ -100,8 +135,8 @@ export async function getStaffDashboard(req: Request, res: Response) {
         byItPriority,
       },
       lists: {
-        recentlyUpdated,
-        urgentHigh,
+        recentlyUpdated: recentlyUpdatedList.map(ticketRef),
+        urgentHigh: urgentHighList.map(ticketRef),
       },
       drilldown: {
         queueBase: "/api/staff/tickets",
@@ -109,18 +144,14 @@ export async function getStaffDashboard(req: Request, res: Response) {
       },
     };
 
-    if (user.role === "ADMIN") {
-      const total = await prisma.user.count();
-      const requesters = await prisma.user.count({ where: { role: "REQUESTER" } });
-      const staff = await prisma.user.count({ where: { role: "IT_STAFF" } });
-      const admins = await prisma.user.count({ where: { role: "ADMIN" } });
+    if (req.user.role === "ADMIN") {
       response.administrator = {
         userCounts: {
-          total,
-          active: total,
-          requesters,
-          staff,
-          admins,
+          total: totalUsers,
+          active: totalUsers,
+          requesters: requestersCount,
+          staff: staffCount,
+          admins: adminsCount,
         },
       };
     }
