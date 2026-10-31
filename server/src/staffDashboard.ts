@@ -1,43 +1,7 @@
 import type { Request, Response } from "express";
 import { getPrisma } from "./prisma.js";
-import { blockPendingPasswordChange, requireAuth, requireRole } from "./middleware.js";
 
-export const staffDashboardRouter = (() => {
-  const router = (require("express") as typeof import("express")).Router();
-  router.use(requireAuth, blockPendingPasswordChange, requireRole("IT_STAFF", "ADMIN"));
-  router.get("/", getStaffDashboard);
-  return router;
-})();
-
-const ALL_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CLOSED", "REOPENED", "CANCELLED"] as const;
-const ALL_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-
-function isRecent7d(updatedAt: Date, now: Date) {
-  const weekMs = 7 * 24 * 60 * 60 * 1000;
-  return now.getTime() - updatedAt.getTime() <= weekMs;
-}
-
-function ticketRef(t: {
-  id: number;
-  ticketNumber: string;
-  summary: string;
-  currentStatus: string;
-  itPriority: string;
-  requestedPriority: string;
-  updatedAt: Date;
-  ownerId: number | null;
-}) {
-  return {
-    id: t.id,
-    ticketNumber: t.ticketNumber,
-    summary: t.summary,
-    currentStatus: t.currentStatus,
-    itPriority: t.itPriority,
-    requestedPriority: t.requestedPriority,
-    updatedAt: t.updatedAt.toISOString(),
-    ownerId: t.ownerId,
-  };
-}
+const ACTIVE_STATUSES = ["NEW", "OPEN", "IN_PROGRESS", "WAITING_FOR_REQUESTER", "REOPENED"] as const;
 
 export async function getStaffDashboard(req: Request, res: Response) {
   try {
@@ -51,93 +15,84 @@ export async function getStaffDashboard(req: Request, res: Response) {
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const [
-      unassigned,
-      ownedByMe,
+      unassignedCount,
+      ownedByMeCount,
       statusGroups,
-      prioGroups,
-      recentlyUpdatedList,
-      urgentHighList,
+      priorityGroups,
+      recentlyUpdatedItems,
+      urgentHighItems,
       totalUsers,
-      requestersCount,
-      staffCount,
-      adminsCount,
+      activeUsers,
     ] = await Promise.all([
-      prisma.ticket.count({ where: { ownerId: null } }),
-      prisma.ticket.count({ where: { ownerId: req.user.id } }),
+      prisma.ticket.count({ where: { ownerId: null, currentStatus: { in: [...ACTIVE_STATUSES] } } }),
+      prisma.ticket.count({ where: { ownerId: req.user.id, currentStatus: { in: [...ACTIVE_STATUSES] } } }),
       prisma.ticket.groupBy({
         by: ["currentStatus"],
+        where: { currentStatus: { in: [...ACTIVE_STATUSES] } },
         _count: { _all: true },
       }),
       prisma.ticket.groupBy({
         by: ["itPriority"],
+        where: { currentStatus: { in: [...ACTIVE_STATUSES] } },
         _count: { _all: true },
       }),
       prisma.ticket.findMany({
         where: { updatedAt: { gte: sevenDaysAgo } },
-        orderBy: { updatedAt: "desc" },
+        orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
         take: 5,
-        select: {
-          id: true,
-          ticketNumber: true,
-          summary: true,
-          currentStatus: true,
-          itPriority: true,
-          requestedPriority: true,
-          updatedAt: true,
-          ownerId: true,
+        include: {
+          owner: { select: { id: true, name: true } },
         },
       }),
       prisma.ticket.findMany({
         where: {
-          AND: [
-            { OR: [{ itPriority: "URGENT" }, { requestedPriority: "HIGH" }] },
-            { NOT: { currentStatus: { in: ["CLOSED", "CANCELLED"] } } },
-          ],
+          currentStatus: { notIn: ["RESOLVED", "CLOSED", "CANCELLED"] },
+          itPriority: "URGENT",
         },
-        orderBy: { updatedAt: "desc" },
+        orderBy: [{ updatedAt: "desc" }, { id: "asc" }],
         take: 5,
-        select: {
-          id: true,
-          ticketNumber: true,
-          summary: true,
-          currentStatus: true,
-          itPriority: true,
-          requestedPriority: true,
-          updatedAt: true,
-          ownerId: true,
+        include: {
+          owner: { select: { id: true, name: true } },
         },
       }),
       prisma.user.count(),
-      prisma.user.count({ where: { role: "REQUESTER" } }),
-      prisma.user.count({ where: { role: "IT_STAFF" } }),
-      prisma.user.count({ where: { role: "ADMIN" } }),
+      prisma.user.count({ where: { active: true } }),
     ]);
 
     const byStatus: Record<string, number> = {};
-    for (const s of ALL_STATUSES) byStatus[s] = 0;
+    for (const s of ACTIVE_STATUSES) byStatus[s] = 0;
     for (const g of statusGroups) {
       const k = g.currentStatus as string;
       if (k in byStatus) byStatus[k] = g._count._all;
     }
 
-    const byItPriority: Record<string, number> = {};
-    for (const p of ALL_PRIORITIES) byItPriority[p] = 0;
-    for (const g of prioGroups) {
+    const byPriority: Record<string, number> = { LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0 };
+    for (const g of priorityGroups) {
       const k = g.itPriority as string;
-      if (k in byItPriority) byItPriority[k] = g._count._all;
+      if (k in byPriority) byPriority[k] = g._count._all;
     }
 
+    const mapItem = (t: any) => ({
+      id: t.id,
+      ticketNumber: t.ticketNumber,
+      summary: t.summary,
+      currentStatus: t.currentStatus,
+      itPriority: t.itPriority,
+      requestedPriority: t.requestedPriority,
+      updatedAt: t.updatedAt.toISOString(),
+      owner: t.owner ? { id: t.owner.id, name: t.owner.name } : null,
+    });
+
     const response: any = {
+      generatedAt: now.toISOString(),
       metrics: {
-        unassigned,
-        ownedByMe,
+        unassignedCount,
+        ownedByMeCount,
         byStatus,
-        byItPriority,
+        byPriority,
       },
-      lists: {
-        recentlyUpdated: recentlyUpdatedList.map(ticketRef),
-        urgentHigh: urgentHighList.map(ticketRef),
-      },
+      recentlyUpdated: { items: recentlyUpdatedItems.map(mapItem) },
+      urgentHigh: { items: urgentHighItems.map(mapItem) },
       drilldown: {
         queueBase: "/api/staff/tickets",
         ticketDetailBase: "/staff/tickets",
@@ -145,15 +100,7 @@ export async function getStaffDashboard(req: Request, res: Response) {
     };
 
     if (req.user.role === "ADMIN") {
-      response.administrator = {
-        userCounts: {
-          total: totalUsers,
-          active: totalUsers,
-          requesters: requestersCount,
-          staff: staffCount,
-          admins: adminsCount,
-        },
-      };
+      response.userCounts = { total: totalUsers, active: activeUsers };
     }
 
     return res.json(response);
