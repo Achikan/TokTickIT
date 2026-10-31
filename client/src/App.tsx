@@ -47,8 +47,8 @@ const ROLE_BADGE_CLASS: Record<Role, string> = {
 };
 
 function defaultViewFor(role: Role): View {
-  if (role === "IT_STAFF") return "staff-dashboard";
-  if (role === "ADMIN") return "staff-dashboard";
+  if (role === "IT_STAFF") return "staff-queue";
+  if (role === "ADMIN") return "user-management";
   return "my-tickets";
 }
 
@@ -60,7 +60,8 @@ export default function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [view, setView] = useState<View>("my-tickets");
   const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
-  const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | null>(null);
+  const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | { id: number; ticketNumber?: string; [key: string]: any } | null>(null);
+  const [queueFilters, setQueueFilters] = useState<Record<string, string> | undefined>(undefined);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -189,12 +190,15 @@ export default function App() {
                 Staff Dashboard
               </button>
             )}
-            {user.role === "IT_STAFF" && (
+            {(user.role === "IT_STAFF" || (user.role === "ADMIN" && staffQueueActive)) && (
               <button
                 type="button"
                 className={`nav-link ${staffQueueActive ? "active" : ""}`}
                 style={staffQueueActive ? { background: "#0B7A46" } : { color: "#fff" }}
-                onClick={() => setView("staff-queue")}
+                onClick={() => {
+                  setQueueFilters(undefined);
+                  setView("staff-queue");
+                }}
                 aria-current={currentPageFor(staffQueueActive)}
               >
                 Ticket Queue
@@ -242,36 +246,48 @@ export default function App() {
               }}
             />
           )
-        ) : (user.role === "IT_STAFF" || user.role === "ADMIN") && view === "staff-dashboard" ? (
+        ) : view === "staff-dashboard" ? (
           <StaffDashboard
             user={user}
             onSelectTicket={(id) => {
-              // find in queue not stored; navigate to detail via queue selection
+              setSelectedStaffTicket({ id });
+              setView("staff-detail");
+            }}
+            onViewQueue={(filters) => {
+              setQueueFilters(filters);
               setView("staff-queue");
             }}
-            onViewQueue={(filters) => setView("staff-queue")}
           />
-        ) : user.role === "IT_STAFF" ? (
-          view === "staff-detail" && selectedStaffTicket ? (
-            <StaffTicketDetail
-              user={user}
-              ticket={selectedStaffTicket}
-              onBack={() => setView("staff-queue")}
-            />
-          ) : (
-            <StaffTicketQueue
-              user={user}
-              onOpenTicket={(t) => {
-                setSelectedStaffTicket(t);
-                setNotice(null);
-                setView("staff-detail");
-              }}
-            />
-          )
-        ) : (
+        ) : view === "staff-detail" && selectedStaffTicket ? (
+          <StaffTicketDetail
+            user={user}
+            ticket={selectedStaffTicket as StaffTicket}
+            onBack={() => setView("staff-queue")}
+          />
+        ) : view === "staff-queue" ? (
+          <StaffTicketQueue
+            user={user}
+            initialFilters={queueFilters}
+            onOpenTicket={(t) => {
+              setSelectedStaffTicket(t);
+              setNotice(null);
+              setView("staff-detail");
+            }}
+          />
+        ) : user.role === "ADMIN" ? (
           <UserManagement
             user={user}
             onSelfUpdated={(updated) => setAuth({ status: "authenticated", user: updated })}
+          />
+        ) : (
+          <StaffTicketQueue
+            user={user}
+            initialFilters={queueFilters}
+            onOpenTicket={(t) => {
+              setSelectedStaffTicket(t);
+              setNotice(null);
+              setView("staff-detail");
+            }}
           />
         )}
       </main>

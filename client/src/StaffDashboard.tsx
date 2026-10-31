@@ -7,24 +7,34 @@ interface TicketRef {
   summary: string;
   currentStatus: string;
   itPriority: string;
-  requestedPriority: string;
+  owner: { id: number; name: string } | null;
   updatedAt: string;
-  ownerId: number | null;
 }
 
 interface StaffDashboardData {
+  generatedAt: string;
   metrics: {
-    unassigned: number;
-    ownedByMe: number;
+    unassignedCount: number;
+    ownedByMeCount: number;
     byStatus: Record<string, number>;
-    byItPriority: Record<string, number>;
+    byPriority: Record<string, number>;
   };
-  lists: {
-    recentlyUpdated: TicketRef[];
-    urgentHigh: TicketRef[];
+  recentlyUpdated: {
+    items: TicketRef[];
   };
-  administrator?: {
-    userCounts: { total: number; active: number; requesters: number; staff: number; admins: number };
+  urgentHigh: {
+    items: TicketRef[];
+  };
+  drilldown: {
+    unassigned: string;
+    ownedByMe: string;
+    byStatus: string;
+    byPriority: string;
+    recentlyUpdated: string;
+  };
+  userCounts?: {
+    total: number;
+    active: number;
   };
 }
 
@@ -53,9 +63,7 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue }: { 
     setStatus("loading");
     setErrMsg("");
     try {
-      const headers = new Headers();
-      headers.set("X-CSRF-Protected", "1");
-      const res = await fetch("/api/staff/dashboard", { credentials: "include", headers });
+      const res = await fetch("/api/staff/dashboard", { credentials: "include" });
       if (res.status === 403) { setStatus("forbidden"); return; }
       if (res.status === 401) { setStatus("error"); setErrMsg("Authentication required."); return; }
       if (!res.ok) { setStatus("error"); setErrMsg("Unable to load the staff dashboard."); return; }
@@ -123,16 +131,16 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue }: { 
           <button type="button" className="card h-100 text-start w-100 dashboard-card" onClick={() => goQueue({ ownerId: "unassigned" })}>
             <div className="card-body">
               <div className="text-muted small">Unassigned Tickets</div>
-              <div className="display-6">{m.unassigned}</div>
+              <div className="display-6">{m.unassignedCount}</div>
               <div className="small text-tok-green">View queue →</div>
             </div>
           </button>
         </div>
         <div className="col-6 col-lg-3">
-          <button type="button" className="card h-100 text-start w-100 dashboard-card" onClick={() => goQueue({ ownerId: String(user.id) })}>
+          <button type="button" className="card h-100 text-start w-100 dashboard-card" onClick={() => goQueue({ ownerId: "me" })}>
             <div className="card-body">
               <div className="text-muted small">Owned by me</div>
-              <div className="display-6">{m.ownedByMe}</div>
+              <div className="display-6">{m.ownedByMeCount}</div>
               <div className="small text-tok-green">View my tickets →</div>
             </div>
           </button>
@@ -164,24 +172,21 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue }: { 
               <div className="d-flex flex-wrap gap-2">
                 {PRIO_ORDER.map((p) => (
                   <button key={p} type="button" className="btn btn-sm btn-outline-secondary" onClick={() => goQueue({ itPriority: p })}>
-                    {prioBadge(p)} <span className="ms-1">{m.byItPriority[p] ?? 0}</span>
+                    {prioBadge(p)} <span className="ms-1">{m.byPriority[p] ?? 0}</span>
                   </button>
                 ))}
               </div>
             </div>
           </div>
         </div>
-        {user.role === "ADMIN" && data.administrator && (
+        {user.role === "ADMIN" && data.userCounts && (
           <div className="col-12 col-lg-6">
             <div className="card h-100">
               <div className="card-body">
                 <div className="fw-semibold mb-2">User accounts (concise)</div>
                 <div className="row g-2">
-                  <div className="col-6"><div className="text-muted small">Total</div><div className="fs-5">{data.administrator.userCounts.total}</div></div>
-                  <div className="col-6"><div className="text-muted small">Active</div><div className="fs-5">{data.administrator.userCounts.active}</div></div>
-                  <div className="col-4"><div className="text-muted small">Requesters</div><div>{data.administrator.userCounts.requesters}</div></div>
-                  <div className="col-4"><div className="text-muted small">IT Staff</div><div>{data.administrator.userCounts.staff}</div></div>
-                  <div className="col-4"><div className="text-muted small">Admins</div><div>{data.administrator.userCounts.admins}</div></div>
+                  <div className="col-6"><div className="text-muted small">Total</div><div className="fs-5">{data.userCounts.total}</div></div>
+                  <div className="col-6"><div className="text-muted small">Active</div><div className="fs-5">{data.userCounts.active}</div></div>
                 </div>
               </div>
             </div>
@@ -194,15 +199,16 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue }: { 
           <div className="card h-100">
             <div className="card-header bg-transparent fw-semibold">Recently Updated (last 7 days)</div>
             <div className="card-body p-0">
-              {data.lists.recentlyUpdated.length === 0 ? (
+              {data.recentlyUpdated.items.length === 0 ? (
                 <p className="text-muted small p-3 mb-0">No recently updated tickets.</p>
               ) : (
                 <ul className="list-group list-group-flush">
-                  {data.lists.recentlyUpdated.map((t) => (
+                  {data.recentlyUpdated.items.map((t) => (
                     <li key={t.id} className="list-group-item d-flex justify-content-between align-items-start gap-2">
                       <div>
                         <button type="button" className="btn btn-link p-0" onClick={() => goDetail(t.id)}>{t.ticketNumber}</button>
                         <div className="text-muted small text-truncate" style={{ maxWidth: 320 }}>{t.summary}</div>
+                        <div className="text-muted small">Owner: {t.owner ? t.owner.name : "Unassigned"}</div>
                       </div>
                       <div className="text-end">
                         {statusBadge(t.currentStatus)}
@@ -219,15 +225,16 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue }: { 
           <div className="card h-100">
             <div className="card-header bg-transparent fw-semibold">Urgent / High Priority</div>
             <div className="card-body p-0">
-              {data.lists.urgentHigh.length === 0 ? (
+              {data.urgentHigh.items.length === 0 ? (
                 <p className="text-muted small p-3 mb-0">No urgent/high priority tickets.</p>
               ) : (
                 <ul className="list-group list-group-flush">
-                  {data.lists.urgentHigh.map((t) => (
+                  {data.urgentHigh.items.map((t) => (
                     <li key={t.id} className="list-group-item d-flex justify-content-between align-items-start gap-2">
                       <div>
                         <button type="button" className="btn btn-link p-0" onClick={() => goDetail(t.id)}>{t.ticketNumber}</button>
                         <div className="text-muted small text-truncate" style={{ maxWidth: 320 }}>{t.summary}</div>
+                        <div className="text-muted small">Owner: {t.owner ? t.owner.name : "Unassigned"}</div>
                       </div>
                       <div className="text-end">
                         {prioBadge(t.itPriority)}

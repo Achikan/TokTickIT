@@ -55,7 +55,7 @@ function formatDateTime(v: string): string {
 
 interface Props {
   user: AuthUser;
-  ticket: StaffTicket;
+  ticket: StaffTicket | { id: number; ticketNumber?: string; [key: string]: any };
   onBack: () => void;
 }
 
@@ -332,7 +332,7 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     return (
       <div>
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2 className="h4 mb-0">{ticket.ticketNumber}</h2>
+          <h2 className="h4 mb-0">{ticket.ticketNumber ?? "Ticket"}</h2>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onBack}>
             Back to Queue
           </button>

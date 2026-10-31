@@ -11,19 +11,29 @@ const ADMIN: AuthUser = { id: 9, name: "Admin Ada", email: "admin@example.com", 
 const ALICE: AuthUser = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com", role: "REQUESTER", requiresPasswordChange: false };
 
 const DASH = {
+  generatedAt: "2026-09-01T12:00:00.000Z",
   metrics: {
-    unassigned: 2,
-    ownedByMe: 3,
+    unassignedCount: 2,
+    ownedByMeCount: 3,
     byStatus: { NEW: 1, OPEN: 2, IN_PROGRESS: 1, WAITING_FOR_REQUESTER: 1, RESOLVED: 1, CLOSED: 1, REOPENED: 0, CANCELLED: 0 },
-    byItPriority: { LOW: 1, MEDIUM: 2, HIGH: 3, URGENT: 1 },
+    byPriority: { LOW: 1, MEDIUM: 2, HIGH: 3, URGENT: 1 },
   },
-  lists: {
-    recentlyUpdated: [
-      { id: 101, ticketNumber: "TK-001001", summary: "Battery drains fast", currentStatus: "IN_PROGRESS", itPriority: "MEDIUM", requestedPriority: "MEDIUM", updatedAt: "2026-09-01T11:00:00.000Z", ownerId: 6 },
+  recentlyUpdated: {
+    items: [
+      { id: 101, ticketNumber: "TK-001001", summary: "Battery drains fast", currentStatus: "IN_PROGRESS", itPriority: "MEDIUM", updatedAt: "2026-09-01T11:00:00.000Z", owner: { id: 6, name: "Dan Das" } },
     ],
-    urgentHigh: [
-      { id: 102, ticketNumber: "TK-001002", summary: "VPN down", currentStatus: "NEW", itPriority: "URGENT", requestedPriority: "HIGH", updatedAt: "2026-09-01T10:00:00.000Z", ownerId: null },
+  },
+  urgentHigh: {
+    items: [
+      { id: 102, ticketNumber: "TK-001002", summary: "VPN down", currentStatus: "NEW", itPriority: "URGENT", updatedAt: "2026-09-01T10:00:00.000Z", owner: null },
     ],
+  },
+  drilldown: {
+    unassigned: "/api/staff/tickets?ownerId=unassigned",
+    ownedByMe: "/api/staff/tickets?ownerId=me",
+    byStatus: "/api/staff/tickets?status={status}",
+    byPriority: "/api/staff/tickets?itPriority={priority}",
+    recentlyUpdated: "/api/staff/tickets?sort=-updatedAt",
   },
 };
 
@@ -32,21 +42,62 @@ afterEach(() => vi.restoreAllMocks());
 describe("UI-SD-01/02: staff dashboard cards and lists", () => {
   it("renders metrics, lists and drill-downs", async () => {
     global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(DASH), { status: 200 }));
-    render(<StaffDashboard user={DAN} />);
+    const onSelectTicket = vi.fn();
+    const onViewQueue = vi.fn();
+    const user = userEvent.setup();
+
+    render(<StaffDashboard user={DAN} onSelectTicket={onSelectTicket} onViewQueue={onViewQueue} />);
 
     await waitFor(() => expect(screen.getByText("IT Staff Dashboard")).toBeInTheDocument(), { timeout: 3000 });
-    expect(screen.getByText("Unassigned Tickets")).toBeInTheDocument();
-    expect(screen.getByText("Owned by me")).toBeInTheDocument();
+    const unassignedBtn = screen.getByRole("button", { name: /Unassigned Tickets/i });
+    expect(unassignedBtn).toHaveTextContent("2");
+    const ownedByMeBtn = screen.getByRole("button", { name: /Owned by me/i });
+    expect(ownedByMeBtn).toHaveTextContent("3");
+
     expect(screen.getByText("TK-001001")).toBeInTheDocument();
     expect(screen.getByText("TK-001002")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Unassigned Tickets/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Owned by me/i })).toBeInTheDocument();
+    expect(screen.getByText(/Owner:\s*Dan Das/i)).toBeInTheDocument();
+    expect(screen.getByText(/Owner:\s*Unassigned/i)).toBeInTheDocument();
+
+    // Click Unassigned card -> drill down to queue ownerId=unassigned
+    await user.click(unassignedBtn);
+    expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "unassigned" });
+
+    // Click Owned by me card -> drill down to queue ownerId=me
+    await user.click(ownedByMeBtn);
+    expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "me" });
+
+    // Click status button -> drill down to queue with status
+    await user.click(screen.getByRole("button", { name: /^OPEN\b/i }));
+    expect(onViewQueue).toHaveBeenCalledWith({ status: "OPEN" });
+
+    // Click priority button -> drill down to queue with itPriority
+    await user.click(screen.getByRole("button", { name: /^HIGH\b/i }));
+    expect(onViewQueue).toHaveBeenCalledWith({ itPriority: "HIGH" });
+
+    // Click ticket -> select ticket detail
+    await user.click(screen.getByRole("button", { name: "TK-001001" }));
+    expect(onSelectTicket).toHaveBeenCalledWith(101);
   });
 
   it("shows empty states when no recent/urgent tickets", async () => {
     global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      metrics: { unassigned: 0, ownedByMe: 0, byStatus: { NEW:0,OPEN:0,IN_PROGRESS:0,WAITING_FOR_REQUESTER:0,RESOLVED:0,CLOSED:0,REOPENED:0,CANCELLED:0 }, byItPriority: { LOW:0,MEDIUM:0,HIGH:0,URGENT:0 } },
-      lists: { recentlyUpdated: [], urgentHigh: [] },
+      generatedAt: "2026-09-01T12:00:00.000Z",
+      metrics: {
+        unassignedCount: 0,
+        ownedByMeCount: 0,
+        byStatus: { NEW: 0, OPEN: 0, IN_PROGRESS: 0, WAITING_FOR_REQUESTER: 0, RESOLVED: 0, CLOSED: 0, REOPENED: 0, CANCELLED: 0 },
+        byPriority: { LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0 },
+      },
+      recentlyUpdated: { items: [] },
+      urgentHigh: { items: [] },
+      drilldown: {
+        unassigned: "/api/staff/tickets?ownerId=unassigned",
+        ownedByMe: "/api/staff/tickets?ownerId=me",
+        byStatus: "/api/staff/tickets?status={status}",
+        byPriority: "/api/staff/tickets?itPriority={priority}",
+        recentlyUpdated: "/api/staff/tickets?sort=-updatedAt",
+      },
     }), { status: 200 }));
     render(<StaffDashboard user={DAN} />);
     expect(await screen.findByText(/No recently updated tickets/i)).toBeInTheDocument();
@@ -74,11 +125,21 @@ describe("UI-SD-04: Admin reuse with user counts", () => {
   it("shows AD-01 user counts for Administrators", async () => {
     global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
       ...DASH,
-      administrator: { userCounts: { total: 10, active: 7, requesters: 6, staff: 3, admins: 1 } },
+      userCounts: { total: 10, active: 7 },
     }), { status: 200 }));
     render(<StaffDashboard user={ADMIN} />);
     expect(await screen.findByText("User accounts (concise)")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
-    expect(screen.getByText("Requesters")).toBeInTheDocument();
+    expect(screen.getByText("7")).toBeInTheDocument();
+  });
+
+  it("does not show AD-01 user counts for IT_STAFF", async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      ...DASH,
+      userCounts: { total: 10, active: 7 },
+    }), { status: 200 }));
+    render(<StaffDashboard user={DAN} />);
+    await waitFor(() => expect(screen.getByText("IT Staff Dashboard")).toBeInTheDocument());
+    expect(screen.queryByText("User accounts (concise)")).not.toBeInTheDocument();
   });
 });
