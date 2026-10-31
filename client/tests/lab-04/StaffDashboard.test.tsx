@@ -24,6 +24,7 @@ const DASH = {
   urgentHigh: {
     items: [
       { id: 102, ticketNumber: "TK-001002", summary: "VPN down", currentStatus: "NEW", itPriority: "URGENT", owner: null, updatedAt: "2026-09-01T10:00:00.000Z" },
+      { id: 103, ticketNumber: "TK-001003", summary: "Printer jam", currentStatus: "OPEN", itPriority: "HIGH", owner: { id: 6, name: "Dan Das" }, updatedAt: "2026-09-01T09:00:00.000Z" },
     ],
   },
   drilldown: {
@@ -56,6 +57,12 @@ describe("UI-SD-01/02: staff dashboard cards and lists", () => {
     (link as HTMLElement).click();
     expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "unassigned" });
 
+    // drilldown links carry documented query parameters
+    const statusLink = screen.getByRole("link", { name: /NEW/ });
+    expect((statusLink as HTMLAnchorElement).getAttribute("href")).toContain("status=NEW");
+    const prioLink = screen.getByRole("link", { name: /HIGH/ });
+    expect((prioLink as HTMLAnchorElement).getAttribute("href")).toContain("itPriority=HIGH");
+
     const ticketBtn = screen.getByRole("button", { name: "TK-001001" });
     ticketBtn.click();
     expect(onSelectTicket).toHaveBeenCalledWith(101);
@@ -71,6 +78,13 @@ describe("UI-SD-01/02: staff dashboard cards and lists", () => {
     render(<StaffDashboard user={DAN} />);
     expect(await screen.findByText(/No recently updated tickets/i)).toBeInTheDocument();
     expect(screen.getByText(/No urgent or high-priority tickets/i)).toBeInTheDocument();
+  });
+
+  it("IT_STAFF does not see user counts", async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(DASH), { status: 200 }));
+    render(<StaffDashboard user={DAN} />);
+    await waitFor(() => expect(screen.getByText("IT Staff Dashboard")).toBeInTheDocument());
+    expect(screen.queryByText("User accounts (concise)")).not.toBeInTheDocument();
   });
 
   it("shows forbidden for non-staff", async () => {

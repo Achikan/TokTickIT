@@ -38,8 +38,18 @@ function formatDateTime(v: string) {
   try { return new Date(v).toLocaleString(); } catch { return v; }
 }
 
+const STATUS_BADGES: Record<string, string> = {
+  NEW: "badge-status-new",
+  OPEN: "badge-status-open",
+  IN_PROGRESS: "badge-status-in-progress",
+  WAITING_FOR_REQUESTER: "badge-status-waiting",
+  RESOLVED: "badge-status-resolved",
+  CLOSED: "badge-status-closed",
+  REOPENED: "badge-status-reopened",
+  CANCELLED: "badge-status-cancelled",
+};
 function statusBadge(status: string) {
-  return <span className={`badge status-badge status-${status.toLowerCase().replace(/_/g, "-")}`}>{status}</span>;
+  return <span className={`badge ${STATUS_BADGES[status] || "badge-status-new"}`}>{status}</span>;
 }
 
 function prioBadge(p: string) {

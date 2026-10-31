@@ -28,9 +28,10 @@ async function seedBase() {
   await prisma.ticket.create({ data: { ticketNumber: "TK-000005", summary: "s5", description: "d", requesterId: req1.id, categoryId: 1, relatedSystemId: 1, requestedPriority: "LOW", itPriority: "LOW", currentStatus: "RESOLVED" } });
   await prisma.ticket.create({ data: { ticketNumber: "TK-000006", summary: "s6", description: "d", requesterId: req1.id, categoryId: 1, relatedSystemId: 1, requestedPriority: "LOW", itPriority: "LOW", currentStatus: "CLOSED" } });
   await prisma.ticket.create({ data: { ticketNumber: "TK-000007", summary: "s7", description: "d", requesterId: req1.id, categoryId: 1, relatedSystemId: 1, requestedPriority: "LOW", itPriority: "LOW", currentStatus: "REOPENED", ownerId: staff.id } });
-  await prisma.ticket.create({ data: { ticketNumber: "TK-000008", summary: "s8", description: "d", requesterId: req1.id, categoryId: 1, relatedSystemId: 1, requestedPriority: "LOW", itPriority: "URGENT", currentStatus: "CANCELLED" } });
+  await prisma.ticket.create({ data: { ticketNumber: "TK-000008", summary: "s8", description: "d", requesterId: req1.id, categoryId: 1, relatedSystemId: 1, requestedPriority: "LOW", itPriority: "URGENT", currentStatus: "OPEN" } });
 
-  await prisma.ticket.update({ where: { ticketNumber: "TK-000001" }, data: { updatedAt: new Date(Date.now() - 60 * 60 * 1000) } });
+  await prisma.ticket.update({ where: { ticketNumber: "TK-000001" }, data: { updatedAt: new Date() } });
+  await prisma.ticket.update({ where: { ticketNumber: "TK-000005" }, data: { updatedAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) } });
 
   return { req1, req2, staff, admin };
 }
@@ -42,19 +43,21 @@ describe("API-SD: IT Staff Dashboard", () => {
     const res = await client.get("/api/staff/dashboard").expect(200);
     const body = res.body;
 
-    expect(body.metrics.unassignedCount).toBe(2);
+    expect(body.metrics.unassignedCount).toBe(3);
     expect(body.metrics.ownedByMeCount).toBe(3);
     expect(body.metrics.byStatus).toEqual({
-      NEW: 1, OPEN: 1, IN_PROGRESS: 1, WAITING_FOR_REQUESTER: 1,
-      RESOLVED: 1, CLOSED: 1, REOPENED: 1, CANCELLED: 1,
+      NEW: 1, OPEN: 2, IN_PROGRESS: 1, WAITING_FOR_REQUESTER: 1,
+      RESOLVED: 1, CLOSED: 1, REOPENED: 1, CANCELLED: 0,
     });
-    expect(body.metrics.byPriority).toEqual({ LOW: 2, MEDIUM: 2, HIGH: 1, URGENT: 0 });
+    expect(body.metrics.byPriority).toEqual({ LOW: 2, MEDIUM: 2, HIGH: 1, URGENT: 1 });
     expect(Array.isArray(body.recentlyUpdated.items)).toBe(true);
     expect(body.recentlyUpdated.items.length).toBeLessThanOrEqual(5);
     expect(Array.isArray(body.urgentHigh.items)).toBe(true);
-    expect(body.urgentHigh.items.length).toBe(1);
-    expect(body.urgentHigh.items[0].ticketNumber).toBe("TK-000003");
-    expect(body.urgentHigh.items[0].itPriority).toBe("HIGH");
+    expect(body.urgentHigh.items.length).toBe(2);
+    expect(body.urgentHigh.items[0].ticketNumber).toBe("TK-000008");
+    expect(body.urgentHigh.items[0].itPriority).toBe("URGENT");
+    expect(body.urgentHigh.items[1].ticketNumber).toBe("TK-000003");
+    expect(body.urgentHigh.items[1].itPriority).toBe("HIGH");
     expect(body.drilldown).toEqual({
       unassigned: "/api/staff/tickets?ownerId=unassigned",
       ownedByMe: "/api/staff/tickets?ownerId=me",
@@ -62,6 +65,17 @@ describe("API-SD: IT Staff Dashboard", () => {
       byPriority: "/api/staff/tickets?itPriority={priority}",
       recentlyUpdated: "/api/staff/tickets?sort=-updatedAt",
     });
+    // newest-first ordering
+    const recents = body.recentlyUpdated.items;
+    for (let i = 1; i < recents.length; i++) {
+      expect(new Date(recents[i-1].updatedAt).getTime()).toBeGreaterThanOrEqual(new Date(recents[i].updatedAt).getTime());
+    }
+    // excludes tickets older than 7 days
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    for (const it of recents) expect(new Date(it.updatedAt).getTime()).toBeGreaterThanOrEqual(sevenDaysAgo);
+    // TK-000005 (aged 8 days) must not appear
+    expect(recents.map((x: any) => x.ticketNumber)).not.toContain("TK-000005");
+
     const item = body.recentlyUpdated.items[0];
     expect(item).toHaveProperty("id");
     expect(item).toHaveProperty("ticketNumber");
@@ -71,7 +85,8 @@ describe("API-SD: IT Staff Dashboard", () => {
     expect(item).toHaveProperty("owner");
     expect(item).toHaveProperty("updatedAt");
     const unassignedItem = body.recentlyUpdated.items.find((x: any) => x.owner === null);
-    if (unassignedItem) expect(unassignedItem.owner).toBeNull();
+    expect(unassignedItem).toBeDefined();
+    expect(unassignedItem!.owner).toBeNull();
     const ownedItem = body.recentlyUpdated.items.find((x: any) => x.ticketNumber === "TK-000002");
     if (ownedItem) expect(ownedItem.owner).toEqual({ id: staff.id, name: "Dan" });
   });
@@ -118,9 +133,10 @@ describe("API-SD: IT Staff Dashboard", () => {
     const client = await loginClient(app, "ada@test.com", "Password1!");
     const res = await client.get("/api/staff/dashboard").expect(200);
     expect(res.body.userCounts).toBeDefined();
-    expect(typeof res.body.userCounts.total).toBe("number");
-    expect(typeof res.body.userCounts.active).toBe("number");
-    expect(res.body.userCounts.total).toBeGreaterThanOrEqual(1);
+    const total = await prisma.user.count();
+    const active = await prisma.user.count({ where: { active: true } });
+    expect(res.body.userCounts.total).toBe(total);
+    expect(res.body.userCounts.active).toBe(active);
   });
 
   it("ownerId=me alias matches ownerId=<id>", async () => {
