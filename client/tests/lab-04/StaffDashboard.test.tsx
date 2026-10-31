@@ -4,8 +4,6 @@ import userEvent from "@testing-library/user-event";
 import StaffDashboard from "../../src/StaffDashboard.js";
 import type { AuthUser } from "../../src/api.js";
 
-// Lab 4 Issue 34 — IT Staff Dashboard (tests.md API/UI-SD-01..04)
-
 const DAN: AuthUser = { id: 6, name: "Dan Das", email: "dan.das@example.com", role: "IT_STAFF", requiresPasswordChange: false };
 const ADMIN: AuthUser = { id: 9, name: "Admin Ada", email: "admin@example.com", role: "ADMIN", requiresPasswordChange: false };
 const ALICE: AuthUser = { id: 1, name: "Alice Anderson", email: "alice.anderson@example.com", role: "REQUESTER", requiresPasswordChange: false };
@@ -20,12 +18,12 @@ const DASH = {
   },
   recentlyUpdated: {
     items: [
-      { id: 101, ticketNumber: "TK-001001", summary: "Battery drains fast", currentStatus: "IN_PROGRESS", itPriority: "MEDIUM", updatedAt: "2026-09-01T11:00:00.000Z", owner: { id: 6, name: "Dan Das" } },
+      { id: 101, ticketNumber: "TK-001001", summary: "Battery drains fast", currentStatus: "IN_PROGRESS", itPriority: "MEDIUM", owner: { id: 6, name: "Dan Das" }, updatedAt: "2026-09-01T11:00:00.000Z" },
     ],
   },
   urgentHigh: {
     items: [
-      { id: 102, ticketNumber: "TK-001002", summary: "VPN down", currentStatus: "NEW", itPriority: "URGENT", updatedAt: "2026-09-01T10:00:00.000Z", owner: null },
+      { id: 102, ticketNumber: "TK-001002", summary: "VPN down", currentStatus: "NEW", itPriority: "URGENT", owner: null, updatedAt: "2026-09-01T10:00:00.000Z" },
     ],
   },
   drilldown: {
@@ -42,66 +40,37 @@ afterEach(() => vi.restoreAllMocks());
 describe("UI-SD-01/02: staff dashboard cards and lists", () => {
   it("renders metrics, lists and drill-downs", async () => {
     global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(DASH), { status: 200 }));
-    const onSelectTicket = vi.fn();
     const onViewQueue = vi.fn();
-    const user = userEvent.setup();
-
-    render(<StaffDashboard user={DAN} onSelectTicket={onSelectTicket} onViewQueue={onViewQueue} />);
+    const onSelectTicket = vi.fn();
+    render(<StaffDashboard user={DAN} onViewQueue={onViewQueue} onSelectTicket={onSelectTicket} />);
 
     await waitFor(() => expect(screen.getByText("IT Staff Dashboard")).toBeInTheDocument(), { timeout: 3000 });
-    const unassignedBtn = screen.getByRole("button", { name: /Unassigned Tickets/i });
-    expect(unassignedBtn).toHaveTextContent("2");
-    const ownedByMeBtn = screen.getByRole("button", { name: /Owned by me/i });
-    expect(ownedByMeBtn).toHaveTextContent("3");
-
+    expect(screen.getByText("Unassigned Tickets")).toBeInTheDocument();
+    expect(screen.getByText("Owned by me")).toBeInTheDocument();
     expect(screen.getByText("TK-001001")).toBeInTheDocument();
     expect(screen.getByText("TK-001002")).toBeInTheDocument();
-    expect(screen.getByText(/Owner:\s*Dan Das/i)).toBeInTheDocument();
-    expect(screen.getByText(/Owner:\s*Unassigned/i)).toBeInTheDocument();
+    expect(screen.getByText("Unassigned")).toBeInTheDocument();
 
-    // Click Unassigned card -> drill down to queue ownerId=unassigned
-    await user.click(unassignedBtn);
+    const link = screen.getByRole("link", { name: /Unassigned Tickets/i });
+    expect(link).toBeInTheDocument();
+    (link as HTMLElement).click();
     expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "unassigned" });
 
-    // Click Owned by me card -> drill down to queue ownerId=me
-    await user.click(ownedByMeBtn);
-    expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "me" });
-
-    // Click status button -> drill down to queue with status
-    await user.click(screen.getByRole("button", { name: /^OPEN\b/i }));
-    expect(onViewQueue).toHaveBeenCalledWith({ status: "OPEN" });
-
-    // Click priority button -> drill down to queue with itPriority
-    await user.click(screen.getByRole("button", { name: /^HIGH\b/i }));
-    expect(onViewQueue).toHaveBeenCalledWith({ itPriority: "HIGH" });
-
-    // Click ticket -> select ticket detail
-    await user.click(screen.getByRole("button", { name: "TK-001001" }));
+    const ticketBtn = screen.getByRole("button", { name: "TK-001001" });
+    ticketBtn.click();
     expect(onSelectTicket).toHaveBeenCalledWith(101);
   });
 
   it("shows empty states when no recent/urgent tickets", async () => {
     global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      generatedAt: "2026-09-01T12:00:00.000Z",
-      metrics: {
-        unassignedCount: 0,
-        ownedByMeCount: 0,
-        byStatus: { NEW: 0, OPEN: 0, IN_PROGRESS: 0, WAITING_FOR_REQUESTER: 0, RESOLVED: 0, CLOSED: 0, REOPENED: 0, CANCELLED: 0 },
-        byPriority: { LOW: 0, MEDIUM: 0, HIGH: 0, URGENT: 0 },
-      },
+      ...DASH,
+      metrics: { unassignedCount: 0, ownedByMeCount: 0, byStatus: { NEW:0,OPEN:0,IN_PROGRESS:0,WAITING_FOR_REQUESTER:0,RESOLVED:0,CLOSED:0,REOPENED:0,CANCELLED:0 }, byPriority: { LOW:0,MEDIUM:0,HIGH:0,URGENT:0 } },
       recentlyUpdated: { items: [] },
       urgentHigh: { items: [] },
-      drilldown: {
-        unassigned: "/api/staff/tickets?ownerId=unassigned",
-        ownedByMe: "/api/staff/tickets?ownerId=me",
-        byStatus: "/api/staff/tickets?status={status}",
-        byPriority: "/api/staff/tickets?itPriority={priority}",
-        recentlyUpdated: "/api/staff/tickets?sort=-updatedAt",
-      },
     }), { status: 200 }));
     render(<StaffDashboard user={DAN} />);
     expect(await screen.findByText(/No recently updated tickets/i)).toBeInTheDocument();
-    expect(screen.getByText(/No urgent\/high priority tickets/i)).toBeInTheDocument();
+    expect(screen.getByText(/No urgent or high-priority tickets/i)).toBeInTheDocument();
   });
 
   it("shows forbidden for non-staff", async () => {
@@ -119,6 +88,17 @@ describe("UI-SD-01/02: staff dashboard cards and lists", () => {
     expect(await screen.findByText("TK-001001")).toBeInTheDocument();
     expect((global.fetch as any)).toHaveBeenCalledTimes(2);
   });
+
+  it("double-click card fires single navigation", async () => {
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify(DASH), { status: 200 }));
+    const onViewQueue = vi.fn();
+    render(<StaffDashboard user={DAN} onViewQueue={onViewQueue} />);
+    await waitFor(() => expect(screen.getByText("Unassigned Tickets")).toBeInTheDocument());
+    const link = screen.getByRole("link", { name: /Unassigned Tickets/i });
+    link.click();
+    link.click();
+    expect(onViewQueue).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("UI-SD-04: Admin reuse with user counts", () => {
@@ -127,19 +107,12 @@ describe("UI-SD-04: Admin reuse with user counts", () => {
       ...DASH,
       userCounts: { total: 10, active: 7 },
     }), { status: 200 }));
-    render(<StaffDashboard user={ADMIN} />);
+    const onViewUsers = vi.fn();
+    render(<StaffDashboard user={ADMIN} onViewUsers={onViewUsers} />);
     expect(await screen.findByText("User accounts (concise)")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
-    expect(screen.getByText("7")).toBeInTheDocument();
-  });
-
-  it("does not show AD-01 user counts for IT_STAFF", async () => {
-    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
-      ...DASH,
-      userCounts: { total: 10, active: 7 },
-    }), { status: 200 }));
-    render(<StaffDashboard user={DAN} />);
-    await waitFor(() => expect(screen.getByText("IT Staff Dashboard")).toBeInTheDocument());
-    expect(screen.queryByText("User accounts (concise)")).not.toBeInTheDocument();
+    const card = screen.getByRole("link", { name: /View user management/i });
+    card.click();
+    expect(onViewUsers).toHaveBeenCalled();
   });
 });

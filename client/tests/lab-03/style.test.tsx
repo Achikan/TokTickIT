@@ -40,6 +40,7 @@ const DETAIL: api.StaffTicketDetailData = {
   comments: [
     {
       id: 1,
+      ticketId: 42,
       author: { id: 1, name: "Alice Anderson" },
       createdAt: "2026-09-01T10:05:00.000Z",
       content: "Updating to the latest firmware when plugged in.",
@@ -48,6 +49,7 @@ const DETAIL: api.StaffTicketDetailData = {
   notes: [
     {
       id: 2,
+      ticketId: 42,
       author: { id: 7, name: "Eileen Ford" },
       createdAt: "2026-09-01T10:10:00.000Z",
       content: "Arranging a loaner laptop while battery is replaced.",

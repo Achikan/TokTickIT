@@ -257,6 +257,7 @@ export default function App() {
               setQueueFilters(filters);
               setView("staff-queue");
             }}
+            onViewUsers={() => setView("user-management")}
           />
         ) : view === "staff-detail" && selectedStaffTicket ? (
           <StaffTicketDetail
