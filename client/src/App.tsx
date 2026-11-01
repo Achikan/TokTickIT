@@ -16,6 +16,7 @@ import StaffTicketQueue from "./StaffTicketQueue.js";
 import StaffDashboard from "./StaffDashboard.js";
 import TicketDetail from "./TicketDetail.js";
 import UserManagement from "./UserManagement.js";
+import RequesterDashboard from "./RequesterDashboard.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
 // -> role-specific home with role badge + Logout (ui-spec.md §3.3).
@@ -26,7 +27,8 @@ type View =
   | "staff-queue"
   | "staff-detail"
   | "staff-dashboard"
-  | "user-management";
+  | "user-management"
+  | "requester-dashboard";
 
 type AuthState =
   | { status: "loading" }
@@ -162,6 +164,14 @@ export default function App() {
               <>
                 <button
                   type="button"
+                  className={`nav-link ${view === "requester-dashboard" ? "active" : ""}`}
+                  style={view === "requester-dashboard" ? { background: "#0B7A46" } : { color: "#fff" }}
+                  onClick={() => setView("requester-dashboard")}
+                >
+                  Dashboard
+                </button>
+                <button
+                  type="button"
                   className={`nav-link ${myTicketsActive ? "active" : ""}`}
                   style={myTicketsActive ? { background: "#0B7A46" } : { color: "#fff" }}
                   onClick={() => setView("my-tickets")}
@@ -227,7 +237,19 @@ export default function App() {
         )}
 
         {user.role === "REQUESTER" ? (
-          view === "create-ticket" ? (
+          view === "requester-dashboard" ? (
+            <RequesterDashboard
+              user={user}
+              onViewTickets={(filters) => {
+                // simple navigation to my-tickets
+                setView("my-tickets");
+              }}
+              onViewTicket={(t) => {
+                setSelectedTicket(t as any);
+                setView("ticket-detail");
+              }}
+            />
+          ) : view === "create-ticket" ? (
             <CreateTicket requester={user} onViewTickets={() => setView("my-tickets")} />
           ) : view === "ticket-detail" && selectedTicket ? (
             <TicketDetail
