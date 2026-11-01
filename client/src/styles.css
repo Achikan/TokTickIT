@@ -55,6 +55,10 @@ input[type="file"]:focus-visible {
 .text-tok-success {
   color: var(--tok-success);
 }
+.text-tok-primary,
+.text-tok-green {
+  color: var(--tok-primary);
+}
 
 /* Success callout: pale green surface + left accent (Requester resolution
    indication surfaced to staff). */

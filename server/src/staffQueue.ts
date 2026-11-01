@@ -123,10 +123,16 @@ staffQueueRouter.get(
     if (ownerIdRaw !== null) {
       if (UNASSIGNED_MARKERS.has(ownerIdRaw)) {
         ownerId = "unassigned";
+      } else if (ownerIdRaw === "me") {
+        if (!req.user?.id) {
+          fields.ownerId = "Owner id must be a positive integer, 'null', 'unassigned', or 'me'.";
+        } else {
+          ownerId = req.user.id;
+        }
       } else {
         const n = Number(ownerIdRaw);
         if (!Number.isInteger(n) || n < 1) {
-          fields.ownerId = "Owner id must be a positive integer, 'null' or 'unassigned'.";
+          fields.ownerId = "Owner id must be a positive integer, 'null', 'unassigned', or 'me'.";
         } else {
           ownerId = n;
         }
