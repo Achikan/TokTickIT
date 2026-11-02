@@ -14,6 +14,7 @@ import { staffQueueRouter } from "./staffQueue.js";
 import { staffTicketDetailRouter } from "./staffTicketDetail.js";
 import { adminUsersRouter } from "./adminUsers.js";
 import { actionsTakenRouter } from "./actionsTaken.js";
+import { getRequesterDashboard } from "./requesterDashboard.js";
 import { getStaffDashboard } from "./staffDashboard.js";
 import {
   blockPendingPasswordChange,
@@ -53,6 +54,9 @@ app.use("/api/staff", staffTicketDetailRouter);
 
 // Lab 4 (Issue 34) — IT Staff Dashboard
 app.get("/api/staff/dashboard", requireAuth, blockPendingPasswordChange, requireRole("IT_STAFF", "ADMIN"), getStaffDashboard);
+
+// Lab 4 (Issue 35) — Requester Dashboard
+app.get("/api/requester/dashboard", requireAuth, blockPendingPasswordChange, requireRole("REQUESTER"), getRequesterDashboard);
 
 // Lab 3 (Issue 23) — Administrator User Management: list/search/filter, create,
 // edit and set a new initial password (api-spec.md §7, FR-19..FR-22/AC-18..AC-22).

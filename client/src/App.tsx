@@ -16,6 +16,7 @@ import StaffTicketQueue from "./StaffTicketQueue.js";
 import StaffDashboard from "./StaffDashboard.js";
 import TicketDetail from "./TicketDetail.js";
 import UserManagement from "./UserManagement.js";
+import RequesterDashboard from "./RequesterDashboard.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
 // -> role-specific home with role badge + Logout (ui-spec.md §3.3).
@@ -26,7 +27,8 @@ type View =
   | "staff-queue"
   | "staff-detail"
   | "staff-dashboard"
-  | "user-management";
+  | "user-management"
+  | "requester-dashboard";
 
 type AuthState =
   | { status: "loading" }
@@ -62,6 +64,7 @@ export default function App() {
   const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
   const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | { id: number; ticketNumber?: string; [key: string]: any } | null>(null);
   const [queueFilters, setQueueFilters] = useState<Record<string, string> | undefined>(undefined);
+  const [requesterFilters, setRequesterFilters] = useState<Record<string, string> | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -162,6 +165,14 @@ export default function App() {
               <>
                 <button
                   type="button"
+                  className={`nav-link ${view === "requester-dashboard" ? "active" : ""}`}
+                  style={view === "requester-dashboard" ? { background: "#0B7A46" } : { color: "#fff" }}
+                  onClick={() => setView("requester-dashboard")}
+                >
+                  Dashboard
+                </button>
+                <button
+                  type="button"
                   className={`nav-link ${myTicketsActive ? "active" : ""}`}
                   style={myTicketsActive ? { background: "#0B7A46" } : { color: "#fff" }}
                   onClick={() => setView("my-tickets")}
@@ -227,7 +238,19 @@ export default function App() {
         )}
 
         {user.role === "REQUESTER" ? (
-          view === "create-ticket" ? (
+          view === "requester-dashboard" ? (
+            <RequesterDashboard
+              user={user}
+              onViewTickets={(filters) => {
+                setRequesterFilters(filters || null);
+                setView("my-tickets");
+              }}
+              onViewTicket={(t) => {
+                setSelectedTicket(t as any);
+                setView("ticket-detail");
+              }}
+            />
+          ) : view === "create-ticket" ? (
             <CreateTicket requester={user} onViewTickets={() => setView("my-tickets")} />
           ) : view === "ticket-detail" && selectedTicket ? (
             <TicketDetail
@@ -237,8 +260,9 @@ export default function App() {
             />
           ) : (
             <MyTickets
-              key={user.id}
+              key={user.id + JSON.stringify(requesterFilters || {})}
               requester={user}
+              initialFilters={requesterFilters || undefined}
               onCreate={() => setView("create-ticket")}
               onViewTicket={(t) => {
                 setSelectedTicket(t);
