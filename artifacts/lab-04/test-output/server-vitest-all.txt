@@ -1,60 +1,63 @@
+=== Server Test Run ===
+Command: PORT=0 npx vitest run
+Date: Mon Nov  2 17:28:55 +07 2026
 
  RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
 
- ✓ tests/lab-04/actions-taken.api.test.ts (28 tests) 40183ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > saves under the correct Ticket with the session user as performer and the owner preserved 1465ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > trims text, defaults the action date to now, and stores null for omitted optional fields 1395ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > stores a Follow-up Note and the date when Follow-Up Required is Yes 1388ms
-   ✓ API-TA-02: client-supplied performer is ignored (AC-03, BR-03) > records the session user even when the body supplies another performer 1382ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects Follow-Up Required with a missing or blank note and saves nothing 1380ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects a blank or over-length Action Description 1378ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects over-length result, follow-up note and attachment notes 1390ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > enforces the Action Date/Time bounds (D-6) 1384ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > accepts the outer edges of the allowed window 1395ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > drops a Follow-up Note sent with Follow-Up Required No (BR-05 iff) 1386ms
-   ✓ API-TA-04: Requesters can never write Actions (AC-05, BR-04) > returns 403 on create and update with no row written 1403ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > returns an empty list for a Ticket with zero Actions (zero-record contract) 1383ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > orders newest Action Date/Time first and breaks ties by id descending 1383ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets a Requester read owned Tickets only; foreign and missing are non-disclosing 404 1402ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets IT Staff and Administrators read any accessible Ticket 1381ms
-   ✓ API-TA-06: a different IT Staff member may perform an Action (AC-07, BR-02) > saves with that performer while the Ticket Owner is unchanged 1381ms
-   ✓ API-TA-07: a deactivated account cannot record Actions (AC-08, BR-03) > rejects the write and saves nothing (Lab 3 session semantics: 403 ACCOUNT_INACTIVE) 1385ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > updates fields, keeps the performer, and never lets the client change it 1390ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > clears a stored Follow-up Note when the flag is turned off without sending the note 1397ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > requires a non-empty note when the merged follow-up flag stays true 1391ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > returns 400 for invalid updates and 404 for an Action on another Ticket 1389ms
-   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > rejects a repeat create inside the 5-minute window and keeps exactly one row 1409ms
-   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > allows a different actor, a different description, and a retry after the window closes 1401ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > returns 409 STALE_UPDATE without changing the stored row 1400ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > requires expectedUpdatedAt (400 when missing or invalid) 1400ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > accepts the current updatedAt exactly 1403ms
-   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 401 for anonymous callers on every Action route 1396ms
-   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 403 for Requesters on writes and 2xx for Staff/Admin writes 1411ms
- ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 37857ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1371ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1324ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1319ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1333ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1385ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1426ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1426ms
-   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1381ms
-   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1321ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1323ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1320ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1322ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1378ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1377ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1323ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1323ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1449ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1335ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1489ms
-   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1384ms
-   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1332ms
-   ✓ API-42: the last active Administrator is protected (BR-19) > rejects changing the last active Administrator's role with 409 1328ms
-   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1387ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1332ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1334ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1333ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1330ms
+ ✓ tests/lab-04/actions-taken.api.test.ts (28 tests) 41078ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > saves under the correct Ticket with the session user as performer and the owner preserved 1478ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > trims text, defaults the action date to now, and stores null for omitted optional fields 1417ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > stores a Follow-up Note and the date when Follow-Up Required is Yes 1404ms
+   ✓ API-TA-02: client-supplied performer is ignored (AC-03, BR-03) > records the session user even when the body supplies another performer 1420ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects Follow-Up Required with a missing or blank note and saves nothing 1402ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects a blank or over-length Action Description 1403ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects over-length result, follow-up note and attachment notes 1419ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > enforces the Action Date/Time bounds (D-6) 1436ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > accepts the outer edges of the allowed window 1414ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > drops a Follow-up Note sent with Follow-Up Required No (BR-05 iff) 1414ms
+   ✓ API-TA-04: Requesters can never write Actions (AC-05, BR-04) > returns 403 on create and update with no row written 1425ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > returns an empty list for a Ticket with zero Actions (zero-record contract) 1429ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > orders newest Action Date/Time first and breaks ties by id descending 1418ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets a Requester read owned Tickets only; foreign and missing are non-disclosing 404 1421ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets IT Staff and Administrators read any accessible Ticket 1419ms
+   ✓ API-TA-06: a different IT Staff member may perform an Action (AC-07, BR-02) > saves with that performer while the Ticket Owner is unchanged 1425ms
+   ✓ API-TA-07: a deactivated account cannot record Actions (AC-08, BR-03) > rejects the write and saves nothing (Lab 3 session semantics: 403 ACCOUNT_INACTIVE) 1415ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > updates fields, keeps the performer, and never lets the client change it 1422ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > clears a stored Follow-up Note when the flag is turned off without sending the note 1426ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > requires a non-empty note when the merged follow-up flag stays true 1426ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > returns 400 for invalid updates and 404 for an Action on another Ticket 1449ms
+   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > rejects a repeat create inside the 5-minute window and keeps exactly one row 1435ms
+   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > allows a different actor, a different description, and a retry after the window closes 1454ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > returns 409 STALE_UPDATE without changing the stored row 1429ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > requires expectedUpdatedAt (400 when missing or invalid) 1427ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > accepts the current updatedAt exactly 1432ms
+   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 401 for anonymous callers on every Action route 1427ms
+   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 403 for Requesters on writes and 2xx for Staff/Admin writes 1440ms
+ ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 38293ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1404ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1334ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1340ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1339ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1386ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1445ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1442ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1404ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1361ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1335ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1334ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1335ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1390ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1394ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1342ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1341ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1448ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1340ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1515ms
+   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1395ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1344ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects changing the last active Administrator's role with 409 1341ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1392ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1344ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1350ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1348ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1356ms
