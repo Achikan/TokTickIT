@@ -26,12 +26,15 @@ describe("UI-RD-01/02: requester dashboard", () => {
 
     await waitFor(() => expect(screen.getByText("My Dashboard")).toBeInTheDocument());
     expect(screen.getByText("My Open Tickets")).toBeInTheDocument();
-    expect(screen.getByText("Waiting for Me")).toBeInTheDocument();
+    expect(screen.getAllByText("Waiting for Me").length).toBeGreaterThan(0);
     expect(screen.getByText("TK-001001")).toBeInTheDocument();
     expect(screen.getByText("TK-001002")).toBeInTheDocument();
 
-    await userEvent.setup().click(screen.getByRole("button", { name: /My Open Tickets/i }));
-    expect(onViewTickets).toHaveBeenCalled();
+    await userEvent.setup().click(screen.getByRole("link", { name: /My Open Tickets/i }));
+    expect(onViewTickets).toHaveBeenCalledWith({ status: "OPEN" });
+
+    await userEvent.setup().click(screen.getByRole("link", { name: /Waiting for Me/i }));
+    expect(onViewTickets).toHaveBeenCalledWith({ status: "WAITING_FOR_REQUESTER" });
 
     await userEvent.setup().click(screen.getByRole("button", { name: "TK-001001" }));
     expect(onViewTicket).toHaveBeenCalled();

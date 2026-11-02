@@ -64,6 +64,7 @@ export default function App() {
   const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
   const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | { id: number; ticketNumber?: string; [key: string]: any } | null>(null);
   const [queueFilters, setQueueFilters] = useState<Record<string, string> | undefined>(undefined);
+  const [requesterFilters, setRequesterFilters] = useState<Record<string, string> | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -241,7 +242,7 @@ export default function App() {
             <RequesterDashboard
               user={user}
               onViewTickets={(filters) => {
-                // simple navigation to my-tickets
+                setRequesterFilters(filters || null);
                 setView("my-tickets");
               }}
               onViewTicket={(t) => {
@@ -259,8 +260,9 @@ export default function App() {
             />
           ) : (
             <MyTickets
-              key={user.id}
+              key={user.id + JSON.stringify(requesterFilters || {})}
               requester={user}
+              initialFilters={requesterFilters || undefined}
               onCreate={() => setView("create-ticket")}
               onViewTicket={(t) => {
                 setSelectedTicket(t);

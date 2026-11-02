@@ -57,11 +57,12 @@ interface Props {
   requester: AuthUser;
   onCreate: () => void;
   onViewTicket?: (t: MyTicket) => void;
+  initialFilters?: Record<string, string> | Partial<TicketQuery>;
 }
 
 type ListStatus = "loading" | "ready" | "failure";
 
-export default function MyTickets({ requester: _requester, onCreate, onViewTicket }: Props) {
+export default function MyTickets({ requester: _requester, onCreate, onViewTicket, initialFilters }: Props) {
   const [listStatus, setListStatus] = useState<ListStatus>("loading");
   const [items, setItems] = useState<MyTicket[]>([]);
   const [pagination, setPagination] = useState({
@@ -73,7 +74,7 @@ export default function MyTickets({ requester: _requester, onCreate, onViewTicke
   const [filtersApplied, setFiltersApplied] = useState<Record<string, unknown>>({});
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const [query, setQuery] = useState<TicketQuery>({ page: 1, pageSize: 10, sort: "-createdAt" });
+  const [query, setQuery] = useState<TicketQuery>(() => ({ page: 1, pageSize: 10, sort: "-createdAt", ...(initialFilters as TicketQuery) }));
 
   const [searchInput, setSearchInput] = useState("");
 

@@ -121,22 +121,38 @@ export default function RequesterDashboard({ user, onViewTickets, onViewTicket }
 
       <section aria-label="Metrics" className="row g-3 mb-4">
         <div className="col-12 col-md-6">
-          <button type="button" className="card h-100 text-start w-100 dashboard-card" onClick={() => goTickets({ status: "OPEN" })}>
+          <a
+            className="card h-100 text-start w-100 dashboard-card text-decoration-none text-body"
+            href={data.drilldown?.open || "/api/tickets?status=OPEN"}
+            aria-label="My Open Tickets"
+            onClick={(e) => {
+              e.preventDefault();
+              goTickets({ status: "OPEN" });
+            }}
+          >
             <div className="card-body">
               <div className="text-muted small">My Open Tickets</div>
               <div className="display-6">{m.openCount ?? 0}</div>
               <div className="small text-tok-green">View my tickets →</div>
             </div>
-          </button>
+          </a>
         </div>
         <div className="col-12 col-md-6">
-          <button type="button" className="card h-100 text-start w-100 dashboard-card" onClick={() => goTickets({ status: "WAITING_FOR_REQUESTER" })}>
+          <a
+            className="card h-100 text-start w-100 dashboard-card text-decoration-none text-body border-warning"
+            href={data.drilldown?.waitingForRequester || "/api/tickets?status=WAITING_FOR_REQUESTER"}
+            aria-label="Waiting for Me"
+            onClick={(e) => {
+              e.preventDefault();
+              goTickets({ status: "WAITING_FOR_REQUESTER" });
+            }}
+          >
             <div className="card-body">
-              <div className="text-muted small">Waiting for Me</div>
+              <div className="text-muted small"><span className="badge bg-warning text-dark">Waiting for Me</span></div>
               <div className="display-6">{m.waitingForRequesterCount ?? 0}</div>
               <div className="small text-tok-green">View my tickets →</div>
             </div>
-          </button>
+          </a>
         </div>
       </section>
 
