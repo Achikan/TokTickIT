@@ -158,3 +158,9 @@ BR-21 | API-TA-05, API-RD-01 (non-disclosing shapes)
 ## 8. Final Status
 
 **Status: PLANNED** — this document was merged as the Test DD deliverable of Issue 28, before the implementation PRs (Issues 29–37), providing the Test-DD ordering evidence required by grading Part 3. The Final column, per-suite counts, provenance capture, and raw logs will be filled in on `main` during Issue 36/37 exactly as in Lab 3 §6–§7: no hand-written numbers, everything backed by committed terminal output under `artifacts/lab-04/test-output/`.
+
+## Provenance (Issue 36)
+
+- Artifacts: `artifacts/lab-04/test-output/server-tsc.txt`, `artifacts/lab-04/test-output/server-vitest-all.txt`, `artifacts/lab-04/test-output/client-tsc.txt`, `artifacts/lab-04/test-output/client-vitest-all.txt`
+- Verification: Server `tsc --noEmit` clean; Server `vitest run` all passed. Client `tsc --noEmit` clean; Client `vitest run` 19 files / 139 tests passed.
+- Notes: Pre-existing Lab 3 `client/tests/lab-03/style.test.tsx` lines left untouched (REG-08).
