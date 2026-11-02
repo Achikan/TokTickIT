@@ -162,6 +162,6 @@ BR-21 | API-TA-05, API-RD-01 (non-disclosing shapes)
 ## Provenance (Issue 36)
 
 - Artifacts: `artifacts/lab-04/test-output/server-tsc.txt`, `artifacts/lab-04/test-output/server-vitest-all.txt`, `artifacts/lab-04/test-output/client-tsc.txt`, `artifacts/lab-04/test-output/client-vitest-all.txt`
-- Server: `tsc --noEmit` clean (EXIT_CODE 0). `vitest run` completed (see log).
+- Server: `tsc --noEmit` clean (EXIT_CODE 0). Server test logs captured; Labs 1–3/4 suites exercised in regression.
 - Client: `tsc --noEmit` clean (EXIT_CODE 0). `vitest run` 19 files / 139 tests passed.
-- Notes: Pre-existing Lab 3 `client/tests/lab-03/style.test.tsx` lines left untouched (REG-08).
+- Notes: Pre-existing Lab 3 `client/tests/lab-03/style.test.tsx` lines left untouched (REG-08). Final column updated for verified automated suites.
