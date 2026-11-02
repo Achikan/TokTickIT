@@ -1,64 +1,317 @@
 === Server Test Run (full) ===
 Command: PORT=0 npx vitest run
-Date: Mon Nov  2 22:29:56 +07 2026
+Date: Mon Nov  2 23:26:14 +07 2026
 
 
  RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/server
 
- ✓ tests/lab-04/actions-taken.api.test.ts (28 tests) 40454ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > saves under the correct Ticket with the session user as performer and the owner preserved 1493ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > trims text, defaults the action date to now, and stores null for omitted optional fields 1398ms
-   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > stores a Follow-up Note and the date when Follow-Up Required is Yes 1398ms
-   ✓ API-TA-02: client-supplied performer is ignored (AC-03, BR-03) > records the session user even when the body supplies another performer 1399ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects Follow-Up Required with a missing or blank note and saves nothing 1393ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects a blank or over-length Action Description 1413ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects over-length result, follow-up note and attachment notes 1393ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > enforces the Action Date/Time bounds (D-6) 1391ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > accepts the outer edges of the allowed window 1385ms
-   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > drops a Follow-up Note sent with Follow-Up Required No (BR-05 iff) 1389ms
-   ✓ API-TA-04: Requesters can never write Actions (AC-05, BR-04) > returns 403 on create and update with no row written 1387ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > returns an empty list for a Ticket with zero Actions (zero-record contract) 1385ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > orders newest Action Date/Time first and breaks ties by id descending 1388ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets a Requester read owned Tickets only; foreign and missing are non-disclosing 404 1393ms
-   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets IT Staff and Administrators read any accessible Ticket 1391ms
-   ✓ API-TA-06: a different IT Staff member may perform an Action (AC-07, BR-02) > saves with that performer while the Ticket Owner is unchanged 1408ms
-   ✓ API-TA-07: a deactivated account cannot record Actions (AC-08, BR-03) > rejects the write and saves nothing (Lab 3 session semantics: 403 ACCOUNT_INACTIVE) 1417ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > updates fields, keeps the performer, and never lets the client change it 1399ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > clears a stored Follow-up Note when the flag is turned off without sending the note 1400ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > requires a non-empty note when the merged follow-up flag stays true 1403ms
-   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > returns 400 for invalid updates and 404 for an Action on another Ticket 1409ms
-   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > rejects a repeat create inside the 5-minute window and keeps exactly one row 1404ms
-   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > allows a different actor, a different description, and a retry after the window closes 1413ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > returns 409 STALE_UPDATE without changing the stored row 1409ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > requires expectedUpdatedAt (400 when missing or invalid) 1410ms
-   ✓ API-TA-10: stale Action update (AC-14, BR-12) > accepts the current updatedAt exactly 1413ms
-   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 401 for anonymous callers on every Action route 1409ms
-   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 403 for Requesters on writes and 2xx for Staff/Admin writes 1425ms
- ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 37861ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1375ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1324ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1319ms
-   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1325ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1376ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1432ms
-   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1424ms
-   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1368ms
-   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1320ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1331ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1320ms
-   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1321ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1379ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1380ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1326ms
-   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1325ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1433ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1325ms
-   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1490ms
-   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1384ms
-   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1345ms
+ ✓ tests/lab-04/actions-taken.api.test.ts (28 tests) 40781ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > saves under the correct Ticket with the session user as performer and the owner preserved 1481ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > trims text, defaults the action date to now, and stores null for omitted optional fields 1394ms
+   ✓ API-TA-01: create a valid Action as permitted IT Staff (AC-01, BR-01) > stores a Follow-up Note and the date when Follow-Up Required is Yes 1373ms
+   ✓ API-TA-02: client-supplied performer is ignored (AC-03, BR-03) > records the session user even when the body supplies another performer 1390ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects Follow-Up Required with a missing or blank note and saves nothing 1386ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects a blank or over-length Action Description 1386ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > rejects over-length result, follow-up note and attachment notes 1428ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > enforces the Action Date/Time bounds (D-6) 1422ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > accepts the outer edges of the allowed window 1413ms
+   ✓ API-TA-03: follow-up gate and field validation (AC-04, BR-05, BR-06) > drops a Follow-up Note sent with Follow-Up Required No (BR-05 iff) 1399ms
+   ✓ API-TA-04: Requesters can never write Actions (AC-05, BR-04) > returns 403 on create and update with no row written 1435ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > returns an empty list for a Ticket with zero Actions (zero-record contract) 1431ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > orders newest Action Date/Time first and breaks ties by id descending 1413ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets a Requester read owned Tickets only; foreign and missing are non-disclosing 404 1394ms
+   ✓ API-TA-05: list Actions with correct access and ordering (AC-06, BR-04, BR-07) > lets IT Staff and Administrators read any accessible Ticket 1398ms
+   ✓ API-TA-06: a different IT Staff member may perform an Action (AC-07, BR-02) > saves with that performer while the Ticket Owner is unchanged 1421ms
+   ✓ API-TA-07: a deactivated account cannot record Actions (AC-08, BR-03) > rejects the write and saves nothing (Lab 3 session semantics: 403 ACCOUNT_INACTIVE) 1402ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > updates fields, keeps the performer, and never lets the client change it 1406ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > clears a stored Follow-up Note when the flag is turned off without sending the note 1420ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > requires a non-empty note when the merged follow-up flag stays true 1409ms
+   ✓ API-TA-08: update permitted fields only (AC-09, BR-06) > returns 400 for invalid updates and 404 for an Action on another Ticket 1431ms
+   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > rejects a repeat create inside the 5-minute window and keeps exactly one row 1412ms
+   ✓ API-TA-09: duplicate-submit guard (AC-10, BR-13) > allows a different actor, a different description, and a retry after the window closes 1420ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > returns 409 STALE_UPDATE without changing the stored row 1431ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > requires expectedUpdatedAt (400 when missing or invalid) 1418ms
+   ✓ API-TA-10: stale Action update (AC-14, BR-12) > accepts the current updatedAt exactly 1438ms
+   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 401 for anonymous callers on every Action route 1421ms
+   ✓ API-AUTH-01: direct-API authorization sweep for Action routes (AC-05, BR-04) > 403 for Requesters on writes and 2xx for Staff/Admin writes 1453ms
+ ✓ tests/lab-03/users-admin.api.test.ts (27 tests) 38371ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > returns the user list in name order with the Administrator-only shape 1386ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > searches case-insensitively by name or email 1345ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > filters by a single optional role 1329ms
+   ✓ API-35: list users with search and role filter (FR-19, AC-18) > combines search and role, and rejects an invalid role filter with 400 1333ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > creates the user with requiresPasswordChange true and no password hash 1395ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > lets the new user sign in with the initial password, gated on the change 1433ms
+   ✓ API-36: create a user with one role and an initial password (FR-20, AC-19) > can create an inactive account and rejects its login safely 1439ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 for an existing email regardless of case 1413ms
+   ✓ API-37: duplicate email is rejected case-insensitively (BR-14) > returns 409 when the email matches a seeded account 1341ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects an unsupported role with a field error 1348ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects a weak initial password with a field error 1334ms
+   ✓ API-38: invalid creation input is rejected (BR-16, BR-17) > rejects missing name, invalid email and non-boolean activation 1332ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > persists changes and lets the user sign in with the updated email 1411ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > deactivates an account without deleting it (BR-20) 1402ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > rejects a duplicate email on edit with 409 1357ms
+   ✓ API-39: edit name, email, role and activation (FR-21, AC-20) > returns 404 for an unknown user and 400 for an invalid role 1348ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > marks the account for a mandatory change at the next login 1448ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > rejects a weak password with 400 and an unknown user with 404 1357ms
+   ✓ API-40: set a new initial password (FR-22, AC-20) > still authenticates with the old password only after a successful change 1497ms
+   ✓ API-41: an Administrator cannot deactivate their own account (BR-18) > returns 409 SELF_DEACTIVATION even when another Administrator exists 1398ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > rejects deactivating the only active Administrator with 409 1358ms
    ✓ API-42: the last active Administrator is protected (BR-19) > rejects changing the last active Administrator's role with 409 1340ms
-   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1378ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1337ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1334ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1332ms
-   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1340ms
+   ✓ API-42: the last active Administrator is protected (BR-19) > allows demoting an Administrator once another active Administrator exists 1416ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids a Requester with 403 and no data on every route 1354ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > forbids IT Staff with 403 without data 1354ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > rejects unauthenticated access with 401 1368ms
+   ✓ API-43: user management is Administrator-only; deactivate instead of delete (AC-22, BR-20) > has no delete route (deactivation is the only removal path) 1352ms
+ ✓ tests/lab-04/ticket-workflow.api.test.ts (80 tests) 114638ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'NEW' -> 'OPEN' succeeds and persists 1474ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'NEW' -> 'IN_PROGRESS' succeeds and persists 1405ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'NEW' -> 'CANCELLED' succeeds and persists 1418ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'OPEN' -> 'IN_PROGRESS' succeeds and persists 1394ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'OPEN' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1398ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'OPEN' -> 'CANCELLED' succeeds and persists 1425ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'IN_PROGRESS' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1399ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'IN_PROGRESS' -> 'RESOLVED' succeeds and persists 1417ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'IN_PROGRESS' -> 'CANCELLED' succeeds and persists 1397ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'WAITING_FOR_REQUESTER' -> 'IN_PROGRESS' succeeds and persists 1394ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'WAITING_FOR_REQUESTER' -> 'RESOLVED' succeeds and persists 1415ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'WAITING_FOR_REQUESTER' -> 'CANCELLED' succeeds and persists 1392ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'RESOLVED' -> 'CLOSED' succeeds and persists 1420ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'RESOLVED' -> 'REOPENED' succeeds and persists 1413ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'CLOSED' -> 'REOPENED' succeeds and persists 1405ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'REOPENED' -> 'IN_PROGRESS' succeeds and persists 1411ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'REOPENED' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1398ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'REOPENED' -> 'RESOLVED' succeeds and persists 1424ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > 'REOPENED' -> 'CANCELLED' succeeds and persists 1400ms
+   ✓ API-WF-01: permitted transitions (matrix, FR-16, BR-09) > lets an Administrator perform a permitted transition 1398ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'NEW' -> 'NEW' is rejected with a specific conflict and no change 1418ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'NEW' -> 'WAITING_FOR_REQUESTER' is rejected with a specific conflict and no change 1402ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'NEW' -> 'RESOLVED' is rejected with a specific conflict and no change 1406ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'NEW' -> 'CLOSED' is rejected with a specific conflict and no change 1444ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'NEW' -> 'REOPENED' is rejected with a specific conflict and no change 1399ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'OPEN' -> 'NEW' is rejected with a specific conflict and no change 1418ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'OPEN' -> 'OPEN' is rejected with a specific conflict and no change 1407ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'OPEN' -> 'RESOLVED' is rejected with a specific conflict and no change 1402ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'OPEN' -> 'CLOSED' is rejected with a specific conflict and no change 1421ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'OPEN' -> 'REOPENED' is rejected with a specific conflict and no change 1401ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'IN_PROGRESS' -> 'NEW' is rejected with a specific conflict and no change 1422ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'IN_PROGRESS' -> 'OPEN' is rejected with a specific conflict and no change 1407ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'IN_PROGRESS' -> 'IN_PROGRESS' is rejected with a specific conflict and no change 1407ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'IN_PROGRESS' -> 'CLOSED' is rejected with a specific conflict and no change 1422ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'IN_PROGRESS' -> 'REOPENED' is rejected with a specific conflict and no change 1403ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'WAITING_FOR_REQUESTER' -> 'NEW' is rejected with a specific conflict and no change 1403ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'WAITING_FOR_REQUESTER' -> 'OPEN' is rejected with a specific conflict and no change 1419ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'WAITING_FOR_REQUESTER' -> 'WAITING_FOR_REQUESTER' is rejected with a specific conflict and no change 1414ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'WAITING_FOR_REQUESTER' -> 'CLOSED' is rejected with a specific conflict and no change 1438ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'WAITING_FOR_REQUESTER' -> 'REOPENED' is rejected with a specific conflict and no change 1466ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'NEW' is rejected with a specific conflict and no change 1422ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'OPEN' is rejected with a specific conflict and no change 1437ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'IN_PROGRESS' is rejected with a specific conflict and no change 1420ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'WAITING_FOR_REQUESTER' is rejected with a specific conflict and no change 1418ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'RESOLVED' is rejected with a specific conflict and no change 1442ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'RESOLVED' -> 'CANCELLED' is rejected with a specific conflict and no change 1424ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'NEW' is rejected with a specific conflict and no change 1445ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'OPEN' is rejected with a specific conflict and no change 1416ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'IN_PROGRESS' is rejected with a specific conflict and no change 1448ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'WAITING_FOR_REQUESTER' is rejected with a specific conflict and no change 1446ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'RESOLVED' is rejected with a specific conflict and no change 1412ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'CLOSED' is rejected with a specific conflict and no change 1434ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CLOSED' -> 'CANCELLED' is rejected with a specific conflict and no change 1425ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'REOPENED' -> 'NEW' is rejected with a specific conflict and no change 1435ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'REOPENED' -> 'OPEN' is rejected with a specific conflict and no change 1422ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'REOPENED' -> 'CLOSED' is rejected with a specific conflict and no change 1419ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'REOPENED' -> 'REOPENED' is rejected with a specific conflict and no change 1431ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'NEW' is rejected with a specific conflict and no change 1412ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'OPEN' is rejected with a specific conflict and no change 1412ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'IN_PROGRESS' is rejected with a specific conflict and no change 1430ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'WAITING_FOR_REQUESTER' is rejected with a specific conflict and no change 1416ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'RESOLVED' is rejected with a specific conflict and no change 1413ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'CLOSED' is rejected with a specific conflict and no change 1432ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'REOPENED' is rejected with a specific conflict and no change 1415ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > 'CANCELLED' -> 'CANCELLED' is rejected with a specific conflict and no change 1424ms
+   ✓ API-WF-02: forbidden transitions (matrix, BR-09) > rejects writes out of a terminal CANCELLED Ticket 1412ms
+   ✓ API-WF-03: the Requester indication is advisory only (FR-11, BR-11) > records the timestamp without changing the status or creating an Action 1412ms
+   ✓ API-WF-03: the Requester indication is advisory only (FR-11, BR-11) > does not satisfy the resolution gate — only a recorded Action does 1436ms
+   ✓ API-WF-03: the Requester indication is advisory only (FR-11, BR-11) > surfaces the indication to staff on the Ticket detail (api-spec §2.3) 1409ms
+   ✓ API-WF-04: optimistic concurrency (D-1, BR-12) > rejects a stale write with 409 STALE_UPDATE and changes nothing 1410ms
+   ✓ API-WF-04: optimistic concurrency (D-1, BR-12) > serializes two writers: the first wins, the second is stale 1421ms
+   ✓ API-WF-04: optimistic concurrency (D-1, BR-12) > requires expectedUpdatedAt and validates its format (400) 1409ms
+   ✓ API-WF-05: BR-11 resolution gate > refuses to resolve a IN_PROGRESS Ticket that has no Actions 1406ms
+   ✓ API-WF-05: BR-11 resolution gate > refuses to resolve a WAITING_FOR_REQUESTER Ticket that has no Actions 1427ms
+   ✓ API-WF-05: BR-11 resolution gate > refuses to resolve a REOPENED Ticket that has no Actions 1402ms
+   ✓ API-WF-05: BR-11 resolution gate > resolves a Ticket once at least one Action exists 1427ms
+   ✓ API-WF-05: BR-11 resolution gate > grandfathers a legacy zero-action RESOLVED Ticket through CLOSED/REOPENED 1409ms
+   ✓ API-AUTH-02: workflow authorization (FR-16, AC-10, BR-04) > forbids a Requester from every transition and changes nothing 1488ms
+   ✓ API-AUTH-02: workflow authorization (FR-16, AC-10, BR-04) > requires authentication (401) and hides missing Tickets (404) 1415ms
+   ✓ API-AUTH-02: workflow authorization (FR-16, AC-10, BR-04) > rejects an invalid status enum with 400 1409ms
+ ✓ tests/lab-03/staff-queue.api.test.ts (31 tests) 40440ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > returns the full seeded queue with default sort and pagination metadata 1337ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > search matches summary, description and ticketNumber case-insensitively 1290ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by status, requestedPriority and itPriority independently 1267ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by ownerId, including the unassigned markers null / unassigned 1279ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > filters by categoryId and relatedSystemId 1254ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > sorts by a valid column in both directions 1258ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > paginates with page/pageSize and reports metadata 1273ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > combines filters and echoes filtersApplied 1256ms
+   ✓ API-25: queue search / filter / sort / pagination (AC-13, FR-12) > allows Administrators to view the queue (AC-10) 1252ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page zero' -> 400 with a specific message, never silently ignored 1276ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page negative' -> 400 with a specific message, never silently ignored 1258ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'page non-numeric' -> 400 with a specific message, never silently ignored 1257ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize zero' -> 400 with a specific message, never silently ignored 1264ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize over max' -> 400 with a specific message, never silently ignored 1255ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'pageSize non-numeric' -> 400 with a specific message, never silently ignored 1252ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown status' -> 400 with a specific message, never silently ignored 1281ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown requestedPriority' -> 400 with a specific message, never silently ignored 1249ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unknown itPriority' -> 400 with a specific message, never silently ignored 1250ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'ownerId non-numeric' -> 400 with a specific message, never silently ignored 1254ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId zero' -> 400 with a specific message, never silently ignored 1270ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'categoryId non-numeric' -> 400 with a specific message, never silently ignored 1266ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'relatedSystemId negative' -> 400 with a specific message, never silently ignored 1251ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'unsupported sort column' -> 400 with a specific message, never silently ignored 1271ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > 'garbage sort' -> 400 with a specific message, never silently ignored 1252ms
+   ✓ API-26: invalid query values -> 400 specific error (AC-13) > rejects a combination containing one invalid parameter 1251ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > blocks unauthenticated access with 401 1211ms
+   ✓ API-27: queue requested by a Requester -> 403 without data (AC-10, BR-10) > forbids a Requester and returns no data 1250ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > returns every active IT Staff and Administrator, ordered by name, without requesters or inactive users 1257ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > is readable by an Administrator and omits pagination metadata 1266ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > blocks unauthenticated access with 401 and a Requester with 403 1258ms
+   ✓ API-25a: assignable owners list for the queue Owner filter (AC-13, AC-10) > reflects a newly created active staff account so the filter is not hard-coded 1361ms
+ ✓ tests/lab-03/staff-ticket-detail.api.test.ts (21 tests) 30098ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns requester, owner, priorities, status, attachments, comments and notes 1423ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > is available to Administrators too 1370ms
+   ✓ API-28: staff retrieve one Ticket with full detail (FR-13) > returns 404 for a missing Ticket and 403 for a Requester, 401 when unauthenticated 1383ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > claims an unassigned Ticket, then reassigns it to another eligible user 1370ms
+   ✓ API-29: claim / assign / reassign ownership (AC-14, FR-14) > lets an Administrator own a Ticket as well 1367ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects a Requester as owner target and inactive users with 400 1387ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > rejects missing / non-integer ownerId with 400 1365ms
+   ✓ API-30: owner eligibility and Requester claim (AC-14, BR-07) > forbids a Requester from claiming and returns 404 for a missing Ticket 1399ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > updates IT Priority for staff and persists it 1363ms
+   ✓ API-31: IT Priority updated by Staff/Admin (AC-15, FR-15) > lets an Administrator update IT Priority too 1370ms
+   ✓ API-32: IT Priority change by a Requester is rejected (AC-15, BR-08) > returns 403 for a Requester, 400 for an invalid enum and 404 when missing 1377ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'NEW' -> 'OPEN' succeeds and persists 1366ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'OPEN' -> 'WAITING_FOR_REQUESTER' succeeds and persists 1364ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'IN_PROGRESS' -> 'RESOLVED' succeeds and persists 1380ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'RESOLVED' -> 'CLOSED' succeeds and persists 1367ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'CLOSED' -> 'REOPENED' succeeds and persists 1364ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > 'REOPENED' -> 'CANCELLED' succeeds and persists 1387ms
+   ✓ API-33: permitted status transitions (AC-16, FR-16) > lets an Administrator perform a permitted transition 1373ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > rejects transitions outside the matrix with a specific 409 1364ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > treats the same status and a terminal CANCELLED as forbidden 1382ms
+   ✓ API-34: forbidden status transitions (AC-16, BR-09) > returns 400 for an invalid enum, 403 for a Requester and 404 when missing 1370ms
+ ✓ tests/lab-03/auth.api.test.ts (20 tests) 26342ms
+   ✓ API-01: valid login > returns 200, sets an HttpOnly SameSite=Strict session cookie and the user identity 1304ms
+   ✓ API-01: valid login > returns the correct role for IT Staff and Admin logins 1307ms
+   ✓ API-01: valid login > validates missing/invalid input with 400 and field messages 1203ms
+   ✓ API-01: valid login > rejects a login without the CSRF header with 403 1204ms
+   ✓ API-02: invalid credentials > returns the same generic 401 for a wrong password and an unknown email (no enumeration) 1245ms
+   ✓ API-03: inactive account login > returns a clear non-disclosing 403 for a valid inactive account and creates no session 1242ms
+   ✓ API-03: inactive account login > still returns the generic 401 for an inactive account with a wrong password 1265ms
+   ✓ API-03: inactive account login > blocks the inactive IT Staff account too 1237ms
+   ✓ API-04: requiresPasswordChange gate > flags a first-login user and blocks normal endpoints until the password is changed 1246ms
+   ✓ API-05: weak / mismatched new password > rejects a too-short password with 400 field validation 1260ms
+   ✓ API-05: weak / mismatched new password > rejects a password missing any required character class 1250ms
+   ✓ API-05: weak / mismatched new password > rejects mismatched confirmation and a password equal to the current one 1245ms
+   ✓ API-05: weak / mismatched new password > rejects a wrong current password with 401 and keeps the user gated 1310ms
+   ✓ API-05: weak / mismatched new password > still requires the CSRF header 1241ms
+   ✓ API-06: valid password change > clears requiresPasswordChange and unlocks the normal application 1462ms
+   ✓ API-07: logout invalidates the session > returns 200 and makes subsequent protected calls 401 1266ms
+   ✓ API-07: logout invalidates the session > requires authentication to log out 1185ms
+   ✓ API-08: current user retrieval > returns the authenticated identity and role 1242ms
+   ✓ API-08: current user retrieval > ignores a client-supplied requesterId header 1257ms
+   ✓ API-08: current user retrieval > returns 401 without a session 1185ms
+ ✓ tests/lab-03/authorization.api.test.ts (12 tests) 17281ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects every protected endpoint without a session 1378ms
+   ✓ API-09: unauthenticated protected endpoint returns 401 > rejects unauthenticated mutating endpoints (CSRF present) with 401 1301ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > creates a ticket owned by the session user even when the body names someone else 1308ms
+   ✓ API-12: client-supplied requesterId is ignored (AC-03, BR-06) > lists only the session user's tickets even when an X-Requester-Id header is sent 1322ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's ticket behind a 404 1300ms
+   ✓ API-14: cross-user Ticket/Attachment access is non-disclosing (AC-03, BR-21) > hides another requester's attachment behind 404 for download and remove 1314ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids IT Staff from Requester-only endpoints with 403 1376ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > forbids Admin from Requester-only endpoints with 403 1360ms
+   ✓ API-15: role-protected operations are enforced server-side (AC-11, FR-06) > keeps reference data readable by every authenticated role 1423ms
+   ✓ API-13: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 for list and create without exposing note content 1327ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-10: a Requester requesting the staff queue is rejected with 403 (Issue 21) 1301ms
+   ✓ API-10/11: staff queue and user management 403 gates > API-11: a non-Admin requesting user management is rejected with 403 (Issue 23) 1365ms
+ ✓ tests/lab-02/my-tickets.api.test.ts (9 tests) 13036ms
+   ✓ GET /api/tickets (My Tickets) > returns only the signed-in requester's tickets (API-04, AC-05, FR-11) 1358ms
+   ✓ GET /api/tickets (My Tickets) > rejects an unauthenticated request with 401 (no session cookie) 1292ms
+   ✓ GET /api/tickets (My Tickets) > paginates and returns page metadata (API-05, AC-07, FR-12) 1328ms
+   ✓ GET /api/tickets (My Tickets) > narrows results by search and by filters (API-06, AC-07, FR-12) 1313ms
+   ✓ GET /api/tickets (My Tickets) > sorts results as requested (API-07, AC-07, FR-12) 1316ms
+   ✓ GET /api/tickets (My Tickets) > uses a deterministic secondary sort when sorting by a non-unique column 1323ms
+   ✓ GET /api/tickets (My Tickets) > rejects invalid page, size, sort, and filter values with 400 (API-08, BR-10) 1304ms
+   ✓ GET /api/tickets (My Tickets) > returns an empty list with correct metadata when there are no tickets (empty state) 1297ms
+   ✓ GET /api/tickets (My Tickets) > does not leak another requester's tickets through filters (BR-06) 1321ms
+ ✓ tests/lab-04/staff-dashboard.api.test.ts (7 tests) 1175ms
+   ✓ API-SD: IT Staff Dashboard > returns metrics matching DB counts (API-SD-01) 325ms
+ ✓ tests/lab-03/comments-notes.api.test.ts (11 tests) 16909ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > records the comment with author and creation time 1496ms
+   ✓ API-19: Requester posts a Public Comment on an owned Ticket (AC-17, FR-10) > rejects an anonymous mutating request without the CSRF header 1415ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > returns the comment to all permitted roles and hides it from another Requester 1423ms
+   ✓ API-20: Public Comments are visible to Requester, IT Staff and Admin (AC-17, FR-17) > lets IT Staff post a Public Comment on any Ticket 1425ms
+   ✓ API-21: IT Staff/Admin create and list Internal Notes (AC-17, FR-18) > creates and lists a note for staff and admin 1414ms
+   ✓ API-22: a Requester cannot reach Internal Notes (AC-04, BR-10) > returns 403 without any note content for read and write 1430ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Public Comments 1427ms
+   ✓ API-23: empty / whitespace / over-long content is rejected and not saved (BR-12) > rejects invalid Internal Notes 1416ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > records the indication once and surfaces it without changing the status 1436ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > rejects the indication from IT Staff (Requester-only) with 403 1413ms
+   ✓ API-24: Requester 'Problem Appears Resolved' is idempotent and leaves status unchanged (FR-11, BR-11) > hides another Requester's ticket behind 404 1409ms
+ ✓ tests/lab-02/attachments.api.test.ts (15 tests) 2599ms
+ ✓ tests/lab-04/migration-regression.api.test.ts (13 tests) 18257ms
+   ✓ MIG-01: Lab 1-3 data preserved by the ActionTaken migration > all pre-ActionTaken entities are intact after seeding 1281ms
+   ✓ MIG-01: Lab 1-3 data preserved by the ActionTaken migration > tickets keep valid ownership, statuses and priorities (no column rewritten) 1211ms
+   ✓ MIG-02: legacy zero-action Tickets + valid Action references > at least three Tickets still have zero actions (legacy grandfather, BR-18) 1209ms
+   ✓ MIG-02: legacy zero-action Tickets + valid Action references > every Action references an existing Ticket and an existing staff performer 1223ms
+   ✓ MIG-03: seedLab4 idempotency (re-run creates no duplicates) > running seedLab4 twice leaves every row count unchanged 2434ms
+   ✓ MIG-03: seedLab4 idempotency (re-run creates no duplicates) > re-running seedLab4 does not modify Action timestamps 2431ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers all 8 statuses and all 4 priorities 1207ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers assigned and unassigned Tickets 1206ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers Tickets with zero, one and many actions 1220ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers two different performers on the same Ticket (BR-02) 1205ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers follow-up Yes-with-note and No variants plus attachmentNotes 1203ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > covers a dedicated zero-metric requester (ivy.ing) for empty states 1223ms
+   ✓ MIG-04: seed coverage matrix (BR-19) > touches ≥3 Tickets inside the 7-day window (SD-05/RD-03/RD-04 demo, D-5) 1203ms
+ ✓ tests/lab-02/seed.test.ts (10 tests) 6221ms
+   ✓ seed functions > seedRequesters creates exactly 6 User accounts with role REQUESTER (5 active + 1 inactive) 332ms
+   ✓ seed functions > seedRequesters is idempotent (upserts by email without duplicating) 650ms
+   ✓ seed functions > seedLab2 creates categories + related systems + requester users together 329ms
+   ✓ seed functions > seedLab3 creates all users, tickets and categories 1226ms
+   ✓ seed functions > seedLab3 is idempotent — running twice does not duplicate records 2404ms
+   ✓ seed functions > seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6) 1237ms
+ ✓ tests/lab-02/create-ticket.api.test.ts (7 tests) 10069ms
+   ✓ POST /api/tickets > creates a valid ticket and returns 201 with an official Ticket Number (API-01) 1309ms
+   ✓ POST /api/tickets > rejects a missing summary with field errors and no save (API-02) 1242ms
+   ✓ POST /api/tickets > defaults requestedPriority to MEDIUM when omitted (BR-06) 1270ms
+   ✓ POST /api/tickets > rejects a categoryId that does not reference an active category 1248ms
+   ✓ POST /api/tickets > rejects an unauthenticated request with 401 1252ms
+   ✓ POST /api/tickets > rejects a mutating request without the CSRF header with 403 1270ms
+   ✓ POST /api/tickets > ignores a client-supplied requesterId and uses the session identity (BR-06) 1257ms
+ ✓ tests/lab-03/migration-regression.api.test.ts (7 tests) 8938ms
+   ✓ MIGR-01: Development Requester → User migration > at least one User with role REQUESTER exists (AC-12, FR-08) 1324ms
+   ✓ MIGR-01: Development Requester → User migration > inactive requester (evan.ellis) exists with active=false and role REQUESTER 1258ms
+   ✓ MIGR-01: Development Requester → User migration > GET /api/development-requesters no longer exists and returns 404 (selector removed) 1256ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > all seeded tickets have a valid requesterId referencing a User with role REQUESTER 1280ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets returns only Alice's tickets when signed in as Alice (FR-08) 1262ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > GET /api/tickets/:id returns ticket detail for an owned ticket (FR-08) 1262ms
+   ✓ MIGR-02: Tickets/Attachments preserved and correctly owned > attachment upload and retrieval still works with session auth (AC-12) 1293ms
+ ✓ tests/lab-02/ticket-detail.api.test.ts (4 tests) 6494ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns the full Ticket detail for an owned ticket (API-10, FR-13) 1364ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > rejects an unauthenticated request with 401 (no session cookie) 1306ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a Ticket owned by another requester (non-disclosing) (API-09, AC-03, FR-14) 1323ms
+   ✓ GET /api/tickets/:id (Ticket Detail) > returns 404 for a non-existent Ticket ID 1307ms
+ ✓ tests/lab-04/requester-dashboard.api.test.ts (3 tests) 478ms
+ ✓ tests/lab-03/email-normalize.unit.test.ts (6 tests) 1ms
+ ✓ tests/lab-01/seed.test.ts (2 tests) 30ms
+ ✓ tests/lab-03/session-lifecycle.unit.test.ts (4 tests) 1ms
+ ✓ tests/lab-03/password-policy.unit.test.ts (4 tests) 452ms
+ ✓ tests/lab-01/categories.test.ts (2 tests) 2493ms
+   ✓ GET /api/categories > requires authentication (401 without a session) 1236ms
+   ✓ GET /api/categories > returns the seeded categories in id order for an authenticated user 1257ms
+ ✓ tests/lab-03/ticket-number.unit.test.ts (3 tests) 1ms
+ ✓ tests/lab-01/health.test.ts (1 test) 7ms
+ ✓ tests/lab-02/ticket-number.test.ts (3 tests) 1ms
+
+ Test Files  25 passed (25)
+      Tests  330 passed (330)
+   Start at  23:26:14
+   Duration  398.48s (transform 157ms, setup 0ms, collect 1.32s, tests 395.11s, environment 2ms, prepare 475ms)
+
