@@ -62,10 +62,10 @@ export async function getRequesterDashboard(req: Request, res: Response) {
       recentlyUpdated: { items: recentlyUpdatedItems.map(mapItem) },
       recentlyResolved: { items: recentlyResolvedItems.map(mapItem) },
       drilldown: {
-        open: "/api/tickets?status=OPEN",
+        open: "/api/tickets?status=open",
         waitingForRequester: "/api/tickets?status=WAITING_FOR_REQUESTER",
         recentlyUpdated: "/api/tickets?sort=-updatedAt",
-        recentlyResolved: "/api/tickets?status=RESOLVED",
+        recentlyResolved: "/api/tickets?status=resolved&sort=-updatedAt",
       },
     });
   } catch {

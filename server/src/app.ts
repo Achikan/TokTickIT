@@ -284,12 +284,13 @@ app.get(
     const categoryIdRaw = valueOf(query.categoryId);
     const relatedSystemIdRaw = valueOf(query.relatedSystemId);
     const statusRaw = valueOf(query.status);
+    const viewRaw = valueOf(query.view);
     const priorityRaw = valueOf(query.requestedPriority);
     const sortRaw = valueOf(query.sort);
 
     let categoryId: number | null = null;
     let relatedSystemId: number | null = null;
-    let status: (typeof VALID_STATUSES)[number] | null = null;
+    let statusList: (typeof VALID_STATUSES)[number][] | null = null;
     let priority: (typeof VALID_PRIORITIES)[number] | null = null;
 
     if (categoryIdRaw !== null) {
@@ -309,12 +310,31 @@ app.get(
       }
     }
 
+    const ACTIVE_STATUS_GROUP = [
+      "NEW",
+      "OPEN",
+      "IN_PROGRESS",
+      "WAITING_FOR_REQUESTER",
+      "REOPENED",
+    ] as const;
+    const RESOLVED_STATUS_GROUP = ["RESOLVED", "CLOSED"] as const;
+
     if (statusRaw !== null) {
-      if (VALID_STATUSES.includes(statusRaw as (typeof VALID_STATUSES)[number])) {
-        status = statusRaw as (typeof VALID_STATUSES)[number];
+      const lower = statusRaw.toLowerCase();
+      if (lower === "open") {
+        statusList = [...ACTIVE_STATUS_GROUP];
+      } else if (lower === "resolved") {
+        statusList = [...RESOLVED_STATUS_GROUP];
       } else {
-        fields.status = "Status is invalid.";
+        const parts = statusRaw.split(",").map((s) => s.trim()).filter(Boolean);
+        if (parts.length > 0 && parts.every((p) => VALID_STATUSES.includes(p as any))) {
+          statusList = parts as (typeof VALID_STATUSES)[number][];
+        } else {
+          fields.status = "Status is invalid.";
+        }
       }
+    } else if (viewRaw === "open") {
+      statusList = [...ACTIVE_STATUS_GROUP];
     }
     if (priorityRaw !== null) {
       if (VALID_PRIORITIES.includes(priorityRaw as (typeof VALID_PRIORITIES)[number])) {
@@ -366,7 +386,9 @@ app.get(
       }
       if (categoryId !== null) where.categoryId = categoryId;
       if (relatedSystemId !== null) where.relatedSystemId = relatedSystemId;
-      if (status !== null) where.currentStatus = status;
+      if (statusList !== null) {
+        where.currentStatus = statusList.length === 1 ? statusList[0] : { in: statusList };
+      }
       if (priority !== null) where.requestedPriority = priority;
 
       const total = await prisma.ticket.count({ where });

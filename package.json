@@ -6,10 +6,14 @@
   "description": "End-to-end and responsive (Playwright) tests + visual screenshots for TokTickIT Lab 2 (Issue 13).",
   "scripts": {
     "test:e2e": "playwright test",
+    "test:e2e:lab4": "npm run prisma:seed --prefix server && playwright test e2e/lab-04",
     "test:e2e:headed": "playwright test --headed",
     "screenshots": "node scripts/screenshots.mjs",
     "screenshots:lab3": "node scripts/screenshots-lab3.mjs",
     "screenshots:lab4": "node scripts/screenshots-lab4.mjs",
+    "evidence:lab4": "node scripts/capture-extra-evidence-lab4.mjs",
+    "pdf:lab4": "node scripts/build-report-lab4.mjs",
+    "pdf:check:lab4": "python3 scripts/check-report-pdf.py docs/lab-04/report_lab04_67070505229.pdf docs/lab-04/report.md artifacts/lab-04/pdf-assets/manifest.json",
     "report:evidence:lab3": "node scripts/evidence-lab3.mjs",
     "pdf:lab3": "node scripts/build-report.mjs",
     "pdf:check": "python3 scripts/check-report-pdf.py docs/lab-03/report_lab03_67070505229.pdf docs/lab-03/report.md artifacts/lab-03/pdf-assets/manifest.json"

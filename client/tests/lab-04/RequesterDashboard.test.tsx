@@ -12,7 +12,7 @@ const DASH = {
   metrics: { openCount: 2, waitingForRequesterCount: 1 },
   recentlyUpdated: { items: [{ id: 101, ticketNumber: "TK-001001", summary: "Battery", currentStatus: "OPEN", itPriority: "MEDIUM", requestedPriority: "MEDIUM", owner: { id: 6, name: "Dan" }, updatedAt: "2026-09-01T11:00:00.000Z" }] },
   recentlyResolved: { items: [{ id: 102, ticketNumber: "TK-001002", summary: "Fixed", currentStatus: "RESOLVED", itPriority: "LOW", requestedPriority: "LOW", owner: null, updatedAt: "2026-09-01T10:00:00.000Z" }] },
-  drilldown: { open: "/api/tickets?status=OPEN", waitingForRequester: "/api/tickets?status=WAITING_FOR_REQUESTER", recentlyUpdated: "/api/tickets?sort=-updatedAt", recentlyResolved: "/api/tickets?status=RESOLVED" },
+  drilldown: { open: "/api/tickets?status=open", waitingForRequester: "/api/tickets?status=WAITING_FOR_REQUESTER", recentlyUpdated: "/api/tickets?sort=-updatedAt", recentlyResolved: "/api/tickets?status=resolved&sort=-updatedAt" },
 };
 
 afterEach(() => vi.restoreAllMocks());
@@ -30,8 +30,10 @@ describe("UI-RD-01/02: requester dashboard", () => {
     expect(screen.getByText("TK-001001")).toBeInTheDocument();
     expect(screen.getByText("TK-001002")).toBeInTheDocument();
 
-    await userEvent.setup().click(screen.getByRole("link", { name: /My Open Tickets/i }));
-    expect(onViewTickets).toHaveBeenCalledWith({ status: "OPEN" });
+    const openLink = screen.getByRole("link", { name: /My Open Tickets/i });
+    expect(openLink).toHaveAttribute("href", "/api/tickets?status=open");
+    await userEvent.setup().click(openLink);
+    expect(onViewTickets).toHaveBeenCalledWith({ status: "open" });
 
     await userEvent.setup().click(screen.getByRole("link", { name: /Waiting for Me/i }));
     expect(onViewTickets).toHaveBeenCalledWith({ status: "WAITING_FOR_REQUESTER" });

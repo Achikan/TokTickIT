@@ -103,18 +103,19 @@ Then use the app (Lab 4):
   transition matrix with optimistic concurrency checks (`expectedUpdatedAt`); resolving
   a ticket requires at least one recorded Action Taken.
 
-### Tests
+### Tests & Evidence Generation
 
 ```bash
 cd server && npm test       # Supertest API tests (Vitest)
 cd client && npm test       # UI tests (Vitest + Testing Library)
-npm run test:e2e            # Playwright E2E + responsive (root; starts the client on :5173).
-                            # Start the API first on :3000 with `cd server && npm run dev`.
-npm run screenshots         # regenerate desktop/tablet/mobile evidence PNGs into artifacts/
+npm run test:e2e:lab4       # Playwright E2E tests for Lab 4 (Actions Taken, Workflow, Dashboards)
+npm run screenshots:lab4    # Capture responsive evidence screenshots for Lab 4
+npm run evidence:lab4       # Generate authoritative DB vs API verification tables & 409/403/404 API error evidence
+npm run pdf:lab4            # Build the Lab 4 PDF submission report
 ```
 
 Lab 4 test results:
 - **Server:** 25 files / 330 tests passed (100% green, see `artifacts/lab-04/test-output/server-vitest-all.txt`).
 - **Client:** 19 files / 139 tests passed (100% green, see `artifacts/lab-04/test-output/client-vitest-all.txt`).
+- **E2E:** 4 specs passed (100% green, covering actions taken, resolution gate, and staff/requester dashboards).
 - Both `server` and `client` typecheck clean (`tsc --noEmit`, exit code 0).
-```

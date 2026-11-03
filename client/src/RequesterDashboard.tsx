@@ -123,11 +123,11 @@ export default function RequesterDashboard({ user, onViewTickets, onViewTicket }
         <div className="col-12 col-md-6">
           <a
             className="card h-100 text-start w-100 dashboard-card text-decoration-none text-body"
-            href={data.drilldown?.open || "/api/tickets?status=OPEN"}
+            href={data.drilldown?.open || "/api/tickets?status=open"}
             aria-label="My Open Tickets"
             onClick={(e) => {
               e.preventDefault();
-              goTickets({ status: "OPEN" });
+              goTickets({ status: "open" });
             }}
           >
             <div className="card-body">

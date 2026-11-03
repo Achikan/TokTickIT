@@ -55,7 +55,7 @@ describe("UI-SD-01/02: staff dashboard cards and lists", () => {
     const link = screen.getByRole("link", { name: /Unassigned Tickets/i });
     expect(link).toBeInTheDocument();
     (link as HTMLElement).click();
-    expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "unassigned" });
+    expect(onViewQueue).toHaveBeenCalledWith({ ownerId: "unassigned", status: "open" });
 
     // drilldown links carry documented query parameters
     const statusLink = screen.getByRole("link", { name: /NEW/ });
