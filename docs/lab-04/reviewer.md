@@ -83,14 +83,26 @@
   - Re-captured `02-workflow-requester-advisory.png` showing the "Problem appears resolved" confirmation banner ("Your note was recorded for IT Staff. The ticket status has not changed.").
   - Re-generated full screenshot suite (19 PNGs) cleanly via `npm run screenshots:lab4`.
 
-### 5. PR #91 (Handout §12 E2E Specs) — Component Selectors, Label Sync & Pre-test Database State
-- **Reviewer Comment (@il0lk3):**
+### 5. PR #91 (Handout §12 E2E Specs & Final Fixes) — Selectors, Dashboard Drill-Down, DB Verification & PDF Evidence
+- **Reviewer Comment — Round 1 (@il0lk3):**
   > 1. `e2e/lab-04/actions-taken-flow.spec.ts`: `#action-performedBy` does not exist in `ActionsTaken.tsx`. Performed By is rendered as a read-only paragraph (`data-testid="action-performer-note"`).
   > 2. `e2e/lab-04/dashboards.spec.ts`: Several string assertions do not match exact component labels (`Owned by me`, `Tickets by IT Priority`, `Recently Updated (last 7 days)`, `User accounts (concise)`, `Waiting for Me`, and `No recently updated/resolved tickets.`).
   > 3. `e2e/lab-04/ticket-resolution.spec.ts`: Ensure pre-test database is freshly seeded so `TK-001003` is in `IN_PROGRESS` with transition buttons rendered.
-- **Author Response:**
+- **Author Response — Round 1:**
   - Updated locator in `actions-taken-flow.spec.ts` to target `[data-testid="action-performer-note"]` asserting Dan Das automatic attribution.
   - Aligned all dashboard string assertions in `dashboards.spec.ts` to exact component labels.
   - Added `ensureSeedData()` in `helpers.ts` and updated root script to `npm run prisma:seed --prefix server && playwright test e2e/lab-04`.
-  - Verified all 4 E2E tests passing green. Approved and ready to merge into `lab4-staging`.
+  - Verified all 4 E2E tests passing green.
+
+- **Reviewer Comment — Round 2 / Final Fixes (@il0lk3):**
+  > 1. **Dashboard Drill-down Mismatch:** In Requester Dashboard, clicking "My Open Tickets" (card count = 1) opens `/my-tickets?status=OPEN` and displays "No tickets match your current search" because active statuses in the metric include `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, and `REOPENED`. Similarly, Staff Dashboard unassigned/priority cards should drill down to active open tickets, and closed cards should filter to resolved tickets.
+  > 2. **Authoritative Database Verification Tables:** Evidence tables must perform direct Prisma queries against PostgreSQL comparing DB counts against API metric counts (SD-01..SD-05, RD-01..RD-04, and zero-state user) with zero `undefined` values.
+  > 3. **Strict API Error Evidence:** Capture real HTTP status codes and JSON error responses for `409 RESOLUTION_GATE`, `409 FORBIDDEN_TRANSITION`, `409 STALE_UPDATE`, `409 DUPLICATE_ACTION`, `403 FORBIDDEN`, and `404 NOT_FOUND`.
+  > 4. **Screenshot Pipeline & PDF Report:** Fix card cropping (`main.container` selector instead of navbar `.container`), resolve slice coordinate offset bug in `build-report-lab4.mjs`, and verify report PDF passes `check-report-pdf.py` with ≥110 dpi legibility floor.
+- **Author Response — Round 2 / Final Fixes:**
+  - **Drill-Down Fixes:** Added support for `status=open` (active statuses: `NEW`, `OPEN`, `IN_PROGRESS`, `WAITING_FOR_REQUESTER`, `REOPENED`) and `status=resolved` (`RESOLVED`, `CLOSED`), as well as comma-separated status lists in both `server/src/app.ts` (requester tickets) and `server/src/staffQueue.ts` (staff queue). Updated dropdown filters in `MyTickets.tsx` and `StaffTicketQueue.tsx`. Updated card link targets in `RequesterDashboard.tsx` (`/my-tickets?status=open`) and `StaffDashboard.tsx` (`/staff/tickets?ownerId=unassigned&status=open`, etc.). Added comprehensive unit and API test coverage.
+  - **DB Verification Tables:** Rewrote `scripts/capture-extra-evidence-lab4.mjs` using direct `PrismaClient` queries to compute authoritative counts side-by-side with API responses. Rendered and verified tables with 0 `undefined` values (`07-staff-dashboard-db-comparison.png`, `06-requester-dashboard-db-comparison.png`).
+  - **Strict Error Evidence:** Implemented and captured real API responses for `409 RESOLUTION_GATE`, `409 FORBIDDEN_TRANSITION`, `409 STALE_UPDATE`, `409 DUPLICATE_ACTION`, `403 FORBIDDEN`, and `404 NOT_FOUND` into dedicated evidence screenshots.
+  - **Screenshot Pipeline & PDF:** Fixed selector to `main.container` ensuring full dashboard capture (height ~1629px), fixed slicing coordinate bug (`sx = 0` instead of `sx = sy`), regenerated all 19 screenshots, and rebuilt `docs/lab-04/report_lab04_67070505229.pdf` (34 pages, 2.40 MB). Validated with `check-report-pdf.py` confirming `PDF CHECK OK` (worst DPI: 120 dpi, exceeding the 110 dpi floor; 0 blank pages).
+  - All 330 server tests, 139 client tests, and 4 E2E tests passing 100% green. Approved and ready for merge into `lab4-staging`.
 

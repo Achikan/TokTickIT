@@ -27,7 +27,7 @@ Lab 4 extends the Lab 2/3 "Zen Green" design language: the same color tokens, ty
 3. **Breakdown row**: SD-03 By Status (compact list of all 8 statuses with counts, status badges as labels) and SD-04 By IT Priority (4 priority badges with counts).
 4. **Lists row**: SD-05 Recently Updated (panel list, capped 5) and SD-06 Urgent / High Active (panel list, capped 5). Each row: ticket number, summary (truncating with `title`), status badge, IT priority badge, owner or "Unassigned", compact `<time>` timestamp, and a link to the Ticket Detail.
 
-**Drill-down**: SD-01 → `/staff/tickets?ownerId=unassigned`, SD-02 → `/staff/tickets?ownerId=me`, SD-03 → `/staff/tickets?status=<value>`, SD-04 → `/staff/tickets?itPriority=<value>`, SD-05 → `/staff/tickets?sort=-updatedAt`, SD-06 → Ticket Detail per row (list header links to `/staff/tickets?priorityFlag=urgent-high` only if supported; otherwise the list itself is the drill-down). AD-01 → User Management. Queue filter support for these parameters is part of the API contract (`api-spec.md` §5.3).
+**Drill-down**: SD-01 → `/staff/tickets?ownerId=unassigned&status=open`, SD-02 → `/staff/tickets?ownerId=me&status=open`, SD-03 → `/staff/tickets?status=<value>`, SD-04 → `/staff/tickets?itPriority=<value>&status=open`, SD-05 → `/staff/tickets?sort=-updatedAt`, SD-06 → Ticket Detail per row (list header links to `/staff/tickets?priorityFlag=urgent-high` only if supported; otherwise the list itself is the drill-down). AD-01 → User Management. Queue filter support for these parameters is part of the API contract (`api-spec.md` §5.3).
 
 **States**:
 - **Loading**: skeleton cards/lists (no layout shift); no controls hidden.
@@ -46,7 +46,7 @@ Lab 4 extends the Lab 2/3 "Zen Green" design language: the same color tokens, ty
 2. **Metric cards row**: RD-01 My Open Tickets, RD-02 Waiting for Me (warning-tinted badge label + count).
 3. **Lists row**: RD-03 Recently Updated (capped 5) and RD-04 Recently Resolved (capped 5, success-tinted section label). Row content: ticket number, summary, status badge, compact timestamp, link to Ticket Detail.
 
-**Not a My Tickets clone**: no search box, filters, pagination, or full list — only the four metrics and two capped lists; every item drills down into My Tickets (`/my-tickets?status=…`) or the detail view (`api-spec.md` §5.4).
+**Not a My Tickets clone**: no search box, filters, pagination, or full list — only the four metrics and two capped lists; every item drills down into My Tickets (`/my-tickets?status=open`, `?status=WAITING_FOR_REQUESTER`, `?status=resolved`) or the detail view (`api-spec.md` §5.4).
 
 **States**: loading skeletons; zero-metrics cards with working drill-downs to the empty My Tickets view; forbidden (403); safe failure with Retry.
 

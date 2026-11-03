@@ -195,10 +195,12 @@ export default function MyTickets({ requester: _requester, onCreate, onViewTicke
                 className="form-select"
                 value={query.status ?? ""}
                 onChange={(e) =>
-                  applyPatch({ status: (e.target.value || undefined) as Status | undefined })
+                  applyPatch({ status: (e.target.value || undefined) as any })
                 }
               >
                 <option value="">All</option>
+                <option value="open">Open / Active</option>
+                <option value="resolved">Resolved / Closed</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {s}

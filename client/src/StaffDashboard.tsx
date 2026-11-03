@@ -143,7 +143,7 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue, onVi
 
       <section aria-label="Key metrics" className="row g-3 mb-4">
         <div className="col-6 col-lg-3">
-          <a className="card h-100 text-start w-100 dashboard-card text-decoration-none" href={data.drilldown.unassigned} onClick={(e) => { e.preventDefault(); goQueue("unassigned", { ownerId: "unassigned" }); }} aria-label="View unassigned tickets">
+          <a className="card h-100 text-start w-100 dashboard-card text-decoration-none" href={data.drilldown.unassigned} onClick={(e) => { e.preventDefault(); goQueue("unassigned", { ownerId: "unassigned", status: "open" }); }} aria-label="View unassigned tickets">
             <div className="card-body">
               <div className="text-muted small">Unassigned Tickets</div>
               <div className="display-6">{m.unassignedCount ?? 0}</div>
@@ -152,7 +152,7 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue, onVi
           </a>
         </div>
         <div className="col-6 col-lg-3">
-          <a className="card h-100 text-start w-100 dashboard-card text-decoration-none" href={data.drilldown.ownedByMe} onClick={(e) => { e.preventDefault(); goQueue("owned", { ownerId: "me" }); }} aria-label="View owned by me tickets">
+          <a className="card h-100 text-start w-100 dashboard-card text-decoration-none" href={data.drilldown.ownedByMe} onClick={(e) => { e.preventDefault(); goQueue("owned", { ownerId: "me", status: "open" }); }} aria-label="View owned by me tickets">
             <div className="card-body">
               <div className="text-muted small">Owned by me</div>
               <div className="display-6">{m.ownedByMeCount ?? 0}</div>
@@ -200,7 +200,7 @@ export default function StaffDashboard({ user, onSelectTicket, onViewQueue, onVi
               <div className="fw-semibold mb-2">Tickets by IT Priority</div>
               <div className="d-flex flex-wrap gap-2">
                 {PRIO_ORDER.map((p) => (
-                  <a key={p} className="btn btn-sm btn-outline-secondary text-decoration-none" href={data.drilldown.byPriority.replace("{priority}", p)} onClick={(e) => { e.preventDefault(); goQueue(`prio:${p}`, { itPriority: p }); }}>
+                  <a key={p} className="btn btn-sm btn-outline-secondary text-decoration-none" href={data.drilldown.byPriority.replace("{priority}", p)} onClick={(e) => { e.preventDefault(); goQueue(`prio:${p}`, { itPriority: p, status: "open" }); }}>
                     {prioBadge(p)} <span className="ms-1">{byPriority[p] ?? 0}</span>
                   </a>
                 ))}

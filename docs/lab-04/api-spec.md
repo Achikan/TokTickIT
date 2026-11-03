@@ -216,10 +216,10 @@ Success `200` (scope is derived solely from the session identity — no paramete
   "recentlyUpdated": { "items": [ /* ≤5 owned items, newest first */ ] },
   "recentlyResolved": { "items": [ /* ≤5 owned RESOLVED/CLOSED items updated within 7d */ ] },
   "drilldown": {
-    "open": "/api/tickets?status=OPEN",
+    "open": "/api/tickets?status=open",
     "waitingForRequester": "/api/tickets?status=WAITING_FOR_REQUESTER",
     "recentlyUpdated": "/api/tickets?sort=-updatedAt",
-    "recentlyResolved": "/api/tickets?status=RESOLVED"
+    "recentlyResolved": "/api/tickets?status=resolved&sort=-updatedAt"
   }
 }
 ```

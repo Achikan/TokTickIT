@@ -60,8 +60,13 @@ test.describe("Role Dashboards and Drill-Downs (E2E-03)", () => {
     // Drill-down to My Tickets
     const openCard = page.locator('a[aria-label="My Open Tickets"]');
     await expect(openCard).toBeVisible();
+    const openCountText = (await openCard.locator('.display-6').innerText()).trim();
+    const expectedCount = parseInt(openCountText, 10);
     await openCard.click();
     await expect(page.getByRole("heading", { name: "My Tickets" })).toBeVisible();
+    // AC-21: Drill-down shows exactly the same number of rows as the dashboard card metric
+    const rows = page.locator('table tbody tr');
+    await expect(rows).toHaveCount(expectedCount);
 
     // 2. Zero-state Requester: Ivy Ing (0 tickets)
     await logout(page);

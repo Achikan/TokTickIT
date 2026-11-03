@@ -234,7 +234,13 @@ export async function seedRequesters(prisma: DbClient): Promise<void> {
   for (const u of USERS.filter((x) => x.role === "REQUESTER")) {
     await prisma.user.upsert({
       where: { email: u.email.toLowerCase() },
-      update: { name: u.name, active: u.active, role: "REQUESTER", requiresPasswordChange: true },
+      update: {
+        name: u.name,
+        active: u.active,
+        role: "REQUESTER",
+        requiresPasswordChange: true,
+        passwordHash: await bcrypt.hash(REQUESTER_INITIAL_PASSWORD, 10),
+      },
       create: {
         name: u.name,
         email: u.email.toLowerCase(),
@@ -254,7 +260,6 @@ export async function seedTickets(prisma: DbClient): Promise<{ id: number; ticke
   const created: { id: number; ticketNumber: string }[] = [];
   for (const t of TICKETS) {
     const exists = await prisma.ticket.findUnique({ where: { ticketNumber: t.ticketNumber } });
-    if (exists) continue;
     const requester = await prisma.user.findUnique({
       where: { email: t.requesterEmail.toLowerCase() },
     });
@@ -266,6 +271,20 @@ export async function seedTickets(prisma: DbClient): Promise<{ id: number; ticke
     const owner = t.ownerEmail
       ? await prisma.user.findUnique({ where: { email: t.ownerEmail.toLowerCase() } })
       : null;
+
+    if (exists) {
+      await prisma.ticket.update({
+        where: { id: exists.id },
+        data: {
+          currentStatus: t.currentStatus,
+          ownerId: owner?.id ?? null,
+          itPriority: t.itPriority,
+          requestedPriority: t.requestedPriority,
+          requesterIndicatedResolvedAt: null,
+        },
+      });
+      continue;
+    }
     const ticket = await prisma.ticket.create({
       data: {
         ticketNumber: t.ticketNumber,

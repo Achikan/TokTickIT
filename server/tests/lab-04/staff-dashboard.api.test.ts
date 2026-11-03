@@ -146,4 +146,23 @@ describe("API-SD: IT Staff Dashboard", () => {
     const b = await client.get(`/api/staff/tickets?ownerId=${staff.id}`).expect(200);
     expect(a.body.items.map((x: any) => x.id)).toEqual(b.body.items.map((x: any) => x.id));
   });
+
+  it("staff drilldown queries match active metric counts (AC-18 / Bug 1)", async () => {
+    await seedBase();
+    const client = await loginClient(app, "dan@test.com", "Password1!");
+    const dashRes = await client.get("/api/staff/dashboard").expect(200);
+    const { metrics } = dashRes.body;
+
+    // SD-01: unassigned active tickets
+    const unassignedQueue = await client.get("/api/staff/tickets?ownerId=unassigned&status=open").expect(200);
+    expect(unassignedQueue.body.pagination.total).toBe(metrics.unassignedCount);
+
+    // SD-02: owned by me active tickets
+    const ownedQueue = await client.get("/api/staff/tickets?ownerId=me&status=open").expect(200);
+    expect(ownedQueue.body.pagination.total).toBe(metrics.ownedByMeCount);
+
+    // SD-04: by priority (active)
+    const highQueue = await client.get("/api/staff/tickets?itPriority=HIGH&status=open").expect(200);
+    expect(highQueue.body.pagination.total).toBe(metrics.byPriority.HIGH);
+  });
 });

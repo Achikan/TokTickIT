@@ -86,8 +86,9 @@ staffQueueRouter.get(
     const categoryIdRaw = valueOf(query.categoryId);
     const relatedSystemIdRaw = valueOf(query.relatedSystemId);
     const sortRaw = valueOf(query.sort);
+    const viewRaw = valueOf(query.view);
 
-    let status: (typeof VALID_STATUSES)[number] | null = null;
+    let statusList: (typeof VALID_STATUSES)[number][] | null = null;
     let requestedPriority: (typeof VALID_PRIORITIES)[number] | null = null;
     let itPriority: (typeof VALID_PRIORITIES)[number] | null = null;
     let ownerId: number | null | "unassigned" = null;
@@ -99,12 +100,31 @@ staffQueueRouter.get(
     if (categoryIdNum !== null) categoryId = categoryIdNum;
     if (relatedSystemIdNum !== null) relatedSystemId = relatedSystemIdNum;
 
+    const ACTIVE_STATUS_GROUP = [
+      "NEW",
+      "OPEN",
+      "IN_PROGRESS",
+      "WAITING_FOR_REQUESTER",
+      "REOPENED",
+    ] as const;
+    const RESOLVED_STATUS_GROUP = ["RESOLVED", "CLOSED"] as const;
+
     if (statusRaw !== null) {
-      if (VALID_STATUSES.includes(statusRaw as (typeof VALID_STATUSES)[number])) {
-        status = statusRaw as (typeof VALID_STATUSES)[number];
+      const lower = statusRaw.toLowerCase();
+      if (lower === "open") {
+        statusList = [...ACTIVE_STATUS_GROUP];
+      } else if (lower === "resolved") {
+        statusList = [...RESOLVED_STATUS_GROUP];
       } else {
-        fields.status = "Status is invalid.";
+        const parts = statusRaw.split(",").map((s) => s.trim()).filter(Boolean);
+        if (parts.length > 0 && parts.every((p) => VALID_STATUSES.includes(p as any))) {
+          statusList = parts as (typeof VALID_STATUSES)[number][];
+        } else {
+          fields.status = "Status is invalid.";
+        }
       }
+    } else if (viewRaw === "open") {
+      statusList = [...ACTIVE_STATUS_GROUP];
     }
     if (requestedPriorityRaw !== null) {
       if (VALID_PRIORITIES.includes(requestedPriorityRaw as (typeof VALID_PRIORITIES)[number])) {
@@ -173,7 +193,9 @@ staffQueueRouter.get(
           { ticketNumber: { contains: search, mode: "insensitive" } },
         ];
       }
-      if (status !== null) where.currentStatus = status;
+      if (statusList !== null) {
+        where.currentStatus = statusList.length === 1 ? statusList[0] : { in: statusList };
+      }
       if (requestedPriority !== null) where.requestedPriority = requestedPriority;
       if (itPriority !== null) where.itPriority = itPriority;
       if (ownerId === "unassigned") where.ownerId = null;

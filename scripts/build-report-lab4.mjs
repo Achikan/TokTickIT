@@ -223,7 +223,7 @@ async function encode(absPath, base) {
           const sh = Math.min(sliceH, h0 - sy);
           const ow = Math.round(w0 * scale);
           const oh = Math.max(1, Math.round(sh * scale));
-          parts.push(draw(sy === 0 ? 0 : sy, sy, w0, sh, ow, oh));
+          parts.push(draw(0, sy, w0, sh, ow, oh));
         }
         return { parts, w: Math.round(w0 * scale), h: h0, sliced: n };
       }
@@ -361,3 +361,4 @@ const check = spawnSync(
   { stdio: "inherit" }
 );
 process.exitCode = check.status === 0 ? 0 : 1;
+
