@@ -311,6 +311,17 @@ async function run() {
       );
 
       if (vpName === "desktop") {
+        // Workflow status transitions (TK-001003 is IN_PROGRESS) - captured first while in pristine state
+        const workflowSection = page.locator('[data-testid="ticket-workflow"]');
+        if (await workflowSection.isVisible()) {
+          await captureScreenshot(
+            page,
+            "workflow",
+            "01-workflow-status-transitions.png",
+            "section:has([data-testid='ticket-workflow'])"
+          );
+        }
+
         // Record Action form
         const addBtn = page.locator('button:has-text("Add Action")');
         if (await addBtn.isVisible()) {
@@ -336,8 +347,8 @@ async function run() {
             "section:has(#actions-taken-heading)"
           );
 
-          // Cancel form
-          const cancelBtn = page.locator('button:has-text("Cancel")').first();
+          // Cancel form - scoped to form button to prevent clicking workflow Cancel Ticket button
+          const cancelBtn = page.locator('form button:has-text("Cancel")').first();
           if (await cancelBtn.isVisible()) {
             await cancelBtn.click();
             await page.waitForTimeout(400);
@@ -357,22 +368,12 @@ async function run() {
             "06-actions-taken-edit-mode.png",
             "section:has(#actions-taken-heading)"
           );
-          const cancelEdit = page.locator('button:has-text("Cancel")').first();
+          // Cancel form - scoped to form button to prevent clicking workflow Cancel Ticket button
+          const cancelEdit = page.locator('form button:has-text("Cancel")').first();
           if (await cancelEdit.isVisible()) {
             await cancelEdit.click();
             await page.waitForTimeout(400);
           }
-        }
-
-        // Workflow status transitions (TK-001003 is IN_PROGRESS)
-        const workflowSection = page.locator('[data-testid="ticket-workflow"]');
-        if (await workflowSection.isVisible()) {
-          await captureScreenshot(
-            page,
-            "workflow",
-            "01-workflow-status-transitions.png",
-            "section:has([data-testid='ticket-workflow'])"
-          );
         }
       }
 
