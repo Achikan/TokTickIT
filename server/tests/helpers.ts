@@ -1,5 +1,15 @@
 import request from "supertest";
 import type { Express } from "express";
+import http from "node:http";
+import net from "node:net";
+
+// Force raw TCP sockets for all supertest/http in tests — bypasses Node 24 env proxy
+http.globalAgent.createConnection = function (...args: any[]) {
+  return (net.createConnection as any)(...args);
+};
+(http.Agent.prototype as any).createConnection = function (...args: any[]) {
+  return (net.createConnection as any)(...args);
+};
 import { getPrisma } from "../src/prisma.js";
 import {
   seedCategories,
@@ -48,18 +58,22 @@ export interface ApiClient {
 
 // Mutating requests always carry the CSRF header (api-spec.md §0).
 function wrap(agent: ReturnType<typeof request.agent>): ApiClient {
+  const applyRetry = (t: request.Test) =>
+    t.retry(2, (err: any, res: any) => !!err || (res?.status === 400 && res?.text?.includes("explicit proxy server")));
+
   return {
     agent,
-    get: (url) => agent.get(url),
-    post: (url) => agent.post(url).set(CSRF_HEADER, "1"),
-    patch: (url) => agent.patch(url).set(CSRF_HEADER, "1"),
-    put: (url) => agent.put(url).set(CSRF_HEADER, "1"),
-    delete: (url) => agent.delete(url).set(CSRF_HEADER, "1"),
+    get: (url) => applyRetry(agent.get(url).set("Connection", "close")),
+    post: (url) => applyRetry(agent.post(url).set(CSRF_HEADER, "1").set("Connection", "close")),
+    patch: (url) => applyRetry(agent.patch(url).set(CSRF_HEADER, "1").set("Connection", "close")),
+    put: (url) => applyRetry(agent.put(url).set(CSRF_HEADER, "1").set("Connection", "close")),
+    delete: (url) => applyRetry(agent.delete(url).set(CSRF_HEADER, "1").set("Connection", "close")),
   };
 }
 
 export async function resetDatabase(): Promise<void> {
   const prisma = getPrisma();
+  await prisma.actionTaken.deleteMany();
   await prisma.internalNote.deleteMany();
   await prisma.publicComment.deleteMany();
   await prisma.attachment.deleteMany();
@@ -95,12 +109,24 @@ export async function loginClient(
       data: { requiresPasswordChange: false },
     });
   }
-  const agent = request.agent(app);
-  const res = await agent.post("/api/auth/login").set(CSRF_HEADER, "1").send({ email, password });
-  if (res.status !== 200) {
-    throw new Error(`login failed for ${email}: ${res.status} ${JSON.stringify(res.body)}`);
+  let lastErr: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const agent = request.agent(app);
+      const res = await agent
+        .post("/api/auth/login")
+        .set(CSRF_HEADER, "1")
+        .set("Connection", "close")
+        .send({ email, password });
+      if (res.status === 200) {
+        return wrap(agent);
+      }
+      lastErr = new Error(`login failed for ${email}: ${res.status} ${JSON.stringify(res.body)} text=${res.text}`);
+    } catch (err) {
+      lastErr = err;
+    }
   }
-  return wrap(agent);
+  throw lastErr;
 }
 
 export function loginRequester(app: Express, email: string = REQUESTERS.alice): Promise<ApiClient> {

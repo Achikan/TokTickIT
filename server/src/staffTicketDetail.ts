@@ -65,8 +65,26 @@ function validationError(res: Response, fields: Record<string, string>) {
 function forbiddenTransition(res: Response, from: Status, to: Status) {
   return res.status(409).json({
     error: {
-      code: "INVALID_TRANSITION",
+      code: "FORBIDDEN_TRANSITION",
       message: `A Ticket cannot move from ${from} to ${to}.`,
+    },
+  });
+}
+
+function staleUpdate(res: Response) {
+  return res.status(409).json({
+    error: {
+      code: "STALE_UPDATE",
+      message: "This Ticket was changed by someone else. Reload it and try again.",
+    },
+  });
+}
+
+function resolutionGate(res: Response) {
+  return res.status(409).json({
+    error: {
+      code: "RESOLUTION_GATE",
+      message: "Record at least one Action Taken on this Ticket before resolving it.",
     },
   });
 }
@@ -80,6 +98,7 @@ const SUMMARY_INCLUDE = {
   category: { select: { id: true, name: true } },
   requester: { select: { id: true, name: true } },
   owner: { select: { id: true, name: true } },
+  _count: { select: { actions: true } },
 } satisfies Prisma.TicketInclude;
 
 type TicketWithSummary = Prisma.TicketGetPayload<{ include: typeof SUMMARY_INCLUDE }>;
@@ -99,6 +118,8 @@ function summaryShape(t: TicketWithSummary) {
     currentStatus: t.currentStatus,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,
+    requesterIndicatedResolvedAt: t.requesterIndicatedResolvedAt,
+    actionsCount: t._count.actions,
   };
 }
 
@@ -148,6 +169,7 @@ staffTicketDetailRouter.get(
             orderBy: [{ createdAt: "desc" }, { id: "desc" }],
             include: { author: { select: { id: true, name: true } } },
           },
+          _count: { select: { actions: true } },
         },
       });
       if (!ticket) return notFound(res);
@@ -182,6 +204,7 @@ staffTicketDetailRouter.get(
           createdAt: ticket.createdAt,
           updatedAt: ticket.updatedAt,
           requesterIndicatedResolvedAt: ticket.requesterIndicatedResolvedAt,
+          actionsCount: ticket._count.actions,
           attachments: ticket.attachments.map((a) => ({
             id: a.id,
             ticketId: a.ticketId,
@@ -301,7 +324,9 @@ staffTicketDetailRouter.patch(
 // ---------------------------------------------------------------------------
 // PATCH /api/staff/tickets/:id/status — permitted status transition (FR-16,
 // §6.5). Unknown enum values are a 400; transitions outside the §5.2 matrix are
-// a specific 409 (BR-09).
+// a specific 409 (BR-09). Optimistic concurrency (D-1/BR-12): the client sends
+// the `updatedAt` it last saw and a mismatch is a 409 STALE_UPDATE. The BR-11
+// resolution gate rejects resolving a Ticket that has no recorded Actions.
 // ---------------------------------------------------------------------------
 staffTicketDetailRouter.patch(
   "/tickets/:id/status",
@@ -317,6 +342,19 @@ staffTicketDetailRouter.patch(
       return validationError(res, { newStatus: "Status is invalid." });
     }
 
+    const expectedRaw = req.body?.expectedUpdatedAt;
+    if (typeof expectedRaw !== "string" || expectedRaw.trim() === "") {
+      return validationError(res, {
+        expectedUpdatedAt: "expectedUpdatedAt is required.",
+      });
+    }
+    const expected = new Date(expectedRaw);
+    if (Number.isNaN(expected.getTime())) {
+      return validationError(res, {
+        expectedUpdatedAt: "expectedUpdatedAt must be a valid timestamp.",
+      });
+    }
+
     const id = parseId(req.params.id);
     if (id === null) return notFound(res);
 
@@ -324,14 +362,32 @@ staffTicketDetailRouter.patch(
       const prisma = getPrisma();
       const ticket = await prisma.ticket.findUnique({
         where: { id },
-        select: { id: true, currentStatus: true },
+        select: {
+          id: true,
+          currentStatus: true,
+          updatedAt: true,
+          _count: { select: { actions: true } },
+        },
       });
       if (!ticket) return notFound(res);
+
+      // BR-12: reject a write based on a stale read before any other rule so
+      // the caller reloads rather than acting on outdated state (D-1).
+      if (ticket.updatedAt.getTime() !== expected.getTime()) {
+        return staleUpdate(res);
+      }
 
       const from = ticket.currentStatus;
       const to = newStatus as Status;
       if (!TRANSITIONS[from].includes(to)) {
         return forbiddenTransition(res, from, to);
+      }
+
+      // BR-11: a Ticket may only be resolved once at least one Action has been
+      // recorded. Pre-existing RESOLVED/CLOSED rows are grandfathered (this
+      // gate only guards a transition *into* RESOLVED).
+      if (to === "RESOLVED" && ticket._count.actions === 0) {
+        return resolutionGate(res);
       }
 
       const updated = await prisma.ticket.update({

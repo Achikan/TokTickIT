@@ -106,7 +106,8 @@ describe("API-35: list users with search and role filter (FR-19, AC-18)", () => 
 
     const requesters = await admin.get("/api/admin/users?role=REQUESTER");
     expect(requesters.status).toBe(200);
-    expect(requesters.body.items).toHaveLength(5);
+    // 6 = 4 active + 1 inactive (Lab 3) + 1 fresh zero-ticket requester (Lab 4, Issue 29).
+    expect(requesters.body.items).toHaveLength(6);
     expect(requesters.body.items.every((u: { role: string }) => u.role === "REQUESTER")).toBe(true);
   });
 

@@ -64,11 +64,12 @@ function formatDate(value: string): string {
 interface Props {
   user: AuthUser;
   onOpenTicket?: (ticket: StaffTicket) => void;
+  initialFilters?: Record<string, string> | Partial<StaffQueueQuery>;
 }
 
 type ListStatus = "loading" | "ready" | "failure";
 
-export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
+export default function StaffTicketQueue({ user: _user, onOpenTicket, initialFilters }: Props) {
   const [listStatus, setListStatus] = useState<ListStatus>("loading");
   const [items, setItems] = useState<StaffTicket[]>([]);
   const [pagination, setPagination] = useState({
@@ -81,11 +82,32 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [assignees, setAssignees] = useState<StaffAssignee[]>([]);
 
-  const [query, setQuery] = useState<StaffQueueQuery>({ page: 1, pageSize: 10, sort: "-updatedAt" });
+  const [query, setQuery] = useState<StaffQueueQuery>(() => ({
+    page: 1,
+    pageSize: 10,
+    sort: "-updatedAt",
+    ...(initialFilters as StaffQueueQuery),
+  }));
 
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(() => (initialFilters?.search as string) ?? "");
   // "" = All, "unassigned" = no owner, otherwise the assignee id (api-spec §6.1a).
-  const [ownerSelect, setOwnerSelect] = useState("");
+  const [ownerSelect, setOwnerSelect] = useState(() => (initialFilters?.ownerId as string) ?? "");
+
+  useEffect(() => {
+    if (initialFilters) {
+      setQuery((q) => ({
+        ...q,
+        page: 1,
+        ...(initialFilters as StaffQueueQuery),
+      }));
+      if (initialFilters.ownerId !== undefined) {
+        setOwnerSelect(initialFilters.ownerId as string);
+      }
+      if (initialFilters.search !== undefined) {
+        setSearchInput(initialFilters.search as string);
+      }
+    }
+  }, [initialFilters]);
 
   useEffect(() => {
     let cancelled = false;
@@ -186,6 +208,7 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
               >
                 <option value="">All</option>
                 <option value="unassigned">Unassigned</option>
+                {ownerSelect === "me" && <option value="me" hidden>Me</option>}
                 {assignees.map((a) => (
                   <option key={a.id} value={String(a.id)}>
                     {a.name}
@@ -241,10 +264,12 @@ export default function StaffTicketQueue({ user: _user, onOpenTicket }: Props) {
                 className="form-select"
                 value={query.status ?? ""}
                 onChange={(e) =>
-                  applyPatch({ status: (e.target.value || undefined) as Status | undefined })
+                  applyPatch({ status: (e.target.value || undefined) as any })
                 }
               >
                 <option value="">All</option>
+                <option value="open">Open / Active</option>
+                <option value="resolved">Resolved / Closed</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {s}

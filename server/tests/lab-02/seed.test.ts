@@ -85,16 +85,16 @@ describe("seed functions", () => {
   // ---------------------------------------------------------------------------
   // User / Requester seed
   // ---------------------------------------------------------------------------
-  it("seedRequesters creates exactly 5 User accounts with role REQUESTER (4 active + 1 inactive)", async () => {
+  it("seedRequesters creates exactly 6 User accounts with role REQUESTER (5 active + 1 inactive)", async () => {
     const prisma = getPrisma();
     await seedRequesters(prisma);
 
     const requesters = await prisma.user.findMany({ where: { role: "REQUESTER" } });
-    expect(requesters).toHaveLength(5);
+    expect(requesters).toHaveLength(6);
 
     const active = requesters.filter((r) => r.active);
     const inactive = requesters.filter((r) => !r.active);
-    expect(active).toHaveLength(4);
+    expect(active).toHaveLength(5); // includes Ivy (Lab 4 zero-metric demo, Issue 29)
     expect(inactive).toHaveLength(1);
 
     // Inactive must be evan.ellis@example.com (SPEC §7)
@@ -107,7 +107,7 @@ describe("seed functions", () => {
     await seedRequesters(prisma);
 
     const count = await prisma.user.count({ where: { role: "REQUESTER" } });
-    expect(count).toBe(5);
+    expect(count).toBe(6);
   });
 
   it("seedLab2 creates categories + related systems + requester users together", async () => {
@@ -120,7 +120,7 @@ describe("seed functions", () => {
 
     expect(cats).toBe(8);
     expect(sys).toBe(6);
-    expect(users).toBe(5);
+    expect(users).toBe(6);
   });
 
   // ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ describe("seed functions", () => {
 
     expect(cats).toBe(8);
     expect(sys).toBe(6);
-    expect(users).toBe(10); // 5 requesters + 3 staff + 1 admin + 1 inactive staff
+    expect(users).toBe(11); // 6 requesters + 3 staff + 1 admin + 1 inactive staff
     expect(tickets).toBe(8);
   });
 
@@ -152,7 +152,7 @@ describe("seed functions", () => {
       prisma.user.count(),
       prisma.ticket.count(),
     ]);
-    expect(counts).toEqual([8, 6, 10, 8]);
+    expect(counts).toEqual([8, 6, 11, 8]);
   });
 
   it("seeded tickets have valid TK-XXXXXX ticket numbers (SPEC §6)", async () => {

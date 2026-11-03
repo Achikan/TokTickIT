@@ -13,8 +13,10 @@ import Login from "./Login.js";
 import MyTickets from "./MyTickets.js";
 import StaffTicketDetail from "./StaffTicketDetail.js";
 import StaffTicketQueue from "./StaffTicketQueue.js";
+import StaffDashboard from "./StaffDashboard.js";
 import TicketDetail from "./TicketDetail.js";
 import UserManagement from "./UserManagement.js";
+import RequesterDashboard from "./RequesterDashboard.js";
 
 // Lab 3 (Issue 19) — authenticated shell: Login -> (mandatory) Change Password
 // -> role-specific home with role badge + Logout (ui-spec.md §3.3).
@@ -24,7 +26,9 @@ type View =
   | "ticket-detail"
   | "staff-queue"
   | "staff-detail"
-  | "user-management";
+  | "staff-dashboard"
+  | "user-management"
+  | "requester-dashboard";
 
 type AuthState =
   | { status: "loading" }
@@ -58,7 +62,9 @@ export default function App() {
   const [auth, setAuth] = useState<AuthState>({ status: "loading" });
   const [view, setView] = useState<View>("my-tickets");
   const [selectedTicket, setSelectedTicket] = useState<MyTicket | null>(null);
-  const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | null>(null);
+  const [selectedStaffTicket, setSelectedStaffTicket] = useState<StaffTicket | { id: number; ticketNumber?: string; [key: string]: any } | null>(null);
+  const [queueFilters, setQueueFilters] = useState<Record<string, string> | undefined>(undefined);
+  const [requesterFilters, setRequesterFilters] = useState<Record<string, string> | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -159,6 +165,14 @@ export default function App() {
               <>
                 <button
                   type="button"
+                  className={`nav-link ${view === "requester-dashboard" ? "active" : ""}`}
+                  style={view === "requester-dashboard" ? { background: "#0B7A46" } : { color: "#fff" }}
+                  onClick={() => setView("requester-dashboard")}
+                >
+                  Dashboard
+                </button>
+                <button
+                  type="button"
                   className={`nav-link ${myTicketsActive ? "active" : ""}`}
                   style={myTicketsActive ? { background: "#0B7A46" } : { color: "#fff" }}
                   onClick={() => setView("my-tickets")}
@@ -177,12 +191,25 @@ export default function App() {
                 </button>
               </>
             )}
-            {user.role === "IT_STAFF" && (
+            {(user.role === "IT_STAFF" || user.role === "ADMIN") && (
+              <button
+                type="button"
+                className={`nav-link ${view === "staff-dashboard" ? "active" : ""}`}
+                style={view === "staff-dashboard" ? { background: "#0B7A46" } : { color: "#fff" }}
+                onClick={() => setView("staff-dashboard")}
+              >
+                Staff Dashboard
+              </button>
+            )}
+            {(user.role === "IT_STAFF" || (user.role === "ADMIN" && staffQueueActive)) && (
               <button
                 type="button"
                 className={`nav-link ${staffQueueActive ? "active" : ""}`}
                 style={staffQueueActive ? { background: "#0B7A46" } : { color: "#fff" }}
-                onClick={() => setView("staff-queue")}
+                onClick={() => {
+                  setQueueFilters(undefined);
+                  setView("staff-queue");
+                }}
                 aria-current={currentPageFor(staffQueueActive)}
               >
                 Ticket Queue
@@ -211,7 +238,19 @@ export default function App() {
         )}
 
         {user.role === "REQUESTER" ? (
-          view === "create-ticket" ? (
+          view === "requester-dashboard" ? (
+            <RequesterDashboard
+              user={user}
+              onViewTickets={(filters) => {
+                setRequesterFilters(filters || null);
+                setView("my-tickets");
+              }}
+              onViewTicket={(t) => {
+                setSelectedTicket(t as any);
+                setView("ticket-detail");
+              }}
+            />
+          ) : view === "create-ticket" ? (
             <CreateTicket requester={user} onViewTickets={() => setView("my-tickets")} />
           ) : view === "ticket-detail" && selectedTicket ? (
             <TicketDetail
@@ -221,8 +260,9 @@ export default function App() {
             />
           ) : (
             <MyTickets
-              key={user.id}
+              key={user.id + JSON.stringify(requesterFilters || {})}
               requester={user}
+              initialFilters={requesterFilters || undefined}
               onCreate={() => setView("create-ticket")}
               onViewTicket={(t) => {
                 setSelectedTicket(t);
@@ -230,27 +270,49 @@ export default function App() {
               }}
             />
           )
-        ) : user.role === "IT_STAFF" ? (
-          view === "staff-detail" && selectedStaffTicket ? (
-            <StaffTicketDetail
-              user={user}
-              ticket={selectedStaffTicket}
-              onBack={() => setView("staff-queue")}
-            />
-          ) : (
-            <StaffTicketQueue
-              user={user}
-              onOpenTicket={(t) => {
-                setSelectedStaffTicket(t);
-                setNotice(null);
-                setView("staff-detail");
-              }}
-            />
-          )
-        ) : (
+        ) : view === "staff-dashboard" ? (
+          <StaffDashboard
+            user={user}
+            onSelectTicket={(id) => {
+              setSelectedStaffTicket({ id });
+              setView("staff-detail");
+            }}
+            onViewQueue={(filters) => {
+              setQueueFilters(filters);
+              setView("staff-queue");
+            }}
+            onViewUsers={() => setView("user-management")}
+          />
+        ) : view === "staff-detail" && selectedStaffTicket ? (
+          <StaffTicketDetail
+            user={user}
+            ticket={selectedStaffTicket as StaffTicket}
+            onBack={() => setView("staff-queue")}
+          />
+        ) : view === "staff-queue" ? (
+          <StaffTicketQueue
+            user={user}
+            initialFilters={queueFilters}
+            onOpenTicket={(t) => {
+              setSelectedStaffTicket(t);
+              setNotice(null);
+              setView("staff-detail");
+            }}
+          />
+        ) : user.role === "ADMIN" ? (
           <UserManagement
             user={user}
             onSelfUpdated={(updated) => setAuth({ status: "authenticated", user: updated })}
+          />
+        ) : (
+          <StaffTicketQueue
+            user={user}
+            initialFilters={queueFilters}
+            onOpenTicket={(t) => {
+              setSelectedStaffTicket(t);
+              setNotice(null);
+              setView("staff-detail");
+            }}
           />
         )}
       </main>

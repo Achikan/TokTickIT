@@ -1,0 +1,83 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>evidence</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fff; color: #111; padding: 20px; }
+  .terminal { background: #0d1117; color: #e6edf3; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.5; padding: 18px 22px; border-radius: 6px; white-space: pre; overflow-x: auto; }
+  h1 { font-size: 18px; margin: 0 0 12px; color: #1f6feb; }
+  h2 { font-size: 15px; margin: 20px 0 8px; color: #24292f; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 10px; margin-bottom: 20px; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .warn { color: #cf222e; font-weight: 600; }
+  .caption { background: #f6f8fa; padding: 6px 12px; font-size: 12px; color: #57606a; border-left: 3px solid #1f6feb; margin-bottom: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #dafbe1; color: #1a7f37; }
+  .badge-red { background: #ffebe9; color: #cf222e; }
+</style></head><body>
+        <h1>Requester Dashboard: Database Query Verification (Part 8)</h1>
+        <div class="caption">Comparison between session-scoped requester metrics (Carol Chen active user & Ivy Ing zero-state user) and authoritative database query counts.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Metric Code</th>
+              <th>Metric Description</th>
+              <th>Dashboard Value (API)</th>
+              <th>Prisma / DB Count</th>
+              <th>Verification Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+    <td><strong>RD-01 (Carol)</strong></td>
+    <td>My Open Tickets (active statuses)</td>
+    <td><strong>2</strong></td>
+    <td><strong>2</strong></td>
+    <td><span class="badge badge-green">Exact Match (2 === 2)</span></td>
+  </tr><tr>
+    <td><strong>RD-02 (Carol)</strong></td>
+    <td>Waiting for Requester</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>RD-03 (Carol)</strong></td>
+    <td>Recently Updated items (≤5 within 7d)</td>
+    <td><strong>2</strong></td>
+    <td><strong>2</strong></td>
+    <td><span class="badge badge-green">Exact Match (2 === 2)</span></td>
+  </tr><tr>
+    <td><strong>RD-04 (Carol)</strong></td>
+    <td>Recently Resolved items (≤5 within 7d)</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>RD-01 (Ivy Zero)</strong></td>
+    <td>Zero-State: My Open Tickets</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>RD-02 (Ivy Zero)</strong></td>
+    <td>Zero-State: Waiting for Requester</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>RD-03 (Ivy Zero)</strong></td>
+    <td>Zero-State: Recently Updated items</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>RD-04 (Ivy Zero)</strong></td>
+    <td>Zero-State: Recently Resolved items</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr>
+          </tbody>
+        </table>
+      </body></html>

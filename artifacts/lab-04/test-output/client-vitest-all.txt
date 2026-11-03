@@ -1,0 +1,169 @@
+
+ RUN  v2.1.9 /Users/yayee/Desktop/TokTickIT/client
+
+stderr | tests/lab-02/style.test.tsx > Zen Green UI style (STYLE-01, ui-spec) > renders required-field red asterisks on Summary and Description (ui-spec §3)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+stderr | tests/lab-02/style.test.tsx > Zen Green UI style (STYLE-01, ui-spec) > renders read-only system fields distinctly from editable ones (ui-spec §3)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+ ✓ tests/lab-04/TicketWorkflow.test.tsx (16 tests) 417ms
+ ✓ tests/lab-03/RequesterRegression.test.tsx (7 tests) 421ms
+ ✓ tests/lab-02/MyTickets.test.tsx (9 tests) 445ms
+ ✓ tests/lab-02/style.test.tsx (8 tests) 364ms
+ ✓ tests/lab-02/AttachmentSection.test.tsx (9 tests) 502ms
+ ✓ tests/lab-03/StaffTicketDetail.test.tsx (10 tests) 721ms
+   ✓ StaffTicketDetail > posts a Public Comment and an Internal Note (append-only) 313ms
+ ✓ tests/lab-03/StaffTicketQueue.test.tsx (11 tests) 766ms
+stderr | tests/lab-02/RequesterTicketDetail.test.tsx > TicketDetail > shows a loading state while the ticket is being fetched
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:568:25)
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:568:25)
+Warning: An update to TicketDetail inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at TicketDetail (/Users/yayee/Desktop/TokTickIT/client/src/TicketDetail.tsx:568:25)
+
+ ✓ tests/lab-04/StaffDashboard.test.tsx (7 tests) 219ms
+ ✓ tests/lab-03/style.test.tsx (5 tests) 192ms
+ ✓ tests/lab-02/RequesterTicketDetail.test.tsx (8 tests) 202ms
+ ✓ tests/lab-04/ActionsTaken.test.tsx (10 tests) 1215ms
+ ✓ tests/lab-03/UserManagement.test.tsx (13 tests) 1258ms
+ ✓ tests/lab-04/RequesterDashboard.test.tsx (3 tests) 146ms
+stderr | tests/lab-02/CreateTicket.test.tsx > CreateTicket > disables the submit button and shows a busy state while submitting (UI-04)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+Warning: An update to CreateTicket inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://reactjs.org/link/wrap-tests-with-act
+    at CreateTicket (/Users/yayee/Desktop/TokTickIT/client/src/CreateTicket.tsx:10:25)
+
+ ✓ tests/lab-01/App.test.tsx (3 tests) 48ms
+ ✓ tests/lab-02/CreateTicket.test.tsx (5 tests) 768ms
+ ✓ tests/lab-02/AppShell.test.tsx (3 tests) 453ms
+ ✓ tests/lab-04/AppDashboard.test.tsx (2 tests) 160ms
+ ✓ tests/lab-03/ChangePassword.test.tsx (2 tests) 305ms
+ ✓ tests/lab-03/Login.test.tsx (8 tests) 1008ms
+
+ Test Files  19 passed (19)
+      Tests  139 passed (139)
+   Start at  16:33:21
+   Duration  2.75s (transform 557ms, setup 795ms, collect 2.58s, tests 9.61s, environment 5.16s, prepare 827ms)
+

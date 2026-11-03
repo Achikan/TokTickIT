@@ -57,11 +57,12 @@ interface Props {
   requester: AuthUser;
   onCreate: () => void;
   onViewTicket?: (t: MyTicket) => void;
+  initialFilters?: Record<string, string> | Partial<TicketQuery>;
 }
 
 type ListStatus = "loading" | "ready" | "failure";
 
-export default function MyTickets({ requester: _requester, onCreate, onViewTicket }: Props) {
+export default function MyTickets({ requester: _requester, onCreate, onViewTicket, initialFilters }: Props) {
   const [listStatus, setListStatus] = useState<ListStatus>("loading");
   const [items, setItems] = useState<MyTicket[]>([]);
   const [pagination, setPagination] = useState({
@@ -73,7 +74,7 @@ export default function MyTickets({ requester: _requester, onCreate, onViewTicke
   const [filtersApplied, setFiltersApplied] = useState<Record<string, unknown>>({});
   const [categories, setCategories] = useState<Category[]>([]);
 
-  const [query, setQuery] = useState<TicketQuery>({ page: 1, pageSize: 10, sort: "-createdAt" });
+  const [query, setQuery] = useState<TicketQuery>(() => ({ page: 1, pageSize: 10, sort: "-createdAt", ...(initialFilters as TicketQuery) }));
 
   const [searchInput, setSearchInput] = useState("");
 
@@ -194,10 +195,12 @@ export default function MyTickets({ requester: _requester, onCreate, onViewTicke
                 className="form-select"
                 value={query.status ?? ""}
                 onChange={(e) =>
-                  applyPatch({ status: (e.target.value || undefined) as Status | undefined })
+                  applyPatch({ status: (e.target.value || undefined) as any })
                 }
               >
                 <option value="">All</option>
+                <option value="open">Open / Active</option>
+                <option value="resolved">Resolved / Closed</option>
                 {STATUSES.map((s) => (
                   <option key={s} value={s}>
                     {s}

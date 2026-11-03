@@ -1,0 +1,125 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<title>evidence</title>
+<style>
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #fff; color: #111; padding: 20px; }
+  .terminal { background: #0d1117; color: #e6edf3; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px; line-height: 1.5; padding: 18px 22px; border-radius: 6px; white-space: pre; overflow-x: auto; }
+  h1 { font-size: 18px; margin: 0 0 12px; color: #1f6feb; }
+  h2 { font-size: 15px; margin: 20px 0 8px; color: #24292f; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; margin-top: 10px; margin-bottom: 20px; }
+  th, td { border: 1px solid #d0d7de; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; font-weight: 600; }
+  .ok { color: #1a7f37; font-weight: 600; }
+  .warn { color: #cf222e; font-weight: 600; }
+  .caption { background: #f6f8fa; padding: 6px 12px; font-size: 12px; color: #57606a; border-left: 3px solid #1f6feb; margin-bottom: 12px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-green { background: #dafbe1; color: #1a7f37; }
+  .badge-red { background: #ffebe9; color: #cf222e; }
+</style></head><body>
+        <h1>IT Staff Dashboard: Database Query Verification (Part 5)</h1>
+        <div class="caption">Direct comparison between backend-computed dashboard metrics and authoritative PostgreSQL / Prisma direct query counts.</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Metric Code</th>
+              <th>Metric Description</th>
+              <th>Dashboard Value (API)</th>
+              <th>Prisma / DB Count</th>
+              <th>Verification Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+    <td><strong>SD-01</strong></td>
+    <td>Unassigned Active Tickets (ownerId = null)</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-02</strong></td>
+    <td>Owned by Me Active Tickets (Dan Das)</td>
+    <td><strong>3</strong></td>
+    <td><strong>3</strong></td>
+    <td><span class="badge badge-green">Exact Match (3 === 3)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (NEW)</strong></td>
+    <td>Tickets in status NEW</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (OPEN)</strong></td>
+    <td>Tickets in status OPEN</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (IN_PROGRESS)</strong></td>
+    <td>Tickets in status IN_PROGRESS</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (WAITING_FOR_REQUESTER)</strong></td>
+    <td>Tickets in status WAITING_FOR_REQUESTER</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (RESOLVED)</strong></td>
+    <td>Tickets in status RESOLVED</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (CLOSED)</strong></td>
+    <td>Tickets in status CLOSED</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (REOPENED)</strong></td>
+    <td>Tickets in status REOPENED</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-03 (CANCELLED)</strong></td>
+    <td>Tickets in status CANCELLED</td>
+    <td><strong>1</strong></td>
+    <td><strong>1</strong></td>
+    <td><span class="badge badge-green">Exact Match (1 === 1)</span></td>
+  </tr><tr>
+    <td><strong>SD-04 (LOW)</strong></td>
+    <td>Active tickets with IT Priority LOW</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>SD-04 (MEDIUM)</strong></td>
+    <td>Active tickets with IT Priority MEDIUM</td>
+    <td><strong>3</strong></td>
+    <td><strong>3</strong></td>
+    <td><span class="badge badge-green">Exact Match (3 === 3)</span></td>
+  </tr><tr>
+    <td><strong>SD-04 (HIGH)</strong></td>
+    <td>Active tickets with IT Priority HIGH</td>
+    <td><strong>2</strong></td>
+    <td><strong>2</strong></td>
+    <td><span class="badge badge-green">Exact Match (2 === 2)</span></td>
+  </tr><tr>
+    <td><strong>SD-04 (URGENT)</strong></td>
+    <td>Active tickets with IT Priority URGENT</td>
+    <td><strong>0</strong></td>
+    <td><strong>0</strong></td>
+    <td><span class="badge badge-green">Exact Match (0 === 0)</span></td>
+  </tr><tr>
+    <td><strong>SD-05</strong></td>
+    <td>Recently Updated Tickets list size (≤5 within 7d)</td>
+    <td><strong>5</strong></td>
+    <td><strong>5</strong></td>
+    <td><span class="badge badge-green">Exact Match (5 === 5)</span></td>
+  </tr>
+          </tbody>
+        </table>
+      </body></html>

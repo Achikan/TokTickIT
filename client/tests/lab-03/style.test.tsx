@@ -40,6 +40,7 @@ const DETAIL: api.StaffTicketDetailData = {
   comments: [
     {
       id: 1,
+      ticketId: 42,
       author: { id: 1, name: "Alice Anderson" },
       createdAt: "2026-09-01T10:05:00.000Z",
       content: "Updating to the latest firmware when plugged in.",
@@ -48,6 +49,7 @@ const DETAIL: api.StaffTicketDetailData = {
   notes: [
     {
       id: 2,
+      ticketId: 42,
       author: { id: 7, name: "Eileen Ford" },
       createdAt: "2026-09-01T10:10:00.000Z",
       content: "Arranging a loaner laptop while battery is replaced.",
@@ -95,8 +97,10 @@ describe("STYLE-01: badge styling and read-only vs editable treatments (AC-23, u
     render(<StaffTicketDetail user={DAN} ticket={SUMMARY} onBack={() => {}} />);
     await screen.findByRole("heading", { name: "TK-001001" });
 
-    const statusEdit = screen.getByLabelText(/New status/i);
-    expect(statusEdit.tagName).toBe("SELECT");
+    // Lab 4 Issue 33 replaced the Lab 3 status <select> with a permitted-only
+    // button row; the other operational controls keep their native types.
+    const statusControls = screen.getByTestId("workflow-actions");
+    expect(within(statusControls).getAllByRole("button").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: /You own this ticket/i })).toBeDisabled();
     expect(screen.getByLabelText(/Reassign to/i).tagName).toBe("SELECT");
   });

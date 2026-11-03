@@ -7,15 +7,18 @@ import {
   type StaffTicket,
   type StaffTicketDetailData,
   type Status,
+  type TicketAction,
   type TicketComment,
   type TicketNote,
   fetchStaffTicketDetail,
+  fetchTicketActions,
   postTicketComment,
   postTicketNote,
   updateStaffTicketOwner,
   updateStaffTicketPriority,
-  updateStaffTicketStatus,
 } from "./api.js";
+import { ActionsTakenSection, sortActionsNewestFirst } from "./ActionsTaken.js";
+import TicketWorkflow from "./TicketWorkflow.js";
 
 // Lab 3 Issue 22 — IT Staff Ticket Detail (ui-spec.md §6, labs-sheet §8.4).
 // Grouped Ticket information with only permitted operational fields editable:
@@ -43,17 +46,8 @@ const STATUS_BADGES: Record<Status, string> = {
   CANCELLED: "badge-status-cancelled",
 };
 
-// specification.md §5.2 — the only statuses reachable from each current status.
-const TRANSITIONS: Record<Status, Status[]> = {
-  NEW: ["OPEN", "IN_PROGRESS", "CANCELLED"],
-  OPEN: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "CANCELLED"],
-  IN_PROGRESS: ["WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  WAITING_FOR_REQUESTER: ["IN_PROGRESS", "RESOLVED", "CANCELLED"],
-  RESOLVED: ["CLOSED", "REOPENED"],
-  CLOSED: ["REOPENED"],
-  REOPENED: ["IN_PROGRESS", "WAITING_FOR_REQUESTER", "RESOLVED", "CANCELLED"],
-  CANCELLED: [],
-};
+// specification.md §5.2 — the only statuses reachable from each current status
+// now live in the TicketWorkflow control component (ui-spec §6).
 
 function formatDateTime(v: string): string {
   return new Date(v).toLocaleString();
@@ -61,7 +55,7 @@ function formatDateTime(v: string): string {
 
 interface Props {
   user: AuthUser;
-  ticket: StaffTicket;
+  ticket: StaffTicket | { id: number; ticketNumber?: string; [key: string]: any };
   onBack: () => void;
 }
 
@@ -157,6 +151,7 @@ function AttachmentsList({ attachments }: { attachments: AttachmentInfo[] }) {
 export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
   const [loadStatus, setLoadStatus] = useState<"loading" | "ready" | "failure">("loading");
   const [detail, setDetail] = useState<StaffTicketDetailData | null>(null);
+  const [actions, setActions] = useState<TicketAction[]>([]);
 
   const [ownerBusy, setOwnerBusy] = useState(false);
   const [ownerError, setOwnerError] = useState<string | null>(null);
@@ -165,10 +160,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
   const [priorityValue, setPriorityValue] = useState<Priority>("MEDIUM");
   const [priorityBusy, setPriorityBusy] = useState(false);
   const [priorityError, setPriorityError] = useState<string | null>(null);
-
-  const [statusValue, setStatusValue] = useState<Status | "">("");
-  const [statusBusy, setStatusBusy] = useState(false);
-  const [statusError, setStatusError] = useState<string | null>(null);
 
   const [commentValue, setCommentValue] = useState("");
   const [commentBusy, setCommentBusy] = useState(false);
@@ -186,7 +177,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
         if (cancelled) return;
         setDetail(data);
         setPriorityValue(data.itPriority);
-        setStatusValue("");
         setLoadStatus("ready");
       })
       .catch(() => {
@@ -197,6 +187,42 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     };
   }, [ticket.id]);
 
+  // Actions Taken are a secondary section: a failure here must not blank the
+  // ticket itself, so they load independently and stay empty on error.
+  useEffect(() => {
+    let cancelled = false;
+    fetchTicketActions(ticket.id)
+      .then((items) => {
+        if (!cancelled) setActions(sortActionsNewestFirst(items));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [ticket.id]);
+
+  async function reloadActions() {
+    try {
+      setActions(await fetchTicketActions(ticket.id));
+    } catch {
+      // The conflict callout already tells the user to reload; a failed reload
+      // keeps the current list rather than blanking the section.
+    }
+  }
+
+  // Re-reads the ticket so the workflow control set and summary reflect the
+  // server's current state (used by the forbidden-transition and stale-update
+  // recovery paths — ui-spec §6).
+  async function reloadTicket() {
+    try {
+      const data = await fetchStaffTicketDetail(ticket.id);
+      setDetail(data);
+      setPriorityValue(data.itPriority);
+    } catch {
+      // Keep the current view; the callout already explains the conflict.
+    }
+  }
+
   function applyUpdatedSummary(updated: StaffTicket) {
     setDetail((d) =>
       d
@@ -206,6 +232,9 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
             itPriority: updated.itPriority,
             currentStatus: updated.currentStatus,
             updatedAt: updated.updatedAt,
+            // Preserve the recorded-Action count from the response so the BR-11
+            // resolve pre-check stays consistent across transitions (Issue 33).
+            actionsCount: updated.actionsCount ?? d.actionsCount,
           }
         : d
     );
@@ -252,23 +281,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
       setPriorityError(e instanceof ApiError ? e.message : "Unable to update IT Priority.");
     } finally {
       setPriorityBusy(false);
-    }
-  }
-
-  async function handleUpdateStatus() {
-    if (!detail || statusValue === "") return;
-    setStatusBusy(true);
-    setStatusError(null);
-    try {
-      const updated = await updateStaffTicketStatus(detail.id, statusValue);
-      applyUpdatedSummary(updated);
-      setStatusValue("");
-    } catch (e) {
-      // A forbidden transition returns a specific 409 message (BR-09); surface
-      // it instead of silently hiding the option (ui-spec §6).
-      setStatusError(e instanceof ApiError ? e.message : "Unable to update the ticket status.");
-    } finally {
-      setStatusBusy(false);
     }
   }
 
@@ -320,7 +332,7 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     return (
       <div>
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h2 className="h4 mb-0">{ticket.ticketNumber}</h2>
+          <h2 className="h4 mb-0">{ticket.ticketNumber ?? "Ticket"}</h2>
           <button type="button" className="btn btn-outline-secondary btn-sm" onClick={onBack}>
             Back to Queue
           </button>
@@ -330,7 +342,6 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
     );
   }
 
-  const allowedTransitions: Status[] = TRANSITIONS[detail.currentStatus];
   const alreadyOwner = detail.owner?.id === user.id;
 
   return (
@@ -523,50 +534,47 @@ export default function StaffTicketDetail({ user, ticket, onBack }: Props) {
           </div>
 
           {/* Status transition, restricted to the approved matrix (FR-16, BR-09) */}
-          <div className="mb-0">
-            <h4 className="h6">Status</h4>
-            {allowedTransitions.length === 0 ? (
-              <p className="text-muted small mb-0">
-                No further status transitions are permitted from {detail.currentStatus}.
-              </p>
-            ) : (
-              <div className="d-flex flex-wrap gap-2 align-items-end">
-                <div>
-                  <label htmlFor="status-transition" className="form-label mb-1">
-                    New status
-                  </label>
-                  <select
-                    id="status-transition"
-                    className="form-select form-select-sm"
-                    value={statusValue}
-                    onChange={(e) => setStatusValue(e.target.value as Status | "")}
-                  >
-                    <option value="">Select a permitted status…</option>
-                    {allowedTransitions.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-tok-primary btn-sm"
-                  onClick={handleUpdateStatus}
-                  disabled={statusBusy || statusValue === ""}
-                >
-                  {statusBusy ? "Updating…" : "Update Status"}
-                </button>
-              </div>
-            )}
-            {statusError && (
-              <p className="text-danger small mt-2 mb-0" role="alert">
-                {statusError}
-              </p>
-            )}
-          </div>
+          {/* Status transition — permitted matrix choices only, as a labelled
+              button row (ui-spec §6 / FR-16, BR-09/BR-11/BR-12). */}
+          <TicketWorkflow
+            ticketId={detail.id}
+            currentStatus={detail.currentStatus}
+            expectedUpdatedAt={detail.updatedAt}
+            actionsCount={Math.max(detail.actionsCount ?? 0, actions.length)}
+            onTransitioned={applyUpdatedSummary}
+            onReloadTicket={reloadTicket}
+          />
         </div>
       </section>
+
+      {/* Actions Taken — line-by-line work log (ui-spec §5, lab sheet §8.3).
+          Placed between Ticket information/Operations and Public Comments. */}
+      <ActionsTakenSection
+        ticketId={detail.id}
+        actions={actions}
+        editable
+        performerName={user.name}
+        ticketCreatedAt={detail.createdAt}
+        onCreated={(action, ticketSummary) => {
+          setActions((list) => sortActionsNewestFirst([...list, action]));
+          // Creating an Action advances the Ticket's updatedAt server-side and
+          // raises its action count; sync both so the cached anchor stays fresh
+          // and the resolve pre-check un-gates without a reload (Issue 33).
+          setDetail((d) =>
+            d
+              ? {
+                  ...d,
+                  updatedAt: ticketSummary.updatedAt,
+                  actionsCount: ticketSummary.actionsCount,
+                }
+              : d
+          );
+        }}
+        onUpdated={(updated) =>
+          setActions((list) => list.map((a) => (a.id === updated.id ? updated : a)))
+        }
+        onReload={reloadActions}
+      />
 
       {/* Public Comments — visible to all three roles (FR-10, AC-17) */}
       <section className="card mb-4" aria-labelledby="staff-public-comments-heading">

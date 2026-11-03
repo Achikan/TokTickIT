@@ -2,7 +2,7 @@
 
 IT service desk application built across Labs 1–4 of CPE 334: Introduction to Software Engineering in the Age of AI Agents.
 
-Full-stack vertical slice: React + TypeScript + Vite + Bootstrap (client) → Express + TypeScript (server) → Prisma ORM → PostgreSQL. Lab 3 replaces Development Requesters with a session-authenticated `User` model (roles: `REQUESTER`, `IT_STAFF`, `ADMIN`) and adds the IT Staff ticket queue, ticket detail, and Administrator user management.
+Full-stack vertical slice: React + TypeScript + Vite + Bootstrap (client) → Express + TypeScript (server) → Prisma ORM → PostgreSQL. Lab 3 added session authentication (`REQUESTER`, `IT_STAFF`, `ADMIN`), staff queue, and user management. Lab 4 completes the service-desk workflow with Actions Taken, ticket resolution gates, status transition matrix, and role-tailored dashboards for Requesters and IT Staff.
 
 ## Repository structure
 
@@ -12,20 +12,18 @@ toktickit/
  ├── server/                  # Node.js + Express + TypeScript backend
  │   ├── prisma/              # Prisma schema, migrations, seed
  │   ├── src/                 # Express app and routes
- │   └── tests/lab-01..03     # Supertest API tests (Lab 3: auth, staff queue, ticket detail, users admin)
+ │   └── tests/lab-01..04     # Supertest API tests (Lab 4: actions-taken, workflow, dashboards)
  ├── e2e/lab-02, lab-03/      # Playwright E2E + responsive + accessibility specs
- ├── scripts/                 # Playwright screenshot generators (screenshots*.mjs, screenshots-lab3.mjs)
+ ├── scripts/                 # Playwright screenshot generators (screenshots*.mjs)
  ├── docs/lab-01/             # ai_use.md, reviewer.md, tests.md
- ├── docs/lab-02/             # specification.md, api-spec.md, ui-spec.md, tests.md,
- │                            #   reviewer.md, ai-use.md, visual-inspection.md
- ├── docs/lab-03/             # specification.md, api-spec.md, ui-spec.md, tests.md,
- │                            #   reviewer.md, ai-use.md, visual-inspection.md
- ├── artifacts/lab-02/screenshots/  # evidence PNGs (create-ticket, my-tickets, ticket-detail,
- │                            #   create-ticket-states, part-1..8 evidence, attachments, ...)
- ├── artifacts/lab-03/screenshots/  # evidence PNGs (authentication, staff-queue,
- │                            #   staff-ticket-detail, user-management × desktop/tablet/mobile)
+ ├── docs/lab-02/             # specification.md, api-spec.md, ui-spec.md, tests.md, reviewer.md, ai-use.md
+ ├── docs/lab-03/             # specification.md, api-spec.md, ui-spec.md, tests.md, reviewer.md, ai-use.md
+ ├── docs/lab-04/             # specification.md, api-spec.md, ui-spec.md, tests.md
+ ├── artifacts/lab-02/screenshots/  # evidence PNGs (create-ticket, my-tickets, ticket-detail)
+ ├── artifacts/lab-03/screenshots/  # evidence PNGs (authentication, staff-queue, staff-ticket-detail, user-mgmt)
+ ├── artifacts/lab-04/test-output/  # test evidence (server-tsc, server-vitest-all, client-tsc, client-vitest-all)
  ├── playwright.config.ts     # E2E projects: desktop/tablet/mobile
- ├── package.json             # root scripts: test:e2e, screenshots, screenshots:lab3
+ ├── package.json             # root scripts: test:e2e, screenshots
  ├── .gitignore
  └── README.md
 ```
@@ -91,17 +89,33 @@ Then use the app (Lab 3):
   set-initial-password, activate/deactivate (with BR safety rules, e.g. no self-deactivation
   and at least one active Administrator).
 
-### Tests
+Then use the app (Lab 4):
+
+- **IT Staff Dashboard** — operational metrics (unassigned, assigned to me, status/priority
+  breakdowns, recently updated tickets) with one-click drill-downs to the Ticket Queue.
+  Administrator views include user account metrics.
+- **Requester Dashboard** — personal ticket metrics (open, waiting for requester, recently
+  resolved, closed) with drill-down links to filtered My Tickets.
+- **Actions Taken on Ticket Detail** — staff records work history lines with action date,
+  description, result, auto-assigned performer, and conditional follow-up note; requesters
+  have read-only visibility.
+- **Ticket Workflow & Resolution Gate** — status transitions strictly follow the
+  transition matrix with optimistic concurrency checks (`expectedUpdatedAt`); resolving
+  a ticket requires at least one recorded Action Taken.
+
+### Tests & Evidence Generation
 
 ```bash
 cd server && npm test       # Supertest API tests (Vitest)
 cd client && npm test       # UI tests (Vitest + Testing Library)
-npm run test:e2e            # Playwright E2E + responsive (root; starts the client on :5173).
-                            # Start the API first on :3000 with `cd server && npm run dev`.
-npm run screenshots         # regenerate desktop/tablet/mobile evidence PNGs into artifacts/
-npm run screenshots:lab3     # regenerate the Lab 3 evidence PNGs into artifacts/lab-03/screenshots/
+npm run test:e2e:lab4       # Playwright E2E tests for Lab 4 (Actions Taken, Workflow, Dashboards)
+npm run screenshots:lab4    # Capture responsive evidence screenshots for Lab 4
+npm run evidence:lab4       # Generate authoritative DB vs API verification tables & 409/403/404 API error evidence
+npm run pdf:lab4            # Build the Lab 4 PDF submission report
 ```
 
-Lab 3 test results: server 195/195 (unit + API), client 98/98 (UI + style), E2E + responsive + accessibility
-25/25 (see `docs/lab-03/tests.md`).
-```
+Lab 4 test results:
+- **Server:** 25 files / 330 tests passed (100% green, see `artifacts/lab-04/test-output/server-vitest-all.txt`).
+- **Client:** 19 files / 139 tests passed (100% green, see `artifacts/lab-04/test-output/client-vitest-all.txt`).
+- **E2E:** 4 specs passed (100% green, covering actions taken, resolution gate, and staff/requester dashboards).
+- Both `server` and `client` typecheck clean (`tsc --noEmit`, exit code 0).
