@@ -83,3 +83,14 @@
   - Re-captured `02-workflow-requester-advisory.png` showing the "Problem appears resolved" confirmation banner ("Your note was recorded for IT Staff. The ticket status has not changed.").
   - Re-generated full screenshot suite (19 PNGs) cleanly via `npm run screenshots:lab4`.
 
+### 5. PR #91 (Handout §12 E2E Specs) — Component Selectors, Label Sync & Pre-test Database State
+- **Reviewer Comment (@il0lk3):**
+  > 1. `e2e/lab-04/actions-taken-flow.spec.ts`: `#action-performedBy` does not exist in `ActionsTaken.tsx`. Performed By is rendered as a read-only paragraph (`data-testid="action-performer-note"`).
+  > 2. `e2e/lab-04/dashboards.spec.ts`: Several string assertions do not match exact component labels (`Owned by me`, `Tickets by IT Priority`, `Recently Updated (last 7 days)`, `User accounts (concise)`, `Waiting for Me`, and `No recently updated/resolved tickets.`).
+  > 3. `e2e/lab-04/ticket-resolution.spec.ts`: Ensure pre-test database is freshly seeded so `TK-001003` is in `IN_PROGRESS` with transition buttons rendered.
+- **Author Response:**
+  - Updated locator in `actions-taken-flow.spec.ts` to target `[data-testid="action-performer-note"]` asserting Dan Das automatic attribution.
+  - Aligned all dashboard string assertions in `dashboards.spec.ts` to exact component labels.
+  - Added `ensureSeedData()` in `helpers.ts` and updated root script to `npm run prisma:seed --prefix server && playwright test e2e/lab-04`.
+  - Verified all 4 E2E tests passing green. Approved and ready to merge into `lab4-staging`.
+
