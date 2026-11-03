@@ -63,3 +63,22 @@
   - Verified backend enforcement in `server/src/routes/tickets.ts`: status change to `RESOLVED` checks `prisma.actionTaken.count({ where: { ticketId } })` and returns `409 RESOLUTION_GATE` if 0 actions exist.
   - Added regression test confirming legacy resolved tickets retain their status and can transition to `CLOSED` smoothly. All 17 workflow API tests passed.
 
+### 4. PR #90 (Zen Green Polish, Accessibility, Screenshots & Release) — Actions Taken & Workflow Evidence Targeting
+- **Reviewer Comment (@il0lk3):**
+  > 1. Actions Taken List screenshots (`actions-taken/{01-desktop, 02-tablet, 03-mobile}.png`) captured the zero-action state because `TK-001008` (CANCELLED, 0 actions) was selected from the dashboard. Table layout, multi-performer rows, and mobile cards were replaced by "No actions recorded yet."
+  > 2. `06-actions-taken-edit-mode.png` was missing because zero actions meant no edit buttons were rendered and the Playwright edit capture block was bypassed.
+  > 3. `01-workflow-status-transitions.png` captured `TK-001008` in terminal CANCELLED status with zero transition buttons rendered.
+  > 4. `07-actions-taken-requester-readonly.png` showed zero actions because Alice Anderson's `TK-001005` had 0 actions.
+  > **Suggested Fix:**
+  > - Target ticket `TK-001003` via Ticket Queue or direct button selector for Staff Actions Taken and Workflow captures.
+  > - Use `carol.chen@example.com` (requester of `TK-001003`) for the requester read-only capture.
+  > - Re-run `npm run screenshots:lab4` and commit the updated screenshot set.
+- **Author Response:**
+  - Updated `scripts/screenshots-lab4.mjs` to target ticket `TK-001003` ("Printer jams on floor 3", status: `IN_PROGRESS`) via `button[aria-label="Open ticket TK-001003"]:visible` from the Ticket Queue.
+  - Re-captured `01-actions-taken-list-desktop.png`, `02-actions-taken-list-tablet.png`, and `03-actions-taken-list-mobile.png` displaying the full actions table and responsive cards with 3 distinct recorded actions across multiple performers (Frank Gao, Eileen Ford, Dan Das).
+  - Captured `06-actions-taken-edit-mode.png` showing the active Edit Action form with prefilled fields and read-only performer field.
+  - Re-captured `01-workflow-status-transitions.png` on `TK-001003` showing permitted transition buttons ("Set Waiting for Requester", "Resolve", "Cancel Ticket").
+  - Updated Requester capture to authenticate as Carol Chen (`carol.chen@example.com`), capturing `07-actions-taken-requester-readonly.png` showing all 3 actions in read-only mode without write controls.
+  - Re-captured `02-workflow-requester-advisory.png` showing the "Problem appears resolved" confirmation banner ("Your note was recorded for IT Staff. The ticket status has not changed.").
+  - Re-generated full screenshot suite (19 PNGs) cleanly via `npm run screenshots:lab4`.
+

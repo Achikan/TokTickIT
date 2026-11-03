@@ -33,11 +33,13 @@ const ADMIN = { email: "henri.ito@example.com", password: "DevPass!23" };
 const STAFF = { email: "dan.das@example.com", password: "DevPass!23" };
 const REQUESTER = { email: "alice.anderson@example.com", password: "ReadyPass!23" };
 const ZERO_REQUESTER = { email: "ivy.ing@example.com", password: "ReadyPass!23" };
+const CAROL = { email: "carol.chen@example.com", password: "ReadyPass!23" };
 
 async function prepareRequesterPasswords() {
   const reqs = [
     { email: "alice.anderson@example.com" },
     { email: "ivy.ing@example.com" },
+    { email: "carol.chen@example.com" },
   ];
   for (const r of reqs) {
     const ctx = await playwrightRequest.newContext({ baseURL: API_URL });
@@ -219,15 +221,17 @@ async function run() {
       const page = await browser.newPage({ viewport: vp });
       await performLogin(page, STAFF.email, STAFF.password);
       
-      const dashBtn = page.locator('button:has-text("Staff Dashboard")').first();
-      if (await dashBtn.isVisible()) {
-        await dashBtn.click();
+      // Ensure we navigate to Ticket Queue where all tickets are listed
+      const queueNavBtn = page.locator('button:has-text("Ticket Queue")').first();
+      if (await queueNavBtn.isVisible()) {
+        await queueNavBtn.click();
         await page.waitForTimeout(600);
       }
       
-      // Click first ticket number link on dashboard
-      await page.waitForSelector('button:has-text("TK-")', { timeout: 10000 });
-      await page.locator('button:has-text("TK-")').first().click();
+      // Target ticket TK-001003 (Printer jams on floor 3, IN_PROGRESS with 3 actions)
+      const openBtn = page.locator('button[aria-label="Open ticket TK-001003"]:visible').first();
+      await openBtn.waitFor({ state: "visible", timeout: 10000 });
+      await openBtn.click();
       await page.waitForSelector('#actions-taken-heading', { timeout: 10000 });
       await page.waitForTimeout(800);
 
@@ -258,17 +262,22 @@ async function run() {
           }
         }
 
-        // Edit action form
+        // Edit action form (TK-001003 has 3 actions, so edit button is present)
+        await page.waitForSelector('button[aria-label^="Edit action"]', { timeout: 5000 });
         const editBtn = page.locator('button[aria-label^="Edit action"]').first();
         if (await editBtn.isVisible()) {
           await editBtn.click();
+          await page.waitForSelector('form[aria-label="Edit action"]', { timeout: 5000 });
           await page.waitForTimeout(500);
           await captureScreenshot(page, "actions-taken", "06-actions-taken-edit-mode.png");
           const cancelEdit = page.locator('button:has-text("Cancel")').first();
-          if (await cancelEdit.isVisible()) await cancelEdit.click();
+          if (await cancelEdit.isVisible()) {
+            await cancelEdit.click();
+            await page.waitForTimeout(400);
+          }
         }
 
-        // Workflow status transitions
+        // Workflow status transitions (TK-001003 is IN_PROGRESS with permitted transition buttons rendered)
         const workflowSection = page.locator('[data-testid="ticket-workflow"]');
         if (await workflowSection.isVisible()) {
           await captureScreenshot(page, "workflow", "01-workflow-status-transitions.png");
@@ -279,24 +288,30 @@ async function run() {
     }
 
     // Requester view: read-only actions list and "Problem appears resolved"
+    // Using Carol Chen (carol.chen@example.com) who owns TK-001003
     {
       const page = await browser.newPage({ viewport: VIEWPORTS.desktop });
-      await performLogin(page, REQUESTER.email, REQUESTER.password);
+      await performLogin(page, CAROL.email, CAROL.password);
       
-      const dashBtn = page.locator('button:has-text("Dashboard")').first();
-      if (await dashBtn.isVisible()) {
-        await dashBtn.click();
+      const myTicketsBtn = page.locator('button:has-text("My Tickets")').first();
+      if (await myTicketsBtn.isVisible()) {
+        await myTicketsBtn.click();
         await page.waitForTimeout(600);
       }
-      await page.waitForSelector('button:has-text("TK-")', { timeout: 10000 });
-      const ticketLink = page.locator('button:has-text("TK-")').first();
-      if (await ticketLink.isVisible()) {
-        await ticketLink.click();
-        await page.waitForSelector('#actions-taken-heading', { timeout: 10000 });
-        await page.waitForTimeout(800);
-        await captureScreenshot(page, "actions-taken", "07-actions-taken-requester-readonly.png");
-        await captureScreenshot(page, "workflow", "02-workflow-requester-advisory.png");
+      const openReqBtn = page.locator('button[aria-label="Open ticket TK-001003"]:visible').first();
+      await openReqBtn.waitFor({ state: "visible", timeout: 10000 });
+      await openReqBtn.click();
+      await page.waitForSelector('#actions-taken-heading', { timeout: 10000 });
+      await page.waitForTimeout(800);
+      await captureScreenshot(page, "actions-taken", "07-actions-taken-requester-readonly.png");
+
+      // Requester advisory: click "Mark as appears resolved" if not already indicated
+      const markResolvedBtn = page.locator('button:has-text("Mark as appears resolved")');
+      if (await markResolvedBtn.isVisible().catch(() => false)) {
+        await markResolvedBtn.click();
+        await page.waitForTimeout(600);
       }
+      await captureScreenshot(page, "workflow", "02-workflow-requester-advisory.png");
       await page.close();
     }
 
