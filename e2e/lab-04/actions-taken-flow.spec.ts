@@ -54,7 +54,7 @@ test.describe("Actions Taken Flow (E2E-01)", () => {
 
     // 4. Saved action appears in the table with performer name
     await expect(page.getByText(desc)).toBeVisible();
-    await expect(page.getByText(STAFF.email).or(page.getByText("Dan Das"))).toBeVisible();
+    await expect(page.locator('[data-testid="actions-table"]').getByText("Dan Das").first()).toBeVisible();
 
     // 5. Edit mode: click Edit on the action
     const editBtn = page.locator('button[aria-label^="Edit action"]').first();
@@ -63,14 +63,15 @@ test.describe("Actions Taken Flow (E2E-01)", () => {
 
     const editForm = page.getByRole("form", { name: "Edit action" });
     await expect(editForm).toBeVisible();
-    // Performed by is read-only
-    await expect(page.locator("#action-performedBy")).toBeDisabled();
+    // Performed by is read-only automatic attribution
+    await expect(page.locator('[data-testid="action-performer-note"]')).toBeVisible();
+    await expect(page.locator('[data-testid="action-performer-note"]')).toContainText("Dan Das");
 
     // Update result and save
     const resultText = `Resolved verified via test print ${uniqueSuffix()}`;
     await page.locator("#action-result").fill(resultText);
     await page.getByRole("button", { name: "Save Action" }).click();
-    await expect(page.getByText(resultText)).toBeVisible();
+    await expect(page.getByText(resultText).first()).toBeVisible();
 
     // 6. Requester view: verify read-only access (no Add/Edit buttons)
     await logout(page);
@@ -81,6 +82,7 @@ test.describe("Actions Taken Flow (E2E-01)", () => {
     await expect(page.getByRole("button", { name: "Add Action" })).toHaveCount(0);
     await expect(page.locator('button[aria-label^="Edit action"]')).toHaveCount(0);
     // Actions are still readable
-    await expect(page.getByText(resultText)).toBeVisible();
+    await expect(page.getByText(resultText).first()).toBeVisible();
   });
 });
+

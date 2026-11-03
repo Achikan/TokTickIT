@@ -7,12 +7,14 @@ import {
   openTicketFromQueue,
   openTicketFromMyTickets,
   ensureRequesterPassword,
+  ensureSeedData,
 } from "./helpers.js";
 
 // Lab 4 (Issue 33/37) — E2E-02: Ticket Resolution & Status Workflow (specification.md AC-11, AC-16, AC-25)
 test.describe("Ticket Resolution and Status Workflow (E2E-02)", () => {
   test.beforeAll(async () => {
     await ensureRequesterPassword(CAROL.email);
+    await ensureSeedData();
   });
 
   test("permitted transitions rendered per matrix, resolution gate enforced, and requester advisory note does not change status", async ({
@@ -62,3 +64,4 @@ test.describe("Ticket Resolution and Status Workflow (E2E-02)", () => {
     await expect(page.getByText("IN_PROGRESS")).toBeVisible();
   });
 });
+

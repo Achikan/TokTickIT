@@ -24,7 +24,7 @@ export const VIEWPORTS = {
 } as const;
 
 export default defineConfig({
-  testDir: "./e2e/lab-03",
+  testDir: process.env.TEST_DIR ?? "./e2e",
   // The server assigns official ticket numbers from a running count, so ticket
   // creation must be serialized to avoid collisions. E2E runs are lightweight;
   // run them sequentially with a single worker for deterministic results.

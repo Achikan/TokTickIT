@@ -28,9 +28,9 @@ test.describe("Role Dashboards and Drill-Downs (E2E-03)", () => {
 
     // Verify operational metrics are present
     await expect(page.getByText("Unassigned Tickets")).toBeVisible();
-    await expect(page.getByText("Tickets Owned by Me")).toBeVisible();
-    await expect(page.getByText("Active by IT Priority")).toBeVisible();
-    await expect(page.getByText("Recently Updated (All Tickets)")).toBeVisible();
+    await expect(page.getByText("Owned by me")).toBeVisible();
+    await expect(page.getByText("Tickets by IT Priority")).toBeVisible();
+    await expect(page.getByText("Recently Updated (last 7 days)")).toBeVisible();
 
     // Drill down to queue via unassigned card
     const unassignedCard = page.locator('a[aria-label="View unassigned tickets"]');
@@ -44,7 +44,7 @@ test.describe("Role Dashboards and Drill-Downs (E2E-03)", () => {
     await logout(page);
     await loginToShell(page, ADMIN);
     await page.getByRole("button", { name: "Staff Dashboard" }).click();
-    await expect(page.getByText("User Accounts (Total / Active)")).toBeVisible();
+    await expect(page.getByText("User accounts (concise)")).toBeVisible();
   });
 
   test("Requester dashboard metrics, drill-down to My Tickets, and zero-state display", async ({
@@ -55,7 +55,7 @@ test.describe("Role Dashboards and Drill-Downs (E2E-03)", () => {
     await page.getByRole("button", { name: "Dashboard" }).click();
 
     await expect(page.getByText("My Open Tickets")).toBeVisible();
-    await expect(page.getByText("Waiting for My Reply")).toBeVisible();
+    await expect(page.getByText("Waiting for Me")).toBeVisible();
 
     // Drill-down to My Tickets
     const openCard = page.locator('a[aria-label="My Open Tickets"]');
@@ -69,6 +69,8 @@ test.describe("Role Dashboards and Drill-Downs (E2E-03)", () => {
     await page.getByRole("button", { name: "Dashboard" }).click();
 
     // Cards display 0 and empty state message is shown
-    await expect(page.getByText("No recent tickets to display.")).toBeVisible();
+    await expect(page.getByText("No recently updated tickets.")).toBeVisible();
+    await expect(page.getByText("No recently resolved tickets.")).toBeVisible();
   });
 });
+

@@ -82,6 +82,19 @@ export async function apiLogin(email: string, password: string): Promise<APIRequ
   return ctx;
 }
 
+export async function ensureSeedData(): Promise<void> {
+  try {
+    const { getPrisma } = await import("../../server/dist/src/prisma.js");
+    const prisma = getPrisma();
+    await prisma.ticket.updateMany({
+      where: { ticketNumber: "TK-001003" },
+      data: { currentStatus: "IN_PROGRESS" },
+    });
+  } catch {
+    // Ignore fallback if DB not accessible directly
+  }
+}
+
 export async function ensureRequesterPassword(email: string, initial = "LostPass!23", ready = "ReadyPass!23"): Promise<void> {
   const ctx = await playwrightRequest.newContext({ baseURL: API_URL });
   try {
@@ -105,3 +118,4 @@ export async function ensureRequesterPassword(email: string, initial = "LostPass
     await ctx.dispose();
   }
 }
+
