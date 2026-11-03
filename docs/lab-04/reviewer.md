@@ -26,7 +26,8 @@
 | [#86](https://github.com/Achikan/TokTickIT/pull/86) | 34 — IT Staff Dashboard (API + UI) | `feature/34-staff-dashboard` | Approved (after 1 revision) |
 | [#87](https://github.com/Achikan/TokTickIT/pull/87) | 35 — Requester Dashboard (API + UI) | `feature/35-requester-dashboard` | Approved |
 | [#89](https://github.com/Achikan/TokTickIT/pull/89) | 36 — Final Regression & Product Hardening | `feature/36-final-regression-product-hardening` | Approved (after 2 revisions) |
-| [#90](https://github.com/Achikan/TokTickIT/pull/90) | 37 — Zen Green Polish, Accessibility, Screenshots & Release | `feature/37-zen-green-polish-release` | Current PR / Open for review |
+| [#90](https://github.com/Achikan/TokTickIT/pull/90) | 37 — Zen Green Polish, Accessibility, Screenshots & Release | `feature/37-zen-green-polish-release` | Approved (after 1 revision) |
+| [#91](https://github.com/Achikan/TokTickIT/pull/91) | Handout §12 E2E Specs (`e2e/lab-04/`) | `feature/lab4-e2e-specs` | Under Review / Ready to Merge |
 
 ---
 
