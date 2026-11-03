@@ -43,6 +43,9 @@ docs/lab-03/report_lab03_67070505229.pdf
 docs/Lab_3_sheet.pdf
 docs/Lab_02_labsheet.pdf
 docs/lab-01/Lab1_Labsheet.pdf
+docs/SE+Lab+4.pdf
+docs/SE*.pdf
+*.png
 
 # lab-01 / lab-02 build outputs & converted artifacts (generated, not committed)
 docs/lab-01/*.html
